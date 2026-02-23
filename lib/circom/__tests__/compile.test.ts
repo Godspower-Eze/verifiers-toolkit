@@ -1,6 +1,14 @@
 import { compileCircom } from '@/lib/circom/compileCircom';
 import { mapCompileErrors, normalizeCompileOutput, parseConstraintCount, parseWireCount } from '@/lib/circom/normalize';
 import { MAX_SOURCE_BYTES } from '@/lib/circom/CircomServerCompiler';
+import { CircomCompileResult, CompileSource } from '@/lib/circom/types';
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+/** Narrow LanguageCompileResult to CircomCompileResult in tests. */
+function asCircom(result: unknown): CircomCompileResult {
+  return result as CircomCompileResult;
+}
 
 // ─── Fixture circuits ─────────────────────────────────────────────────────────
 
@@ -47,6 +55,11 @@ template Bad() { signal input x; x === x; }
 component main = Bad();
 `.trim();
 
+/** Shorthand: build a CompileSource for Circom. */
+function circomSource(code: string, filename?: string): CompileSource {
+  return { language: 'circom', code, filename };
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('compileCircom', () => {
@@ -54,31 +67,36 @@ describe('compileCircom', () => {
 
   describe('success path', () => {
     it('returns success:true for a valid single-file circuit', async () => {
-      const response = await compileCircom({ code: VALID_MULTIPLIER });
+      const response = await compileCircom(circomSource(VALID_MULTIPLIER));
       expect(response.success).toBe(true);
     });
 
+    it('echoes back the language in the response', async () => {
+      const response = await compileCircom(circomSource(VALID_MULTIPLIER));
+      expect(response.language).toBe('circom');
+    });
+
     it('returns the correct constraint count from stdout', async () => {
-      const response = await compileCircom({ code: VALID_MULTIPLIER });
+      const response = await compileCircom(circomSource(VALID_MULTIPLIER));
       expect(response.success).toBe(true);
       if (response.success) {
-        expect(response.result.constraintCount).toBe(1);
+        expect(asCircom(response.result).constraintCount).toBe(1);
       }
     });
 
     it('returns constraint count of 3 for a 3-constraint circuit', async () => {
-      const response = await compileCircom({ code: VALID_THREE_CONSTRAINTS });
+      const response = await compileCircom(circomSource(VALID_THREE_CONSTRAINTS));
       expect(response.success).toBe(true);
       if (response.success) {
-        expect(response.result.constraintCount).toBe(3);
+        expect(asCircom(response.result).constraintCount).toBe(3);
       }
     });
 
     it('result contains a warnings array (empty for clean circuits)', async () => {
-      const response = await compileCircom({ code: VALID_MULTIPLIER });
+      const response = await compileCircom(circomSource(VALID_MULTIPLIER));
       expect(response.success).toBe(true);
       if (response.success) {
-        expect(Array.isArray(response.result.warnings)).toBe(true);
+        expect(Array.isArray(asCircom(response.result).warnings)).toBe(true);
       }
     });
   });
@@ -87,7 +105,7 @@ describe('compileCircom', () => {
 
   describe('pre-validation', () => {
     it('rejects empty source with a validation error', async () => {
-      const response = await compileCircom({ code: '' });
+      const response = await compileCircom(circomSource(''));
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.errors[0].category).toBe('validation');
@@ -96,7 +114,7 @@ describe('compileCircom', () => {
     });
 
     it('rejects whitespace-only source with a validation error', async () => {
-      const response = await compileCircom({ code: '   \n\t  ' });
+      const response = await compileCircom(circomSource('   \n\t  '));
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.errors[0].category).toBe('validation');
@@ -105,7 +123,7 @@ describe('compileCircom', () => {
 
     it('rejects source that exceeds MAX_SOURCE_BYTES', async () => {
       const oversized = 'a'.repeat(MAX_SOURCE_BYTES + 1);
-      const response = await compileCircom({ code: oversized });
+      const response = await compileCircom(circomSource(oversized));
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.errors[0].category).toBe('validation');
@@ -118,7 +136,7 @@ describe('compileCircom', () => {
 
   describe('compiler error paths', () => {
     it('returns success:false with a syntax error on invalid circuit', async () => {
-      const response = await compileCircom({ code: SYNTAX_ERROR_CIRCUIT });
+      const response = await compileCircom(circomSource(SYNTAX_ERROR_CIRCUIT));
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.errors.length).toBeGreaterThan(0);
@@ -127,14 +145,14 @@ describe('compileCircom', () => {
     });
 
     it('syntax error includes a line number', async () => {
-      const response = await compileCircom({ code: SYNTAX_ERROR_CIRCUIT });
+      const response = await compileCircom(circomSource(SYNTAX_ERROR_CIRCUIT));
       if (!response.success) {
         expect(typeof response.errors[0].line).toBe('number');
       }
     });
 
     it('returns a semantic error for semantic violations', async () => {
-      const response = await compileCircom({ code: SEMANTIC_ERROR_CIRCUIT });
+      const response = await compileCircom(circomSource(SEMANTIC_ERROR_CIRCUIT));
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.errors[0].category).toBe('semantic');

@@ -1,4 +1,4 @@
-import { CircomSource, CompileResponse } from './types';
+import { CompileSource, CompileResponse } from './types';
 import { CircomServerCompiler, MAX_SOURCE_BYTES } from './CircomServerCompiler';
 import { mapCompileErrors, makeValidationError, normalizeCompileOutput } from './normalize';
 
@@ -14,11 +14,12 @@ import { mapCompileErrors, makeValidationError, normalizeCompileOutput } from '.
  *   3. If stderr is non-empty → map errors and return error response.
  *   4. Otherwise normalize stdout into CircomCompileResult.
  */
-export async function compileCircom(source: CircomSource): Promise<CompileResponse> {
+export async function compileCircom(source: CompileSource): Promise<CompileResponse> {
   // ── Step 1: Pre-validation ─────────────────────────────────────────────────
   if (!source.code || !source.code.trim()) {
     return {
       success: false,
+      language: source.language,
       errors: [makeValidationError('Source code must not be empty.')],
     };
   }
@@ -27,6 +28,7 @@ export async function compileCircom(source: CircomSource): Promise<CompileRespon
   if (byteLength > MAX_SOURCE_BYTES) {
     return {
       success: false,
+      language: source.language,
       errors: [
         makeValidationError(
           `Source code exceeds maximum allowed size of ${MAX_SOURCE_BYTES} bytes (got ${byteLength} bytes).`
@@ -43,6 +45,7 @@ export async function compileCircom(source: CircomSource): Promise<CompileRespon
   if (raw.stderr && raw.stderr.trim()) {
     return {
       success: false,
+      language: source.language,
       errors: mapCompileErrors(raw.stderr),
     };
   }
@@ -50,6 +53,7 @@ export async function compileCircom(source: CircomSource): Promise<CompileRespon
   // ── Step 4: Normalize and return ───────────────────────────────────────────
   return {
     success: true,
+    language: source.language,
     result: normalizeCompileOutput(raw),
   };
 }
