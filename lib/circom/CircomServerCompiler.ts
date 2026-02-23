@@ -1,4 +1,11 @@
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { CompileSource, RawCompileOutput } from './types';
+
+const execFileAsync = promisify(execFile);
 
 /** Maximum allowed source code size in bytes (10 KB pre-compile guard). */
 export const MAX_SOURCE_BYTES = 10_000;
@@ -6,67 +13,142 @@ export const MAX_SOURCE_BYTES = 10_000;
 /** Default compilation timeout in milliseconds. */
 export const COMPILE_TIMEOUT_MS = 30_000;
 
+/** Temp directory prefix used when scanning for leftover dirs in tests. */
+export const TEMP_DIR_PREFIX = 'circom-';
+
+/**
+ * Absolute path to the circom CLI shipped with @distributedlab/circom2.
+ *
+ * Why: We call it via `node cli.js` so Node's WASI can run circom.wasm
+ * server-side without requiring a system-installed native binary.
+ */
+const CIRCOM_CLI_PATH = require.resolve('@distributedlab/circom2/dist/cli.js');
+
 /**
  * CircomServerCompiler — encapsulates all compiler subprocess invocation details.
  *
- * Why: Isolating FS and process concerns here (SRP) means the API route and tests
- * are decoupled from the OS-level details. Feature 02 will replace the stub body
- * with the real @distributedlab/circom2 invocation.
+ * Why: Isolating FS and process concerns here (SRP) keeps the API route and
+ * compileCircom() decoupled from OS-level details.
  *
- * How (stub): Returns a predictable mock result controlled by the source content,
- * making all tests deterministic without a real compiler.
+ * How:
+ *   1. Create a temp directory for input + output files.
+ *   2. Write source to `main.circom` in the temp dir.
+ *   3. Spawn `node cli.js main.circom --r1cs --sym -o tempDir/` via execFile.
+ *   4. Capture stdout/stderr from the child process.
+ *   5. Read the produced `.r1cs` file (if any) into a Buffer.
+ *   6. Clean up the temp dir unconditionally.
+ *
+ * @throws Never — errors are returned in `stderr`, not thrown.
  */
 export class CircomServerCompiler {
-  /**
-   * Compile `source.code` and return raw stdout/stderr/artifacts.
-   *
-   * - Stub: interprets source content to return success or error output.
-   * - Real implementation (Feature 02): writes to temp dir, spawns circom, reads artifacts.
-   *
-   * @throws Never — errors are returned in `stderr`, not thrown.
-   */
   async compile(source: CompileSource): Promise<RawCompileOutput> {
-    const filename = source.filename ?? 'circuit.circom';
-    const code = source.code;
+    const filename = source.filename ?? 'main.circom';
+    const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), TEMP_DIR_PREFIX));
 
-    // ── Stub logic: simulate compiler behaviour based on source content ──
-    // This is replaced by real invocation in Feature 02.
+    try {
+      // Step 1: Write source to temp dir
+      const inputPath = path.join(tempDir, filename);
+      await fs.promises.writeFile(inputPath, source.code, 'utf8');
 
-    if (code.includes('__SYNTAX_ERROR__')) {
-      return {
-        stdout: '',
-        stderr: `error[P1002]: found: T_RBRACE\n --> ${filename}:3:1\n  |\n3 | }\n  | ^`,
-      };
+      // Step 2: Build circom args
+      // --r1cs: emit R1CS constraints file
+      // --sym:  emit symbol file (signal names, useful for debugging)
+      // -o:     output directory
+      const args = [
+        '--no-warnings',          // suppress Node's WASI ExperimentalWarning
+        CIRCOM_CLI_PATH,
+        inputPath,
+        '--r1cs',
+        '--sym',
+        '-o', `${tempDir}/`,
+      ];
+
+      // Step 3: Spawn circom via node CLI, with timeout
+      let stdout = '';
+      let stderr = '';
+
+      try {
+        const result = await execFileAsync(process.execPath, args, {
+          timeout: COMPILE_TIMEOUT_MS,
+          maxBuffer: 10 * 1024 * 1024, // 10 MB stdout/stderr buffer
+        });
+        stdout = result.stdout ?? '';
+        stderr = filterWasiWarning(result.stderr ?? '');
+      } catch (err: unknown) {
+        // execFile rejects on non-zero exit — capture stderr from the error
+        if (isExecError(err)) {
+          stdout = err.stdout ?? '';
+          stderr = filterWasiWarning(err.stderr ?? '');
+          if (err.killed || err.signal === 'SIGTERM') {
+            stderr = `Compilation timed out after ${COMPILE_TIMEOUT_MS / 1000}s`;
+          }
+        } else {
+          stderr = String(err);
+        }
+      }
+
+      // Step 4: Read R1CS artifact if present
+      const r1csName = filename.replace(/\.circom$/, '.r1cs');
+      const r1csPath = path.join(tempDir, r1csName);
+      let artifactBuffer: Buffer | undefined;
+
+      try {
+        if (fs.existsSync(r1csPath)) {
+          artifactBuffer = await fs.promises.readFile(r1csPath);
+        }
+      } catch {
+        // R1CS not produced (compile error path) — expected, not an error
+      }
+
+      // Step 5: Read sym file if present
+      const symName = filename.replace(/\.circom$/, '.sym');
+      const symPath = path.join(tempDir, symName);
+      let symContent: string | undefined;
+
+      try {
+        if (fs.existsSync(symPath)) {
+          symContent = await fs.promises.readFile(symPath, 'utf8');
+        }
+      } catch {
+        // sym not produced — expected on error path
+      }
+
+      return { stdout, stderr, artifactBuffer, symContent };
+    } finally {
+      // Step 6: Always clean up — even on error
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
     }
-
-    if (code.includes('__SEMANTIC_ERROR__')) {
-      return {
-        stdout: '',
-        stderr: `error[T3001]: Variable x not defined\n --> ${filename}:5:5`,
-      };
-    }
-
-    if (code.includes('include "')) {
-      return {
-        stdout: '',
-        stderr: `error: includes are not supported in single-file mode`,
-      };
-    }
-
-    // Success path — simulate constraint count extracted from a comment: // constraints: N
-    const constraintMatch = code.match(/\/\/ constraints:\s*(\d+)/);
-    const constraints = constraintMatch ? constraintMatch[1] : '1';
-    const wires = String(Number(constraints) + 2);
-
-    return {
-      stdout: [
-        `template instances: 1`,
-        `non linear constraints: ${constraints}`,
-        `linear constraints: 0`,
-        `total wires: ${wires}`,
-      ].join('\n'),
-      stderr: '',
-      artifactBuffer: Buffer.from(`r1cs-stub-${filename}`),
-    };
   }
+}
+
+// ─── Internal helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Strip Node's WASI ExperimentalWarning lines from stderr.
+ * These are emitted by Node itself (not circom) and are not compiler errors.
+ */
+function filterWasiWarning(stderr: string): string {
+  return stderr
+    .split('\n')
+    .filter(
+      (l) =>
+        !l.includes('ExperimentalWarning') &&
+        !l.includes('experimental feature') &&
+        !l.includes('--trace-warnings')
+    )
+    .join('\n')
+    .trim();
+}
+
+interface ExecError extends Error {
+
+  code?: number;
+  killed?: boolean;
+  signal?: string;
+  stdout?: string;
+  stderr?: string;
+}
+
+function isExecError(err: unknown): err is ExecError {
+  return err instanceof Error;
 }
