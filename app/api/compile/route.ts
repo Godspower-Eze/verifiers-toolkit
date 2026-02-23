@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compileCircom } from '@/lib/circom/compileCircom';
-import { CircomSource } from '@/lib/circom/types';
+import { CompileSource, LanguageId } from '@/lib/circom/types';
 
 // Ensure this route always runs in the Node.js runtime (not Edge).
 // Required because CircomServerCompiler uses fs and child processes.
@@ -41,14 +41,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { source, filename } = body as { source: string; filename?: string };
-
-  const circomSource: CircomSource = {
-    code: source,
-    filename: filename ?? 'circuit.circom',
+  const { source, filename, language } = body as {
+    source: string;
+    filename?: string;
+    language?: LanguageId;
   };
 
-  const result = await compileCircom(circomSource);
+  const compileSource: CompileSource = {
+    language: language ?? 'circom',
+    code: source,
+    filename: filename ?? (language === 'noir' ? 'circuit.nr' : 'circuit.circom'),
+  };
+
+  const result = await compileCircom(compileSource);
 
   return NextResponse.json(result, { status: 200 });
 }

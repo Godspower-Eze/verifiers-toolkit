@@ -1,4 +1,4 @@
-import { CircomSource, RawCompileOutput } from './types';
+import { CompileSource, RawCompileOutput } from './types';
 
 /** Maximum allowed source code size in bytes (10 KB pre-compile guard). */
 export const MAX_SOURCE_BYTES = 10_000;
@@ -25,7 +25,7 @@ export class CircomServerCompiler {
    *
    * @throws Never — errors are returned in `stderr`, not thrown.
    */
-  async compile(source: CircomSource): Promise<RawCompileOutput> {
+  async compile(source: CompileSource): Promise<RawCompileOutput> {
     const filename = source.filename ?? 'circuit.circom';
     const code = source.code;
 
@@ -66,7 +66,7 @@ export class CircomServerCompiler {
         `total wires: ${wires}`,
       ].join('\n'),
       stderr: '',
-      r1csBuffer: Buffer.from(`r1cs-stub-${filename}`),
+      artifactBuffer: Buffer.from(`r1cs-stub-${filename}`),
     };
   }
 }
