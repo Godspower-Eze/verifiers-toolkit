@@ -10,6 +10,7 @@ import type { GeneratedVerifier } from '@/lib/verifier/VerifierGenerator';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
+import DeploymentLogs, { LogEntry, LogType } from './DeploymentLogs';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -51,17 +52,20 @@ export default function EditorWorkspace() {
   const col1WRef = useRef(420);
   const col3WRef = useRef(300);
   const outH1Ref = useRef(180);
+  const outH2Ref = useRef(150);
   const outH3Ref = useRef(200);
 
   const [col1Width, _setCol1Width] = useState(420);
   const [col3Width, _setCol3Width] = useState(300);
   const [outputHeight1, _setOutputHeight1] = useState(180);
+  const [outputHeight2, _setOutputHeight2] = useState(150);
   const [outputHeight3, _setOutputHeight3] = useState(200);
 
   // Setters that keep refs in sync
   const setCol1Width = useCallback((v: number) => { col1WRef.current = v; _setCol1Width(v); }, []);
   const setCol3Width = useCallback((v: number) => { col3WRef.current = v; _setCol3Width(v); }, []);
   const setOut1 = useCallback((v: number) => { outH1Ref.current = v; _setOutputHeight1(v); }, []);
+  const setOut2 = useCallback((v: number) => { outH2Ref.current = v; _setOutputHeight2(v); }, []);
   const setOut3 = useCallback((v: number) => { outH3Ref.current = v; _setOutputHeight3(v); }, []);
 
   // ── Circuit state
@@ -78,6 +82,15 @@ export default function EditorWorkspace() {
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [verifier, setVerifier] = useState<GeneratedVerifier | null>(null);
   const [activeTab, setActiveTab] = useState<VerifierTab>('verifier');
+
+  // ── Deployment State
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployClassHash, setDeployClassHash] = useState<string | null>(null);
+
+  const addLog = useCallback((msg: string, type: LogType = 'info') => {
+    setLogs((prev) => [...prev, { id: crypto.randomUUID(), timestamp: new Date(), message: msg, type }]);
+  }, []);
 
   // ── Templates
   useEffect(() => {
@@ -156,6 +169,64 @@ export default function EditorWorkspace() {
     }
   }, [validVk]);
 
+  // ── Deploy Handlers
+  const handleCompileAndDeclare = useCallback(async () => {
+    if (!account || !verifier) return;
+    setIsDeploying(true);
+    addLog('Starting API compilation (Cairo → Sierra/Casm)...', 'info');
+
+    try {
+      const compileRes = await fetch('/api/verifier/compile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(verifier),
+      });
+      const compileData = await compileRes.json();
+      
+      if (!compileData.success) {
+        throw new Error(compileData.error || 'Compilation failed');
+      }
+      addLog('Compilation successful. Requesting wallet signature to Declare...', 'success');
+
+      // Declare
+      const declareResponse = await account.declare({
+        contract: compileData.sierra,
+        casm: compileData.casm,
+      });
+      
+      addLog(`Declare TX sent: ${declareResponse.transaction_hash}. Waiting for L2 acceptance...`, 'info');
+      await account.waitForTransaction(declareResponse.transaction_hash);
+      
+      addLog(`Contract declared successfully! Class Hash: ${declareResponse.class_hash}`, 'success');
+      setDeployClassHash(declareResponse.class_hash);
+    } catch (err: any) {
+      addLog(`Declare failed: ${err.message || String(err)}`, 'error');
+    } finally {
+      setIsDeploying(false);
+    }
+  }, [account, verifier, addLog]);
+
+  const handleDeploy = useCallback(async () => {
+    if (!account || !deployClassHash) return;
+    setIsDeploying(true);
+    try {
+      addLog('Requesting wallet signature to Deploy...', 'info');
+      const deployResponse = await account.deployContract({
+        classHash: deployClassHash,
+        constructorCalldata: [],
+      });
+      
+      addLog(`Deploy TX sent: ${deployResponse.transaction_hash}. Waiting for L2 acceptance...`, 'info');
+      await account.waitForTransaction(deployResponse.transaction_hash);
+      
+      addLog(`Contract deployed successfully! Address: ${deployResponse.contract_address}`, 'success');
+    } catch (err: any) {
+      addLog(`Deploy failed: ${err.message || String(err)}`, 'error');
+    } finally {
+      setIsDeploying(false);
+    }
+  }, [account, deployClassHash, addLog]);
+
   // ── Markers
   function clearEditorMarkers() {
     if (!editorRef.current || !monacoRef.current) return;
@@ -200,6 +271,12 @@ export default function EditorWorkspace() {
     const startH = outH3Ref.current;
     startDrag(e, 'v', (dy) => setOut3(Math.max(60, Math.min(600, startH - dy))));
   }, [setOut3]);
+
+  // Row2 divider (above deployment logs in col2): drag down → logs panel smaller
+  const dragRow2Divider = useCallback((e: React.MouseEvent) => {
+    const startH = outH2Ref.current;
+    startDrag(e, 'v', (dy) => setOut2(Math.max(60, Math.min(600, startH - dy))));
+  }, [setOut2]);
 
   // ── Helpers
   const activeContent = verifier
@@ -351,21 +428,36 @@ export default function EditorWorkspace() {
           </div>
 
           {/* Content area */}
-          <div className={styles.cairoContent}>
-            {!verifier && generateState === 'idle' && (
-              <div className={styles.cairoPlaceholder}>
-                <p>Upload a VK on the right, then click <strong>⬡ Generate</strong></p>
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+            <div className={styles.cairoContent} style={{ flex: 1, minHeight: 0 }}>
+              {!verifier && generateState === 'idle' && (
+                <div className={styles.cairoPlaceholder}>
+                  <p>Upload a VK on the right, then click <strong>⬡ Generate</strong></p>
+                </div>
+              )}
+              {generateState === 'generating' && (
+                <div className={styles.cairoPlaceholder}>
+                  <span className={styles.spinner} />&nbsp;Generating Cairo verifier…
+                </div>
+              )}
+              {generateState === 'error' && (
+                <div className={styles.cairoPlaceholderError}>✗ {generateError}</div>
+              )}
+              {verifier && <pre className={styles.cairoCode}>{activeContent}</pre>}
+            </div>
+
+            {/* Row drag handle → resize logs panel — only when verifier exists */}
+            {verifier && (
+              <>
+                <div className={styles.rowDivider} onMouseDown={dragRow2Divider} />
+                <div className={styles.outputPanel} style={{ height: outputHeight2, display: 'flex', flexDirection: 'column' }}>
+                  <div className={styles.paneLabelSmall}><span>Deployment Logs</span></div>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <DeploymentLogs logs={logs} />
+                  </div>
+                </div>
+              </>
             )}
-            {generateState === 'generating' && (
-              <div className={styles.cairoPlaceholder}>
-                <span className={styles.spinner} />&nbsp;Generating Cairo verifier…
-              </div>
-            )}
-            {generateState === 'error' && (
-              <div className={styles.cairoPlaceholderError}>✗ {generateError}</div>
-            )}
-            {verifier && <pre className={styles.cairoCode}>{activeContent}</pre>}
           </div>
 
           {/* Deploy bar — only when verifier exists */}
@@ -376,8 +468,22 @@ export default function EditorWorkspace() {
                   <span className={styles.deployLabel} title={address || ''}>
                     Starknet ({address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'})
                   </span>
-                  <button id="declare-btn" className={styles.declareBtn}>Compile & Declare</button>
-                  <button id="deploy-btn" className={styles.deployBtn}>Deploy</button>
+                  <button
+                    id="declare-btn"
+                    className={styles.declareBtn}
+                    onClick={handleCompileAndDeclare}
+                    disabled={isDeploying}
+                  >
+                    Compile & Declare
+                  </button>
+                  <button
+                    id="deploy-btn"
+                    className={styles.deployBtn}
+                    onClick={handleDeploy}
+                    disabled={isDeploying || !deployClassHash}
+                  >
+                    Deploy
+                  </button>
                   <button onClick={disconnectWallet} className={styles.disconnectBtn}>Disconnect</button>
                 </>
               ) : (
