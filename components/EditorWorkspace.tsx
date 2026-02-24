@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
 import type { CompileError, CompileResponse } from '@/lib/circom/types';
+import type { SnarkJsVk } from '@/lib/vk/types';
+import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 
 // Monaco is SSR-incompatible — dynamic import with ssr:false is required
@@ -26,6 +28,7 @@ export default function EditorWorkspace() {
   const [filename, setFilename] = useState<string>('circuit.circom');
   const [compileState, setCompileState] = useState<CompileState>('idle');
   const [compileResult, setCompileResult] = useState<CompileResponse | null>(null);
+  const [validVk, setValidVk] = useState<SnarkJsVk | null>(null);
 
   // ── Load templates ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -186,6 +189,7 @@ export default function EditorWorkspace() {
         <div className={styles.outputPane}>
           <div className={styles.paneLabel}>Output</div>
           <div className={styles.outputContent}>
+            {/* compile output ... */}
             {compileState === 'idle' && (
               <p className={styles.outputHint}>Click ▶ Compile to run the circuit.</p>
             )}
@@ -236,6 +240,10 @@ export default function EditorWorkspace() {
               </div>
             )}
           </div>
+          <VkPanel
+            onValidVk={(vk) => setValidVk(vk)}
+            onClearVk={() => setValidVk(null)}
+          />
         </div>
       </div>
     </div>
