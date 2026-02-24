@@ -57,8 +57,8 @@ pub mod Groth16Verifier {
       expect(result.casm).toBeDefined();
 
       // Basic structure validation
-      expect(result.sierra.sierra_program).toBeInstanceOf(Array);
-      expect(result.casm.bytecode).toBeInstanceOf(Array);
+      expect((result.sierra as any).sierra_program).toBeInstanceOf(Array);
+      expect((result.casm as any).bytecode).toBeInstanceOf(Array);
     }
   }, 300_000); // 5m timeout for compilation
 
