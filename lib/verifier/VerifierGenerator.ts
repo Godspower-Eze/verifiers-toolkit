@@ -23,10 +23,6 @@ export const GARAGA_TEMP_DIR_PREFIX = 'garaga-gen-';
  *   1. GARAGA_PATH env var — set this for CI/CD or any environment where
  *      garaga is installed (e.g. via `pip install garaga`, then `which garaga`).
  *   2. The conda venv used in local development.
- *
- * NOTE: PyInstaller bundling was attempted but garaga depends on
- * crypto_cpp_py which uses native .so shared libs that cannot be statically
- * frozen. For production, run `pip install garaga` and set GARAGA_PATH.
  */
 export const GARAGA_CLI_PATH =
   process.env.GARAGA_PATH ??
