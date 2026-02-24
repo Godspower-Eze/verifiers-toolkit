@@ -6,6 +6,7 @@ import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
 import type { CompileError, CompileResponse } from '@/lib/circom/types';
 import type { SnarkJsVk } from '@/lib/vk/types';
+import type { GeneratedVerifier } from '@/lib/verifier/VerifierGenerator';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 
@@ -15,6 +16,8 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type CompileState = 'idle' | 'compiling' | 'success' | 'error';
+type GenerateState = 'idle' | 'generating' | 'success' | 'error';
+type VerifierTab = 'verifier' | 'constants' | 'lib' | 'scarb';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -26,9 +29,15 @@ export default function EditorWorkspace() {
   const [selectedId, setSelectedId] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [filename, setFilename] = useState<string>('circuit.circom');
+
   const [compileState, setCompileState] = useState<CompileState>('idle');
   const [compileResult, setCompileResult] = useState<CompileResponse | null>(null);
+
   const [validVk, setValidVk] = useState<SnarkJsVk | null>(null);
+  const [generateState, setGenerateState] = useState<GenerateState>('idle');
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [verifier, setVerifier] = useState<GeneratedVerifier | null>(null);
+  const [activeTab, setActiveTab] = useState<VerifierTab>('verifier');
 
   // ── Load templates ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -79,6 +88,37 @@ export default function EditorWorkspace() {
     }
   }, [code, filename]);
 
+  // ── Generate Verifier ──────────────────────────────────────────────────────
+  const handleGenerate = useCallback(async () => {
+    if (!validVk) return;
+    setGenerateState('generating');
+    setGenerateError(null);
+    setVerifier(null);
+
+    try {
+      const resp = await fetch('/api/verifier/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vk: validVk }),
+      });
+      const data = await resp.json() as
+        | { success: true; verifier: GeneratedVerifier }
+        | { success: false; error: string };
+
+      if (data.success) {
+        setGenerateState('success');
+        setVerifier(data.verifier);
+        setActiveTab('verifier');
+      } else {
+        setGenerateState('error');
+        setGenerateError(data.error);
+      }
+    } catch (err) {
+      setGenerateState('error');
+      setGenerateError(String(err));
+    }
+  }, [validVk]);
+
   // ── Editor markers (error squiggles) ───────────────────────────────────────
   function clearEditorMarkers() {
     if (!editorRef.current || !monacoRef.current) return;
@@ -101,6 +141,27 @@ export default function EditorWorkspace() {
       endColumn: (e.column ?? 1) + 10,
     }));
     monaco.editor.setModelMarkers(editorRef.current.getModel()!, 'circom-compiler', markers);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Derived helpers
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const TABS: { id: VerifierTab; label: string }[] = [
+    { id: 'verifier', label: 'groth16_verifier.cairo' },
+    { id: 'constants', label: 'groth16_verifier_constants.cairo' },
+    { id: 'lib', label: 'lib.cairo' },
+    { id: 'scarb', label: 'Scarb.toml' },
+  ];
+
+  function activeTabContent(): string {
+    if (!verifier) return '';
+    switch (activeTab) {
+      case 'verifier':   return verifier.verifierCairo;
+      case 'constants':  return verifier.constantsCairo;
+      case 'lib':        return verifier.libCairo;
+      case 'scarb':      return verifier.scarbToml;
+    }
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -141,18 +202,35 @@ export default function EditorWorkspace() {
           )}
         </div>
 
-        <button
-          id="compile-btn"
-          className={`${styles.compileBtn} ${styles[compileState]}`}
-          onClick={handleCompile}
-          disabled={compileState === 'compiling'}
-        >
-          {compileState === 'compiling' ? (
-            <><span className={styles.spinner} /> Compiling…</>
-          ) : (
-            '▶ Compile'
+        <div className={styles.toolbarActions}>
+          <button
+            id="compile-btn"
+            className={`${styles.compileBtn} ${styles[compileState]}`}
+            onClick={handleCompile}
+            disabled={compileState === 'compiling'}
+          >
+            {compileState === 'compiling' ? (
+              <><span className={styles.spinner} /> Compiling…</>
+            ) : (
+              '▶ Compile'
+            )}
+          </button>
+
+          {validVk && (
+            <button
+              id="generate-btn"
+              className={`${styles.generateBtn} ${generateState === 'generating' ? styles.generating : ''}`}
+              onClick={handleGenerate}
+              disabled={generateState === 'generating'}
+            >
+              {generateState === 'generating' ? (
+                <><span className={styles.spinner} /> Generating…</>
+              ) : (
+                '⬡ Generate Verifier'
+              )}
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
       {/* ── Editor + Output split ── */}
@@ -187,10 +265,10 @@ export default function EditorWorkspace() {
 
         {/* Output pane */}
         <div className={styles.outputPane}>
+          {/* Compile output */}
           <div className={styles.paneLabel}>Output</div>
           <div className={styles.outputContent}>
-            {/* compile output ... */}
-            {compileState === 'idle' && (
+            {compileState === 'idle' && !verifier && (
               <p className={styles.outputHint}>Click ▶ Compile to run the circuit.</p>
             )}
             {compileState === 'compiling' && (
@@ -240,10 +318,77 @@ export default function EditorWorkspace() {
               </div>
             )}
           </div>
+
+          {/* VK panel */}
           <VkPanel
             onValidVk={(vk) => setValidVk(vk)}
-            onClearVk={() => setValidVk(null)}
+            onClearVk={() => { setValidVk(null); setVerifier(null); setGenerateState('idle'); }}
           />
+
+          {/* Generated verifier output */}
+          {(generateState !== 'idle' || verifier) && (
+            <div className={styles.verifierPane}>
+              <div className={styles.verifierHeader}>
+                {generateState === 'generating' && (
+                  <span className={styles.generatingHint}><span className={styles.spinner} /> Generating Cairo verifier…</span>
+                )}
+                {generateState === 'error' && (
+                  <span className={styles.generateError}>✗ {generateError}</span>
+                )}
+                {generateState === 'success' && verifier && (
+                  <>
+                    <span className={styles.generateSuccess}>✓ Verifier generated</span>
+                    <span className={styles.projectName}>{verifier.projectName}</span>
+                  </>
+                )}
+              </div>
+
+              {verifier && (
+                <>
+                  {/* File tabs */}
+                  <div className={styles.tabBar}>
+                    {TABS.map((tab) => (
+                      <button
+                        key={tab.id}
+                        className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* File content */}
+                  <pre className={styles.cairoOutput}>{activeTabContent()}</pre>
+
+                  {/* Download buttons */}
+                  <div className={styles.downloadRow}>
+                    {TABS.map((tab) => {
+                      const content = tab.id === 'verifier' ? verifier.verifierCairo
+                        : tab.id === 'constants' ? verifier.constantsCairo
+                        : tab.id === 'lib' ? verifier.libCairo
+                        : verifier.scarbToml;
+                      const ext = tab.id === 'scarb' ? '' : '';
+                      const fileName = tab.id === 'scarb' ? 'Scarb.toml'
+                        : tab.id === 'lib' ? 'lib.cairo'
+                        : tab.id === 'constants' ? 'groth16_verifier_constants.cairo'
+                        : 'groth16_verifier.cairo';
+                      return (
+                        <a
+                          key={tab.id}
+                          className={styles.downloadBtn}
+                          href={`data:text/plain;charset=utf-8,${encodeURIComponent(content)}`}
+                          download={fileName}
+                        >
+                          ↓ {fileName}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
