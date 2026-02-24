@@ -171,14 +171,36 @@
   display: flex;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
-.editorPane {
+/* colWrap: base class for every column — vertical flex, clips overflow */
+.colWrap {
   display: flex;
-  flex-direction: column; /* stacks Monaco on top, output on bottom */
-  border-right: none;
-  min-width: 200px;
+  flex-direction: column;
   overflow: hidden;
+  min-width: 0;
+}
+
+/* monacoWrap: fills remaining height inside col1, lets Monaco auto-size */
+.monacoWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* btnSm: compact button variant for embedding in small panel label bars */
+.btnSm {
+  padding: 3px 10px !important;
+  font-size: 11px !important;
+  box-shadow: none !important;
+  letter-spacing: 0;
+}
+
+/* editorPane: visual styling for col1 (border kept for fallback) */
+.editorPane {
+  border-right: none;
 }
 
 /* Compile output panel — lives below Monaco in col1 */
@@ -188,13 +210,10 @@
   display: flex;
   flex-direction: column;
   background: #0a0a0d;
-  border-top: none; /* row divider handles the border */
 }
 
-/* VK panel column */
+/* VK pane col3 — layout via inline width, visual styling here */
 .vkPane {
-  width: 280px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: #0a0a0d;
