@@ -319,35 +319,58 @@ export default function EditorWorkspace() {
         {/* ── Col divider: resize col1 ── */}
         <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
-        {/* ── Col 2: Cairo verifier — only after generation ── */}
-        {verifier && (
-          <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 200 }}>
-            <div className={styles.tabBar}>
-              {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
-                <button
-                  key={tab}
-                  className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab === 'verifier' ? 'groth16_verifier.cairo' : 'constants.cairo'}
-                </button>
-              ))}
+        {/* ── Col 2: Cairo verifier — always rendered (flex:1 fills the space) ── */}
+        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180 }}>
+          {/* Tab bar — only when verifier exists */}
+          <div className={styles.tabBar}>
+            {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
+              <button
+                key={tab}
+                className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab(tab)}
+                disabled={!verifier}
+              >
+                {tab === 'verifier' ? 'groth16_verifier.cairo' : 'constants.cairo'}
+              </button>
+            ))}
+            {verifier && (
               <a
                 className={styles.downloadBtn}
                 href={dlHref(activeContent)}
                 download={activeTab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
               >↓</a>
-            </div>
-            <pre className={styles.cairoCode}>{activeContent}</pre>
+            )}
+          </div>
+
+          {/* Content area */}
+          <div className={styles.cairoContent}>
+            {!verifier && generateState === 'idle' && (
+              <div className={styles.cairoPlaceholder}>
+                <p>Upload a VK on the right, then click <strong>⬡ Generate</strong></p>
+              </div>
+            )}
+            {generateState === 'generating' && (
+              <div className={styles.cairoPlaceholder}>
+                <span className={styles.spinner} />&nbsp;Generating Cairo verifier…
+              </div>
+            )}
+            {generateState === 'error' && (
+              <div className={styles.cairoPlaceholderError}>✗ {generateError}</div>
+            )}
+            {verifier && <pre className={styles.cairoCode}>{activeContent}</pre>}
+          </div>
+
+          {/* Deploy bar — only when verifier exists */}
+          {verifier && (
             <div className={styles.deployBar}>
               <span className={styles.deployLabel}>Deploy to Starknet</span>
               <button id="declare-btn" className={styles.declareBtn}>Declare Contract</button>
               <button id="deploy-btn" className={styles.deployBtn}>Deploy Contract</button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* ── Col divider: resize col3 (inverted — drag left grows col3) ── */}
+        {/* ── Col divider: resize col3 ── */}
         <div className={styles.colDivider} onMouseDown={dragCol3Divider} />
 
         {/* ── Col 3: VK panel (top) + generate output (bottom) ── */}
