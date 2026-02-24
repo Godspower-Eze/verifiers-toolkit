@@ -39,8 +39,6 @@ export function useStarknetWallet() {
         modalMode: 'alwaysAsk',
         modalTheme: 'dark',
       });
-      console.log("StarknetKit connect result:", result);
-      
       if (result.wallet) {
         setWallet(result.wallet);
         if (result.connectorData && result.connectorData.account) {

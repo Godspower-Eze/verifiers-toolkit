@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import type { ScarbCompileInput, ScarbCompileResult } from './types';
 
 const execFileAsync = promisify(execFile);
 
@@ -10,9 +11,6 @@ const execFileAsync = promisify(execFile);
 
 /** Timeout for scarb build (5 minutes) */
 export const COMPILE_TIMEOUT_MS = 300_000;
-
-/** Temp dir prefix for compilation runs. */
-export const SCARB_TEMP_DIR_PREFIX = 'scarb-compile-';
 
 /**
  * Path to the scarb CLI binary.
@@ -22,21 +20,7 @@ export const SCARB_CLI_PATH =
   process.env.SCARB_PATH ??
   '/home/godspowereze/.asdf/shims/scarb';
 
-// ─── Input/Output types ───────────────────────────────────────────────────────
 
-export interface ScarbCompileInput {
-  projectName: string;
-  verifierCairo: string;
-  constantsCairo: string;
-  libCairo: string;
-  scarbToml: string;
-}
-
-export type ScarbCompileResult =
-  | { success: true; sierra: any; casm: any }
-  | { success: false; error: string };
-
-// ─── ScarbCompiler ────────────────────────────────────────────────────────────
 
 /**
  * ScarbCompiler — runs `scarb build` as a subprocess to produce Sierra and Casm

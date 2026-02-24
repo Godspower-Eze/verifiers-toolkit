@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { SnarkJsVk } from '@/lib/vk/types';
+import type { GeneratedVerifier, GenerateResult } from './types';
 
 const execFileAsync = promisify(execFile);
 
@@ -30,26 +31,6 @@ export const GARAGA_TEMP_DIR_PREFIX = 'garaga-gen-';
 export const GARAGA_CLI_PATH =
   process.env.GARAGA_PATH ??
   '/home/godspowereze/anaconda3/envs/venv/bin/garaga';
-
-// ─── Output types ─────────────────────────────────────────────────────────────
-
-/** The files produced by a successful garaga gen run. */
-export interface GeneratedVerifier {
-  /** Name of the project / contract (sanitised). */
-  projectName: string;
-  /** Contents of groth16_verifier.cairo — the main contract. */
-  verifierCairo: string;
-  /** Contents of groth16_verifier_constants.cairo — VK constants. */
-  constantsCairo: string;
-  /** Contents of lib.cairo — module declarations. */
-  libCairo: string;
-  /** Contents of Scarb.toml — ready-to-use build manifest. */
-  scarbToml: string;
-}
-
-export type GenerateResult =
-  | { success: true; verifier: GeneratedVerifier }
-  | { success: false; error: string };
 
 // ─── VerifierGenerator ────────────────────────────────────────────────────────
 

@@ -6,7 +6,7 @@ import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
 import type { CompileError, CompileResponse } from '@/lib/circom/types';
 import type { SnarkJsVk } from '@/lib/vk/types';
-import type { GeneratedVerifier } from '@/lib/verifier/VerifierGenerator';
+import type { GeneratedVerifier } from '@/lib/verifier/types';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';

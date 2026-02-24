@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ScarbCompiler, ScarbCompileInput } from '@/lib/verifier/ScarbCompiler';
+import { ScarbCompiler } from '@/lib/verifier/ScarbCompiler';
+import type { ScarbCompileInput } from '@/lib/verifier/types';
 
 const compiler = new ScarbCompiler();
 
