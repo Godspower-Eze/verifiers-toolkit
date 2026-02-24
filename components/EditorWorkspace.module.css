@@ -313,10 +313,92 @@
 .cairoPane {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* row so sidebar is on left */
   background: #080810;
   border-left: 1px solid rgba(6,182,212,0.12);
   border-right: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+
+/* File tree sidebar */
+.fileTreeSidebar {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #06060c;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+.fileTreeContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.fileTreeItem, .fileTreeFolder, .fileTreeItemNested {
+  padding: 4px 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: #a1a1aa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fileTreeItem:hover, .fileTreeItemNested:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.fileTreeItemNested {
+  padding-left: 28px;
+}
+
+.fileTreeFolder {
+  color: #e4e4e7;
+  font-weight: 600;
+  cursor: default;
+  margin-top: 8px;
+}
+
+.fileTreeActive {
+  background: rgba(6,182,212,0.1);
+  color: #06b6d4;
+  border-left: 2px solid #06b6d4;
+  padding-left: 10px; /* offset for border */
+}
+
+.fileTreeItemNested.fileTreeActive {
+  padding-left: 26px; /* 28 - 2 offset */
+}
+
+.fileTreePlaceholder {
+  padding: 12px;
+  font-size: 11px;
+  color: #555;
+  font-style: italic;
+  text-align: center;
+}
+
+.downloadIconBtn {
+  background: transparent;
+  border: none;
+  color: #06b6d4;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+.downloadIconBtn:hover {
+  background: rgba(6,182,212,0.2);
+}
+
+.cairoMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 

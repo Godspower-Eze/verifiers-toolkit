@@ -9,15 +9,14 @@ export function useStarknetWallet() {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
-  // Use 'neverAsk' to silently reconnect on page load if previously connected
   useEffect(() => {
     const tryReconnect = async () => {
       try {
         const { wallet } = await connect({ modalMode: 'neverAsk' });
         const w = wallet as any;
-        if (w && w.isConnected) {
+        if (w && (w.isConnected || w.account)) {
           setAccount(w.account);
-          setAddress(w.selectedAddress);
+          setAddress(w.selectedAddress ?? w.account?.address);
           setIsConnected(true);
         }
       } catch (err) {
@@ -34,9 +33,10 @@ export function useStarknetWallet() {
         modalTheme: 'dark',
       });
       const w = wallet as any;
-      if (w && w.isConnected) {
+      console.log("StarknetKit connect result:", w);
+      if (w && (w.isConnected || w.account)) {
         setAccount(w.account);
-        setAddress(w.selectedAddress);
+        setAddress(w.selectedAddress ?? w.account?.address);
         setIsConnected(true);
       }
     } catch (e) {
