@@ -3,22 +3,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { connect, disconnect } from 'starknetkit';
 import { AccountInterface } from 'starknet';
+import type { StarknetWindowObject } from 'starknetkit';
 
 export function useStarknetWallet() {
   const [account, setAccount] = useState<AccountInterface | null>(null);
   const [address, setAddress] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [wallet, setWallet] = useState<StarknetWindowObject | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     const tryReconnect = async () => {
       try {
-        const { wallet } = await connect({ modalMode: 'neverAsk' });
-        const w = wallet as any;
-        const addr = w?.selectedAddress || w?.account?.address;
-        if (w && (w.isConnected || addr)) {
-          setAccount(w.account || null);
-          setAddress(addr || null);
-          setIsConnected(true);
+        const result = await connect({ modalMode: 'neverAsk' });
+        if (result.wallet) {
+          setWallet(result.wallet);
+          if (result.connectorData && result.connectorData.account) {
+            setAddress(result.connectorData.account);
+            // StarknetKit v3 sometimes populates result.wallet.account directly
+            const w = result.wallet as any;
+            if (w.account) setAccount(w.account);
+          }
         }
       } catch (err) {
         // Ignore silent reconnect errors
@@ -28,30 +32,40 @@ export function useStarknetWallet() {
   }, []);
 
   const connectWallet = useCallback(async () => {
+    if (isConnecting) return;
+    setIsConnecting(true);
     try {
-      const { wallet } = await connect({
+      const result = await connect({
         modalMode: 'alwaysAsk',
         modalTheme: 'dark',
       });
-      const w = wallet as any;
-      console.log("StarknetKit connect result:", w);
-      const addr = w?.selectedAddress || w?.account?.address;
-      if (w && (w.isConnected || addr)) {
-        setAccount(w.account || null);
-        setAddress(addr || null);
-        setIsConnected(true);
+      console.log("StarknetKit connect result:", result);
+      
+      if (result.wallet) {
+        setWallet(result.wallet);
+        if (result.connectorData && result.connectorData.account) {
+          setAddress(result.connectorData.account);
+          
+          // Attempt to extract the AccountInterface for declaring/deploying
+          const w = result.wallet as any;
+          if (w.account) {
+             setAccount(w.account);
+          }
+        }
       }
     } catch (e) {
       console.error('Wallet connection failed:', e);
+    } finally {
+      setIsConnecting(false);
     }
-  }, []);
+  }, [isConnecting]);
 
   const disconnectWallet = useCallback(async () => {
     try {
       await disconnect({ clearLastWallet: true });
       setAccount(null);
       setAddress(null);
-      setIsConnected(false);
+      setWallet(null);
     } catch (e) {
       console.error('Wallet disconnect failed:', e);
     }
@@ -60,7 +74,9 @@ export function useStarknetWallet() {
   return {
     account,
     address,
-    isConnected,
+    wallet,
+    isConnected: !!address, // Derived state based on address string
+    isConnecting,
     connectWallet,
     disconnectWallet,
   };
