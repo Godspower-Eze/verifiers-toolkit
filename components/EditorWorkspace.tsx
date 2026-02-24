@@ -45,7 +45,7 @@ function startDrag(
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EditorWorkspace() {
-  const { account, address, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
+  const { account, address, wallet, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
   const editorRef = useRef<MonacoNS.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof MonacoNS | null>(null);
 
@@ -174,7 +174,7 @@ export default function EditorWorkspace() {
 
   // ── Deploy Handlers
   const handleCompileAndDeclare = useCallback(async () => {
-    if (!account || !verifier) return;
+    if (!wallet || !account || !address || !verifier) return;
     setIsDeploying(true);
     addLog('Starting API compilation (Cairo → Sierra/Casm)...', 'info');
 
@@ -191,7 +191,7 @@ export default function EditorWorkspace() {
       }
       addLog('Compilation successful. Requesting wallet signature to Declare...', 'success');
 
-      // Declare
+      // Declare using the native wallet account which contains the non-rate-limited provider
       const declareResponse = await account.declare({
         contract: compileData.sierra,
         casm: compileData.casm,
@@ -207,7 +207,7 @@ export default function EditorWorkspace() {
     } finally {
       setIsDeploying(false);
     }
-  }, [account, verifier, addLog]);
+  }, [wallet, address, account, verifier, addLog]);
 
   const handleDeploy = useCallback(async () => {
     if (!account || !deployClassHash) return;
