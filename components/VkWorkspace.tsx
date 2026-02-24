@@ -110,13 +110,6 @@ export default function VkWorkspace() {
   // ── Render
   return (
     <div className={styles.workspace}>
-      <header className={styles.header}>
-        <div className={styles.headerBrand}>
-          <span className={styles.logo}>◆</span>
-          <h1 className={styles.title}>VK to Cairo Verifier Tool</h1>
-        </div>
-        <p className={styles.subtitle}>Upload existing verification_key.json → Groth16 Cairo Verifier</p>
-      </header>
 
       <div className={styles.editorRow}>
         {/* ── Col 1: VK Panel + Generate Output ── */}

@@ -5,9 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
 import type { CompileError, CompileResponse } from '@/lib/circom/types';
-import type { SnarkJsVk } from '@/lib/vk/types';
 import type { GeneratedVerifier } from '@/lib/verifier/types';
-import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
 import { useStarknetDeploy } from '@/hooks/useStarknetDeploy';
@@ -52,23 +50,17 @@ export default function EditorWorkspace() {
 
   // ── Sizes — stored in refs for getValue() snapshots, synced to state for renders
   const col1WRef = useRef(420);
-  const col3WRef = useRef(300);
   const outH1Ref = useRef(180);
   const outH2Ref = useRef(150);
-  const outH3Ref = useRef(200);
 
   const [col1Width, _setCol1Width] = useState(420);
-  const [col3Width, _setCol3Width] = useState(300);
   const [outputHeight1, _setOutputHeight1] = useState(180);
   const [outputHeight2, _setOutputHeight2] = useState(150);
-  const [outputHeight3, _setOutputHeight3] = useState(200);
 
   // Setters that keep refs in sync
   const setCol1Width = useCallback((v: number) => { col1WRef.current = v; _setCol1Width(v); }, []);
-  const setCol3Width = useCallback((v: number) => { col3WRef.current = v; _setCol3Width(v); }, []);
   const setOut1 = useCallback((v: number) => { outH1Ref.current = v; _setOutputHeight1(v); }, []);
   const setOut2 = useCallback((v: number) => { outH2Ref.current = v; _setOutputHeight2(v); }, []);
-  const setOut3 = useCallback((v: number) => { outH3Ref.current = v; _setOutputHeight3(v); }, []);
 
   // ── Circuit state
   const [templates, setTemplates] = useState<CircuitTemplate[]>([]);
@@ -79,7 +71,6 @@ export default function EditorWorkspace() {
   const [compileResult, setCompileResult] = useState<CompileResponse | null>(null);
 
   // ── Verifier state
-  const [validVk, setValidVk] = useState<SnarkJsVk | null>(null);
   const [generateState, setGenerateState] = useState<GenerateState>('idle');
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [verifier, setVerifier] = useState<GeneratedVerifier | null>(null);
@@ -145,33 +136,7 @@ export default function EditorWorkspace() {
     }
   }, [code, filename]);
 
-  // ── Generate
-  const handleGenerate = useCallback(async () => {
-    if (!validVk) return;
-    setGenerateState('generating');
-    setGenerateError(null);
-    setVerifier(null);
-    try {
-      const resp = await fetch('/api/verifier/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vk: validVk }),
-      });
-      const data = await resp.json() as
-        | { success: true; verifier: GeneratedVerifier }
-        | { success: false; error: string };
-      if (data.success) {
-        setGenerateState('success');
-        setVerifier(data.verifier);
-      } else {
-        setGenerateState('error');
-        setGenerateError(data.error);
-      }
-    } catch (err) {
-      setGenerateState('error');
-      setGenerateError(String(err));
-    }
-  }, [validVk]);
+
 
 
   // ── Markers
@@ -201,23 +166,11 @@ export default function EditorWorkspace() {
     startDrag(e, 'h', (dx) => setCol1Width(Math.max(220, Math.min(900, startW + dx))));
   }, [setCol1Width]);
 
-  // Col3 divider (left of col3): drag right → col3 narrower (divider moves right = less col3)
-  const dragCol3Divider = useCallback((e: React.MouseEvent) => {
-    const startW = col3WRef.current;
-    startDrag(e, 'h', (dx) => setCol3Width(Math.max(220, Math.min(700, startW - dx))));
-  }, [setCol3Width]);
-
   // Row1 divider (above compile output in col1): drag down → output panel smaller
   const dragRow1Divider = useCallback((e: React.MouseEvent) => {
     const startH = outH1Ref.current;
     startDrag(e, 'v', (dy) => setOut1(Math.max(60, Math.min(600, startH - dy))));
   }, [setOut1]);
-
-  // Row3 divider (above generate output in col3): drag down → generate panel smaller
-  const dragRow3Divider = useCallback((e: React.MouseEvent) => {
-    const startH = outH3Ref.current;
-    startDrag(e, 'v', (dy) => setOut3(Math.max(60, Math.min(600, startH - dy))));
-  }, [setOut3]);
 
   // Row2 divider (above deployment logs in col2): drag down → logs panel smaller
   const dragRow2Divider = useCallback((e: React.MouseEvent) => {
@@ -232,16 +185,7 @@ export default function EditorWorkspace() {
   return (
     <div className={styles.workspace}>
 
-      {/* Header with template picker */}
-      <header className={styles.header}>
-        <div className={styles.headerBrand}>
-          <span className={styles.logo}>◆</span>
-          <h1 className={styles.title}>Cairo Verifier Generator</h1>
-        </div>
-        <p className={styles.subtitle}>Circom / Noir → Groth16 Cairo Verifier · Powered by Garaga</p>
-      </header>
-
-      {/* Resizable 3-column row */}
+      {/* Resizable 2-column row */}
       <div className={styles.editorRow}>
 
         {/* ── Col 1: Circom editor (top) + compile output (bottom) ── */}
@@ -407,59 +351,6 @@ export default function EditorWorkspace() {
               )}
             </div>
           )}
-        </div>
-
-        {/* ── Col divider: resize col3 ── */}
-        <div className={styles.colDivider} onMouseDown={dragCol3Divider} />
-
-        {/* ── Col 3: VK panel (top) + generate output (bottom) ── */}
-        <div className={styles.colWrap} style={{ width: col3Width, flexShrink: 0 }}>
-          <div className={styles.paneLabelSmall}><span>Verification Key</span></div>
-          <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-            <VkPanel
-              onValidVk={(vk) => setValidVk(vk)}
-              onClearVk={() => { setValidVk(null); setVerifier(null); setGenerateState('idle'); }}
-            />
-          </div>
-          {/* Row drag handle → resize generate panel */}
-          <div className={styles.rowDivider} onMouseDown={dragRow3Divider} />
-          {/* Generate output + button */}
-          <div className={styles.outputPanel} style={{ height: outputHeight3 }}>
-            <div className={styles.paneLabelSmall}>
-              <span>Verifier</span>
-              {validVk && (
-                <button
-                  id="generate-btn"
-                  className={`${styles.generateBtn} ${styles.btnSm} ${generateState === 'generating' ? styles.generating : ''}`}
-                  onClick={handleGenerate}
-                  disabled={generateState === 'generating'}
-                >
-                  {generateState === 'generating'
-                    ? <><span className={styles.spinner} /> Generating…</>
-                    : '⬡ Generate'}
-                </button>
-              )}
-            </div>
-            <div className={styles.outputContent}>
-              {generateState === 'idle' && !validVk && <p className={styles.outputHint}>Upload a VK to generate a Cairo verifier.</p>}
-              {generateState === 'idle' && validVk && <p className={styles.outputHint}>VK validated ✓ — click ⬡ Generate.</p>}
-              {generateState === 'generating' && <p className={styles.outputHint}><span className={styles.spinner} /> Generating Cairo verifier…</p>}
-              {generateState === 'error' && (
-                <div className={styles.errorList}>
-                  <div className={styles.errorHeader}>✗ Generation failed</div>
-                  <div className={styles.errorItem}><span className={styles.errorMessage}>{generateError}</span></div>
-                </div>
-              )}
-              {generateState === 'success' && verifier && (
-                <div className={styles.successBlock}>
-                  <div className={styles.successHeader}>✓ Verifier generated</div>
-                  <table className={styles.statsTable}><tbody>
-                    <tr><td>Project</td><td><strong>{verifier.projectName}</strong></td></tr>
-                  </tbody></table>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
