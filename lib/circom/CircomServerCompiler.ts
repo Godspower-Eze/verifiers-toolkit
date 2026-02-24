@@ -19,10 +19,19 @@ export const TEMP_DIR_PREFIX = 'circom-';
 /**
  * Absolute path to the circom CLI shipped with @distributedlab/circom2.
  *
- * Why: We call it via `node cli.js` so Node's WASI can run circom.wasm
- * server-side without requiring a system-installed native binary.
+ * Resolution order:
+ *   1. CIRCOM_CLI_PATH env var — set this explicitly in monorepos or
+ *      non-standard deployments where node_modules may be hoisted.
+ *   2. process.cwd()/node_modules/... — works for standard Docker, Vercel,
+ *      Railway, and local dev setups where node_modules is at the project root.
+ *
+ * Note: require.resolve() is NOT used here because Turbopack intercepts it at
+ * compile time (even for server-external packages) and replaces it with a
+ * virtual module path that doesn't exist on disk at runtime.
  */
-const CIRCOM_CLI_PATH = require.resolve('@distributedlab/circom2/dist/cli.js');
+const CIRCOM_CLI_PATH =
+  process.env.CIRCOM_CLI_PATH ??
+  path.join(process.cwd(), 'node_modules/@distributedlab/circom2/dist/cli.js');
 
 /**
  * CircomServerCompiler — encapsulates all compiler subprocess invocation details.

@@ -1,0 +1,340 @@
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0d0d0f;
+  color: #e8e8ed;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 20px;
+  background: linear-gradient(135deg, #7c3aed, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: #f0f0f5;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.templatePicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  white-space: nowrap;
+}
+
+.select {
+  background: #1c1c1f;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #e8e8ed;
+  font-size: 13px;
+  padding: 6px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.select:hover {
+  border-color: rgba(124, 58, 237, 0.5);
+}
+
+.select:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.templateDescription {
+  font-size: 12px;
+  color: #555;
+  font-style: italic;
+}
+
+/* ─── Compile button ──────────────────────────────────────────────────────── */
+
+.compileBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  color: #fff;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+  white-space: nowrap;
+}
+
+.compileBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.5);
+  transform: translateY(-1px);
+}
+
+.compileBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.compileBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.compileBtn.success {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+}
+
+.compileBtn.error {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Editor row (Monaco + Output) ───────────────────────────────────────── */
+
+.editorRow {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.editorPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+
+.outputPane {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0d;
+}
+
+/* ─── Pane labels ─────────────────────────────────────────────────────────── */
+
+.paneLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #555;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.languageBadge {
+  background: rgba(124, 58, 237, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Output pane content ─────────────────────────────────────────────────── */
+
+.outputContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.outputHint {
+  color: #444;
+  font-size: 13px;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Success block */
+
+.successBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.successHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #34d399;
+}
+
+.statsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.statsTable td {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.statsTable td:first-child {
+  color: #888;
+}
+
+.statsTable td:last-child {
+  text-align: right;
+  color: #e8e8ed;
+}
+
+.warningsList {
+  font-size: 12px;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.warningsList ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+/* Error list */
+
+.errorList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.errorHeader {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f87171;
+  margin-bottom: 4px;
+}
+
+.errorItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(248, 113, 113, 0.06);
+  border: 1px solid rgba(248, 113, 113, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.errorCategory {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #f87171;
+}
+
+.errorMessage {
+  font-size: 12px;
+  color: #e8e8ed;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.errorLocation {
+  font-size: 11px;
+  color: #666;
+}
+
+/* ─── Loading state ───────────────────────────────────────────────────────── */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #0d0d0f;
+  color: #555;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
