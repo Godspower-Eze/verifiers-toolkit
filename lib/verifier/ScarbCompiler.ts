@@ -60,6 +60,7 @@ export class ScarbCompiler {
       }
 
       await Promise.all([
+        fs.promises.writeFile(path.join(tempDir, '.tool-versions'), 'scarb 2.14.0\n', 'utf8'),
         fs.promises.writeFile(path.join(tempDir, 'Scarb.toml'), input.scarbToml, 'utf8'),
         fs.promises.writeFile(path.join(srcDir, 'groth16_verifier.cairo'), input.verifierCairo, 'utf8'),
         fs.promises.writeFile(path.join(srcDir, 'groth16_verifier_constants.cairo'), input.constantsCairo, 'utf8'),
