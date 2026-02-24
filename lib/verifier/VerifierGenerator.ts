@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { SnarkJsVk } from '@/lib/vk/types';
-import type { GeneratedVerifier, GenerateResult } from './types';
+import type { GeneratedVerifier, GenerateResult, ProofSystem } from './types';
 
 const execFileAsync = promisify(execFile);
 
@@ -44,9 +44,16 @@ export const GARAGA_CLI_PATH = (() => {
  *   3. Read the generated Cairo files from the output folder.
  *   4. Return them as a structured object.
  *   5. Clean up the temp dir unconditionally.
+ * @param vk        Validated SnarkJS verification key.
+ * @param system    Proof system to generate for. Currently only 'groth16'.
+ * @param projectName  Scarb project name (sanitised before use).
  */
 export class VerifierGenerator {
-  async generate(vk: SnarkJsVk, projectName = 'groth16_verifier'): Promise<GenerateResult> {
+  async generate(
+    vk: SnarkJsVk,
+    system: ProofSystem = 'groth16',
+    projectName = `${system}_verifier`,
+  ): Promise<GenerateResult> {
     // Sanitise project name: only lowercase letters, digits, underscores
     const safeName = projectName.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
 
@@ -63,7 +70,7 @@ export class VerifierGenerator {
       // garaga outputs the project folder in cwd, so we run it from tempDir
       const args = [
         'gen',
-        '--system', 'groth16',
+        '--system', system,
         '--vk', vkPath,
         '--project-name', safeName,
         '--no-include-test-sample',

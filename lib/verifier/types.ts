@@ -1,3 +1,11 @@
+// ─── Proof system discriminator ───────────────────────────────────────────────
+
+/**
+ * Supported proof systems for Cairo verifier generation.
+ * Only groth16 is implemented currently. Plonk/fflonk can be added here later.
+ */
+export type ProofSystem = 'groth16';
+
 // ─── Scarb Compilation input ──────────────────────────────────────────────────
 
 /**
