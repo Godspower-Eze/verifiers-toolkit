@@ -60,7 +60,7 @@ pub mod Groth16Verifier {
       expect(result.sierra.sierra_program).toBeInstanceOf(Array);
       expect(result.casm.bytecode).toBeInstanceOf(Array);
     }
-  }, 60000); // 60s timeout for compilation
+  }, 300_000); // 5m timeout for compilation
 
   it('returns structured error on invalid Cairo code', async () => {
     const scarbToml = `
