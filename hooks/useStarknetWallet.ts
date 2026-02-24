@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { connect, disconnect } from 'starknetkit';
-import { AccountInterface } from 'starknet';
+import { Account, AccountInterface } from 'starknet';
 import type { StarknetWindowObject } from 'starknetkit';
 
 export function useStarknetWallet() {
@@ -46,10 +46,11 @@ export function useStarknetWallet() {
         if (result.connectorData && result.connectorData.account) {
           setAddress(result.connectorData.account);
           
-          // Attempt to extract the AccountInterface for declaring/deploying
+          // StarknetKit v3 usually populates result.wallet.account natively via the extension.
+          // This object already contains the provider context (e.g. from Argent X) bypassing default public rate limits.
           const w = result.wallet as any;
           if (w.account) {
-             setAccount(w.account);
+            setAccount(w.account);
           }
         }
       }
