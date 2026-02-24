@@ -8,8 +8,8 @@ const execFileAsync = promisify(execFile);
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Timeout for scarb build. */
-export const COMPILE_TIMEOUT_MS = 60_000;
+/** Timeout for scarb build (5 minutes) */
+export const COMPILE_TIMEOUT_MS = 300_000;
 
 /** Temp dir prefix for compilation runs. */
 export const SCARB_TEMP_DIR_PREFIX = 'scarb-compile-';
