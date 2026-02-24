@@ -17,7 +17,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false 
 
 type CompileState = 'idle' | 'compiling' | 'success' | 'error';
 type GenerateState = 'idle' | 'generating' | 'success' | 'error';
-type VerifierTab = 'verifier' | 'constants';
+type ActiveFile = 'Scarb.toml' | 'lib.cairo' | 'groth16_verifier.cairo' | 'groth16_verifier_constants.cairo';
 
 // ─── Drag utility ────────────────────────────────────────────────────────────
 
@@ -82,7 +82,9 @@ export default function EditorWorkspace() {
   const [generateState, setGenerateState] = useState<GenerateState>('idle');
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [verifier, setVerifier] = useState<GeneratedVerifier | null>(null);
-  const [activeTab, setActiveTab] = useState<VerifierTab>('verifier');
+  const [activeFile, setActiveFile] = useState<ActiveFile>('groth16_verifier.cairo');
+  const [isRootOpen, setIsRootOpen] = useState(true);
+  const [isSrcOpen, setIsSrcOpen] = useState(true);
 
   // ── Deployment State
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -159,7 +161,7 @@ export default function EditorWorkspace() {
       if (data.success) {
         setGenerateState('success');
         setVerifier(data.verifier);
-        setActiveTab('verifier');
+        setActiveFile('groth16_verifier.cairo');
       } else {
         setGenerateState('error');
         setGenerateError(data.error);
@@ -281,8 +283,12 @@ export default function EditorWorkspace() {
 
 
   // ── Helpers
+  const libCairoContent = "mod groth16_verifier_constants;\nmod groth16_verifier;\n";
   const activeContent = verifier
-    ? (activeTab === 'verifier' ? verifier.verifierCairo : verifier.constantsCairo)
+    ? activeFile === 'Scarb.toml' ? verifier.scarbToml
+    : activeFile === 'lib.cairo' ? libCairoContent
+    : activeFile === 'groth16_verifier.cairo' ? verifier.verifierCairo
+    : verifier.constantsCairo
     : '';
 
   const handleDownloadZip = useCallback(async () => {
@@ -429,77 +435,85 @@ export default function EditorWorkspace() {
         {/* ── Col 2: Cairo verifier — always rendered (flex:1 fills the space) ── */}
         <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180 }}>
           
-          {/* File tree sidebar */}
+          {/* File tree sidebar - only show when verifier exists */}
+          {verifier && (
           <div className={styles.fileTreeSidebar}>
             <div className={styles.paneLabelSmall} style={{ justifyContent: 'space-between' }}>
               <span>Project Files</span>
-              {verifier && (
-                <button
-                  className={styles.downloadIconBtn}
-                  onClick={handleDownloadZip}
-                  title="Download full project as ZIP"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                </button>
-              )}
+              <button
+                className={styles.downloadIconBtn}
+                onClick={handleDownloadZip}
+                title="Download full project as ZIP"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
             </div>
             <div className={styles.fileTreeContent}>
-              {!verifier ? (
-                <div className={styles.fileTreePlaceholder}>
-                  {generateState === 'generating' ? 'Generating files...' : generateState === 'error' ? 'Failed to generate.' : 'No files yet.'}
-                </div>
-              ) : (
+              <div 
+                className={styles.fileTreeFolder} 
+                onClick={() => setIsRootOpen(!isRootOpen)}
+                style={{ cursor: 'pointer', paddingLeft: 8 }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, transform: isRootOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.1s' }}><polyline points="9 18 15 12 9 6"></polyline></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
+                groth16_verifier
+              </div>
+              
+              {isRootOpen && (
                 <>
-                  <div className={styles.fileTreeFolder}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
-                    groth16_verifier
-                  </div>
-                  <div className={styles.fileTreeItem}>
+                  <div
+                    className={`${styles.fileTreeItem} ${activeFile === 'Scarb.toml' ? styles.fileTreeActive : ''}`}
+                    onClick={() => setActiveFile('Scarb.toml')}
+                    style={{ paddingLeft: 30, ...(activeFile === 'Scarb.toml' ? { paddingLeft: 28 } : {}) }}
+                  >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     Scarb.toml
                   </div>
-                  <div className={styles.fileTreeFolder} style={{ marginTop: 4, marginLeft: 8 }}>
+                  <div 
+                    className={styles.fileTreeFolder} 
+                    onClick={() => setIsSrcOpen(!isSrcOpen)}
+                    style={{ marginTop: 4, paddingLeft: 30, cursor: 'pointer' }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, transform: isSrcOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.1s' }}><polyline points="9 18 15 12 9 6"></polyline></svg>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
                     src
                   </div>
-                  <div className={styles.fileTreeItemNested}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    lib.cairo
-                  </div>
-                  <div
-                    className={`${styles.fileTreeItemNested} ${activeTab === 'verifier' ? styles.fileTreeActive : ''}`}
-                    onClick={() => setActiveTab('verifier')}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    groth16_verifier.cairo
-                  </div>
-                  <div
-                    className={`${styles.fileTreeItemNested} ${activeTab === 'constants' ? styles.fileTreeActive : ''}`}
-                    onClick={() => setActiveTab('constants')}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    groth16_verifier_constants.cairo
-                  </div>
+                  
+                  {isSrcOpen && (
+                    <>
+                      <div
+                        className={`${styles.fileTreeItemNested} ${activeFile === 'lib.cairo' ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile('lib.cairo')}
+                        style={{ paddingLeft: 52, ...(activeFile === 'lib.cairo' ? { paddingLeft: 50 } : {}) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        lib.cairo
+                      </div>
+                      <div
+                        className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier.cairo' ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile('groth16_verifier.cairo')}
+                        style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier.cairo' ? { paddingLeft: 50 } : {}) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        groth16_verifier.cairo
+                      </div>
+                      <div
+                        className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier_constants.cairo' ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile('groth16_verifier_constants.cairo')}
+                        style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier_constants.cairo' ? { paddingLeft: 50 } : {}) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        groth16_verifier_constants.cairo
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
           </div>
+          )}
 
           <div className={styles.cairoMain}>
-            {/* Tab bar — only when verifier exists */}
-            <div className={styles.tabBar}>
-              {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
-                <button
-                  key={tab}
-                  className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab(tab)}
-                  disabled={!verifier}
-                >
-                  {tab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
-                </button>
-              ))}
-            </div>
-
             {/* Content area */}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <div className={styles.cairoContent} style={{ flex: 1, minHeight: 0 }}>
