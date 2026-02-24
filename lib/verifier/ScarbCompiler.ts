@@ -44,14 +44,20 @@ export type ScarbCompileResult =
  */
 export class ScarbCompiler {
   async compile(input: ScarbCompileInput): Promise<ScarbCompileResult> {
-    const tempDir = await fs.promises.mkdtemp(
-      path.join(os.tmpdir(), SCARB_TEMP_DIR_PREFIX)
-    );
+    // Generate inside a consistent directory to leverage Scarb's internal target caching
+    const workspaceDir = path.join(process.cwd(), '.scarb-workspace');
+    const tempDir = path.join(workspaceDir, input.projectName);
 
     try {
       // Step 1: Write Scarb Project
       const srcDir = path.join(tempDir, 'src');
       await fs.promises.mkdir(srcDir, { recursive: true });
+
+      // Clean src dir just in case old files remain
+      const existingFiles = await fs.promises.readdir(srcDir).catch(() => []);
+      for (const file of existingFiles) {
+        await fs.promises.unlink(path.join(srcDir, file));
+      }
 
       await Promise.all([
         fs.promises.writeFile(path.join(tempDir, 'Scarb.toml'), input.scarbToml, 'utf8'),
@@ -106,8 +112,8 @@ export class ScarbCompiler {
     } catch (err: unknown) {
       return { success: false, error: String(err) };
     } finally {
-      // Step 4: Always clean up
-      await fs.promises.rm(tempDir, { recursive: true, force: true });
+      // Intentionally *not* cleaning up the directory so Scarb caches the dependencies
+      // It will just be overwritten next compile.
     }
   }
 }
