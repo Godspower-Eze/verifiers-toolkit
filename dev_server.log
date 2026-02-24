@@ -1,0 +1,96 @@
+
+> cairo-verifiers-generator@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.150.228:3000
+- Environments: .env.local
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+✓ Ready in 546ms
+ GET /circuit 200 in 2.6s (compile: 2.4s, render: 211ms)
+ GET / 307 in 489ms (compile: 422ms, render: 67ms)
+ GET /circuit 200 in 31ms (compile: 3ms, render: 29ms)
+ GET /api/templates 200 in 170ms (compile: 161ms, render: 9ms)
+ GET /circuit 200 in 39ms (compile: 5ms, render: 34ms)
+ GET /api/templates 200 in 5ms (compile: 2ms, render: 3ms)
+ GET /circuit 200 in 42ms (compile: 3ms, render: 39ms)
+ GET /api/templates 200 in 10ms (compile: 3ms, render: 6ms)
+ GET / 307 in 87ms (compile: 6ms, render: 82ms)
+ GET /circuit 200 in 48ms (compile: 1951µs, render: 46ms)
+ GET /api/templates 200 in 5ms (compile: 2ms, render: 3ms)
+ GET /circuit 200 in 61ms (compile: 5ms, render: 56ms)
+ GET /api/templates 200 in 5ms (compile: 1809µs, render: 3ms)
+ GET /vk 200 in 748ms (compile: 719ms, render: 29ms)
+ GET /verify 200 in 563ms (compile: 523ms, render: 40ms)
+ GET /circuit 200 in 20ms (compile: 2ms, render: 17ms)
+ GET /api/templates 200 in 9ms (compile: 3ms, render: 6ms)
+ GET /api/templates 200 in 7ms (compile: 3ms, render: 4ms)
+ GET / 200 in 19ms (compile: 4ms, render: 15ms)
+ GET /circuit 200 in 20ms (compile: 1750µs, render: 18ms)
+ GET /circuit 200 in 10ms (compile: 1251µs, render: 9ms)
+ GET /api/templates 200 in 3ms (compile: 1368µs, render: 2ms)
+ GET /api/templates 200 in 5ms (compile: 2ms, render: 3ms)
+ GET /verify 200 in 22ms (compile: 4ms, render: 18ms)
+ GET /circuit 200 in 28ms (compile: 4ms, render: 24ms)
+ GET /api/templates 200 in 7ms (compile: 3ms, render: 4ms)
+ GET /api/templates 200 in 4ms (compile: 1143µs, render: 3ms)
+ GET /circuit 200 in 41ms (compile: 4ms, render: 37ms)
+ GET /api/templates 200 in 4ms (compile: 1707µs, render: 2ms)
+ GET /vk 200 in 68ms (compile: 3ms, render: 65ms)
+ GET /circuit 200 in 369ms (compile: 130ms, render: 239ms)
+ GET /circuit 200 in 17ms (compile: 1682µs, render: 16ms)
+ GET /circuit 200 in 320ms (compile: 58ms, render: 263ms)
+ GET /api/templates 200 in 9ms (compile: 3ms, render: 6ms)
+ GET /circuit 200 in 86ms (compile: 38ms, render: 48ms)
+ GET /circuit 200 in 40ms (compile: 1369µs, render: 39ms)
+ GET /circuit 200 in 28ms (compile: 1580µs, render: 26ms)
+ GET /circuit 200 in 15ms (compile: 2ms, render: 12ms)
+ GET /vk 200 in 98ms (compile: 79ms, render: 19ms)
+ GET /verify 200 in 78ms (compile: 57ms, render: 21ms)
+ GET /circuit 200 in 21ms (compile: 3ms, render: 18ms)
+ GET /api/templates 200 in 6ms (compile: 1620µs, render: 4ms)
+ GET /api/templates 200 in 5ms (compile: 1566µs, render: 4ms)
+✓ Compiled in 49ms
+⨯ ReferenceError: setCol3Width is not defined
+    at EditorWorkspace (components/EditorWorkspace.tsx:174:7)
+  172 |     const startW = col3WRef.current;
+  173 |     startDrag(e, 'h', (dx) => setCol3Width(Math.max(220, Math.min(700, startW - dx))));
+> 174 |   }, [setCol3Width]);
+      |       ^
+  175 |
+  176 |   // Row1 divider (above compile output in col1): drag down → output panel smaller
+  177 |   const dragRow1Divider = useCallback((e: React.MouseEvent) => { {
+  digest: '3200533234'
+}
+ GET /circuit 200 in 262ms (compile: 69ms, render: 193ms)
+⨯ ReferenceError: setCol3Width is not defined
+    at EditorWorkspace (components/EditorWorkspace.tsx:174:7)
+  172 |     const startW = col3WRef.current;
+  173 |     startDrag(e, 'h', (dx) => setCol3Width(Math.max(220, Math.min(700, startW - dx))));
+> 174 |   }, [setCol3Width]);
+      |       ^
+  175 |
+  176 |   // Row1 divider (above compile output in col1): drag down → output panel smaller
+  177 |   const dragRow1Divider = useCallback((e: React.MouseEvent) => { {
+  digest: '3200533234'
+}
+ GET /circuit 200 in 51ms (compile: 3ms, render: 48ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 20ms
+ GET /circuit 200 in 255ms (compile: 52ms, render: 203ms)
+ GET /api/templates 200 in 6ms (compile: 2ms, render: 3ms)
+✓ Compiled in 13ms
+✓ Compiled in 4ms
+ GET /circuit 200 in 74ms (compile: 48ms, render: 26ms)
+ GET /circuit 200 in 13ms (compile: 1729µs, render: 11ms)
+✓ Compiled in 2ms
+ GET /circuit 200 in 13ms (compile: 1463µs, render: 12ms)
+✓ Compiled in 21ms
+ GET /circuit 200 in 159ms (compile: 2ms, render: 157ms)
+ GET /api/templates 200 in 4ms (compile: 1911µs, render: 2ms)
+ GET /vk 200 in 144ms (compile: 92ms, render: 52ms)
+ GET /verify 200 in 195ms (compile: 160ms, render: 35ms)

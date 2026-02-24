@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
-import { Loader2, Zap } from 'lucide-react';
+import styles from './TopNav.module.css';
 
 export default function TopNav() {
   const pathname = usePathname();
-  const { wallet, address, isConnecting, connectWallet, disconnectWallet } = useStarknetWallet();
+  const { address, isConnecting, connectWallet, disconnectWallet } = useStarknetWallet();
 
   const navLinks = [
     { href: '/circuit', label: 'Write Circuit' },
@@ -16,25 +16,21 @@ export default function TopNav() {
   ];
 
   return (
-    <nav className="flex items-center justify-between border-b border-slate-800 bg-slate-900/50 px-6 py-3">
+    <nav className={styles.nav}>
       {/* Brand & Links */}
-      <div className="flex items-center space-x-8">
-        <Link href="/" className="flex items-center space-x-2 text-indigo-400 hover:text-indigo-300 transition-colors">
-          <Zap className="h-5 w-5" />
-          <span className="font-semibold text-lg tracking-tight">Cairo Verifiers Toolkit</span>
+      <div className={styles.brandGroup}>
+        <Link href="/" className={styles.brand}>
+          <span className={styles.brandIcon}>◆</span>
+          <span>Cairo Verifiers Toolkit</span>
         </Link>
-        <div className="flex space-x-1">
+        <div className={styles.links}>
           {navLinks.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-slate-800 text-slate-100 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
+                className={isActive ? styles.navLinkActive : styles.navLink}
               >
                 {link.label}
               </Link>
@@ -44,32 +40,23 @@ export default function TopNav() {
       </div>
 
       {/* Wallet Controls */}
-      <div className="flex items-center">
+      <div className={styles.walletGroup}>
         {isConnecting ? (
-          <button
-            disabled
-            className="flex items-center space-x-2 rounded bg-indigo-500/50 px-4 py-2 text-sm font-medium text-white transition-colors cursor-not-allowed"
-          >
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Connecting...</span>
+          <button disabled className={styles.connectingBtn}>
+            <span className={styles.spinner} />
+            <span>Connecting…</span>
           </button>
         ) : address ? (
-          <div className="flex items-center space-x-3">
-            <span className="text-sm font-mono text-slate-400 bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700">
-              {address.slice(0, 6)}...{address.slice(-4)}
+          <>
+            <span className={styles.addressPill}>
+              {address.slice(0, 6)}…{address.slice(-4)}
             </span>
-            <button
-              onClick={disconnectWallet}
-              className="rounded px-3 py-1.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
-            >
+            <button onClick={disconnectWallet} className={styles.disconnectBtn}>
               Disconnect
             </button>
-          </div>
+          </>
         ) : (
-          <button
-            onClick={connectWallet}
-            className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm"
-          >
+          <button onClick={connectWallet} className={styles.connectBtn}>
             Connect Wallet
           </button>
         )}
