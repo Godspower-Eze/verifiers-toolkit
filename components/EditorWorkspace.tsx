@@ -10,6 +10,7 @@ import type { GeneratedVerifier } from '@/lib/verifier/VerifierGenerator';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
+import { hash } from 'starknet';
 import DeploymentLogs, { LogEntry, LogType } from './DeploymentLogs';
 import JSZip from 'jszip';
 
@@ -191,17 +192,26 @@ export default function EditorWorkspace() {
       }
       addLog('Compilation successful. Requesting wallet signature to Declare...', 'success');
 
-      // Declare using the native wallet account which contains the non-rate-limited provider
-      const declareResponse = await account.declare({
-        contract: compileData.sierra,
-        casm: compileData.casm,
+      // Calculate compiled class hash
+      const compiledClassHash = hash.computeCompiledClassHash(compileData.casm);
+
+      // Declare using wallet request directly to avoid intermediate fee estimations on default RPCs
+      const declareResponse: any = await wallet.request({
+        type: 'wallet_addDeclareTransaction' as any,
+        params: {
+          compiled_class_hash: compiledClassHash,
+          contract_class: compileData.sierra
+        }
       });
       
-      addLog(`Declare TX sent: ${declareResponse.transaction_hash}. Waiting for L2 acceptance...`, 'info');
-      await account.waitForTransaction(declareResponse.transaction_hash);
+      const txHash = declareResponse.transaction_hash;
+      const classHash = declareResponse.class_hash;
+
+      addLog(`Declare TX sent: ${txHash}. Waiting for L2 acceptance...`, 'info');
+      await account.waitForTransaction(txHash);
       
-      addLog(`Contract declared successfully! Class Hash: ${declareResponse.class_hash}`, 'success');
-      setDeployClassHash(declareResponse.class_hash);
+      addLog(`Contract declared successfully! Class Hash: ${classHash}`, 'success');
+      setDeployClassHash(classHash);
     } catch (err: any) {
       addLog(`Declare failed: ${err.message || String(err)}`, 'error');
     } finally {
@@ -210,25 +220,46 @@ export default function EditorWorkspace() {
   }, [wallet, address, account, verifier, addLog]);
 
   const handleDeploy = useCallback(async () => {
-    if (!account || !deployClassHash) return;
+    if (!wallet || !account || !deployClassHash) return;
     setIsDeploying(true);
     try {
       addLog('Requesting wallet signature to Deploy...', 'info');
-      const deployResponse = await account.deployContract({
-        classHash: deployClassHash,
-        constructorCalldata: [],
+      
+      const UDC_ADDRESS = '0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf';
+      // Generate a random 32-bit salt
+      const salt = "0x" + Math.floor(Math.random() * 1000000000).toString(16);
+      
+      const deployResponse: any = await wallet.request({
+        type: 'wallet_addInvokeTransaction' as any,
+        params: {
+          calls: [{
+            contract_address: UDC_ADDRESS,
+            entry_point: "deployContract",
+            calldata: [deployClassHash, salt, "0", "0"]
+          }]
+        }
       });
       
-      addLog(`Deploy TX sent: ${deployResponse.transaction_hash}. Waiting for L2 acceptance...`, 'info');
-      await account.waitForTransaction(deployResponse.transaction_hash);
+      const txHash = deployResponse.transaction_hash;
       
-      addLog(`Contract deployed successfully! Address: ${deployResponse.contract_address}`, 'success');
+      addLog(`Deploy TX sent: ${txHash}. Waiting for L2 acceptance...`, 'info');
+      await account.waitForTransaction(txHash);
+      
+      // The UDC precomputes the deployed contract's address natively deterministically
+      const contractAddress = hash.calculateContractAddressFromHash(
+        salt,
+        deployClassHash,
+        [],
+        0
+      );
+      
+      addLog(`Contract deployed successfully! Address: ${contractAddress}`, 'success');
     } catch (err: any) {
       addLog(`Deploy failed: ${err.message || String(err)}`, 'error');
     } finally {
       setIsDeploying(false);
     }
-  }, [account, deployClassHash, addLog]);
+  }, [wallet, account, deployClassHash, addLog]);
 
   // ── Markers
   function clearEditorMarkers() {
