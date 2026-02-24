@@ -11,6 +11,7 @@ import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
 import DeploymentLogs, { LogEntry, LogType } from './DeploymentLogs';
+import JSZip from 'jszip';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -278,11 +279,32 @@ export default function EditorWorkspace() {
     startDrag(e, 'v', (dy) => setOut2(Math.max(60, Math.min(600, startH - dy))));
   }, [setOut2]);
 
+
   // ── Helpers
   const activeContent = verifier
     ? (activeTab === 'verifier' ? verifier.verifierCairo : verifier.constantsCairo)
     : '';
-  const dlHref = (c: string) => `data:text/plain;charset=utf-8,${encodeURIComponent(c)}`;
+
+  const handleDownloadZip = useCallback(async () => {
+    if (!verifier) return;
+    const zip = new JSZip();
+    zip.file('Scarb.toml', verifier.scarbToml);
+    const src = zip.folder('src');
+    if (src) {
+      src.file('lib.cairo', "mod groth16_verifier_constants;\nmod groth16_verifier;\n");
+      src.file('groth16_verifier.cairo', verifier.verifierCairo);
+      src.file('groth16_verifier_constants.cairo', verifier.constantsCairo);
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'groth16_verifier_project.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [verifier]);
 
   // ── Render
   return (
@@ -406,29 +428,80 @@ export default function EditorWorkspace() {
 
         {/* ── Col 2: Cairo verifier — always rendered (flex:1 fills the space) ── */}
         <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180 }}>
-          {/* Tab bar — only when verifier exists */}
-          <div className={styles.tabBar}>
-            {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
-              <button
-                key={tab}
-                className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab(tab)}
-                disabled={!verifier}
-              >
-                {tab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
-              </button>
-            ))}
-            {verifier && (
-              <a
-                className={styles.downloadBtn}
-                href={dlHref(activeContent)}
-                download={activeTab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
-              >↓</a>
-            )}
+          
+          {/* File tree sidebar */}
+          <div className={styles.fileTreeSidebar}>
+            <div className={styles.paneLabelSmall} style={{ justifyContent: 'space-between' }}>
+              <span>Project Files</span>
+              {verifier && (
+                <button
+                  className={styles.downloadIconBtn}
+                  onClick={handleDownloadZip}
+                  title="Download full project as ZIP"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+              )}
+            </div>
+            <div className={styles.fileTreeContent}>
+              {!verifier ? (
+                <div className={styles.fileTreePlaceholder}>
+                  {generateState === 'generating' ? 'Generating files...' : generateState === 'error' ? 'Failed to generate.' : 'No files yet.'}
+                </div>
+              ) : (
+                <>
+                  <div className={styles.fileTreeFolder}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
+                    groth16_verifier
+                  </div>
+                  <div className={styles.fileTreeItem}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Scarb.toml
+                  </div>
+                  <div className={styles.fileTreeFolder} style={{ marginTop: 4, marginLeft: 8 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
+                    src
+                  </div>
+                  <div className={styles.fileTreeItemNested}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    lib.cairo
+                  </div>
+                  <div
+                    className={`${styles.fileTreeItemNested} ${activeTab === 'verifier' ? styles.fileTreeActive : ''}`}
+                    onClick={() => setActiveTab('verifier')}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    groth16_verifier.cairo
+                  </div>
+                  <div
+                    className={`${styles.fileTreeItemNested} ${activeTab === 'constants' ? styles.fileTreeActive : ''}`}
+                    onClick={() => setActiveTab('constants')}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    groth16_verifier_constants.cairo
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Content area */}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <div className={styles.cairoMain}>
+            {/* Tab bar — only when verifier exists */}
+            <div className={styles.tabBar}>
+              {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
+                <button
+                  key={tab}
+                  className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab(tab)}
+                  disabled={!verifier}
+                >
+                  {tab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
+                </button>
+              ))}
+            </div>
+
+            {/* Content area */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <div className={styles.cairoContent} style={{ flex: 1, minHeight: 0 }}>
               {!verifier && generateState === 'idle' && (
                 <div className={styles.cairoPlaceholder}>
@@ -466,7 +539,7 @@ export default function EditorWorkspace() {
               {isConnected ? (
                 <>
                   <span className={styles.deployLabel} title={address || ''}>
-                    Starknet ({address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'})
+                    Starknet Wallet ({address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'})
                   </span>
                   <button
                     id="declare-btn"
@@ -494,6 +567,7 @@ export default function EditorWorkspace() {
               )}
             </div>
           )}
+        </div>
         </div>
 
         {/* ── Col divider: resize col3 ── */}
