@@ -561,7 +561,7 @@ export default function EditorWorkspace() {
                     onClick={handleCompileAndDeclare}
                     disabled={isDeploying}
                   >
-                    Compile & Declare
+                    {isDeploying && !deployClassHash ? 'Compiling & Declaring...' : 'Compile & Declare'}
                   </button>
                   <button
                     id="deploy-btn"
@@ -569,7 +569,7 @@ export default function EditorWorkspace() {
                     onClick={handleDeploy}
                     disabled={isDeploying || !deployClassHash}
                   >
-                    Deploy
+                    {isDeploying && deployClassHash ? 'Deploying...' : 'Deploy'}
                   </button>
                   <button onClick={disconnectWallet} className={styles.disconnectBtn}>Disconnect</button>
                 </>

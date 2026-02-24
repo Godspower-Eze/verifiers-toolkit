@@ -14,9 +14,10 @@ export function useStarknetWallet() {
       try {
         const { wallet } = await connect({ modalMode: 'neverAsk' });
         const w = wallet as any;
-        if (w && (w.isConnected || w.account)) {
-          setAccount(w.account);
-          setAddress(w.selectedAddress ?? w.account?.address);
+        const addr = w?.selectedAddress || w?.account?.address;
+        if (w && (w.isConnected || addr)) {
+          setAccount(w.account || null);
+          setAddress(addr || null);
           setIsConnected(true);
         }
       } catch (err) {
@@ -34,9 +35,10 @@ export function useStarknetWallet() {
       });
       const w = wallet as any;
       console.log("StarknetKit connect result:", w);
-      if (w && (w.isConnected || w.account)) {
-        setAccount(w.account);
-        setAddress(w.selectedAddress ?? w.account?.address);
+      const addr = w?.selectedAddress || w?.account?.address;
+      if (w && (w.isConnected || addr)) {
+        setAccount(w.account || null);
+        setAddress(addr || null);
         setIsConnected(true);
       }
     } catch (e) {
