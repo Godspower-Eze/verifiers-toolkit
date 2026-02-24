@@ -15,11 +15,12 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 14px 24px;
+  gap: 24px;
+  padding: 10px 24px;
   background: #111114;
   border-bottom: 1px solid rgba(255,255,255,0.07);
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .headerBrand {
@@ -53,13 +54,7 @@
 /* ─── Toolbar ─────────────────────────────────────────────────────────────── */
 
 .toolbar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 24px;
-  background: #111114;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  flex-shrink: 0;
+  display: none; /* Template picker moved into header */
 }
 
 .templatePicker {
@@ -138,6 +133,14 @@
   cursor: not-allowed;
 }
 
+/* Compact size when embedded in small label bar */
+.paneLabelSmall .compileBtn,
+.paneLabelSmall .generateBtn {
+  padding: 3px 10px;
+  font-size: 11px;
+  box-shadow: none;
+}
+
 .compileBtn.success {
   background: linear-gradient(135deg, #059669, #047857);
   box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
@@ -171,19 +174,194 @@
 }
 
 .editorPane {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  border-right: 1px solid rgba(255,255,255,0.06);
-  min-width: 0;
+  flex-direction: column; /* stacks Monaco on top, output on bottom */
+  border-right: none;
+  min-width: 200px;
+  overflow: hidden;
 }
 
-.outputPane {
-  width: 340px;
+/* Compile output panel — lives below Monaco in col1 */
+.outputPanel {
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0d;
+  border-top: none; /* row divider handles the border */
+}
+
+/* VK panel column */
+.vkPane {
+  width: 280px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: #0a0a0d;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+/* ─── Drag dividers ───────────────────────────────────────────────────────── */
+
+/* Vertical column resize handle */
+.colDivider {
+  width: 5px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  cursor: col-resize;
+  position: relative;
+  transition: background 0.15s;
+}
+.colDivider:hover, .colDivider:active {
+  background: rgba(124,58,237,0.5);
+}
+.colDivider::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 2px;
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Horizontal row resize handle */
+.rowDivider {
+  height: 5px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  cursor: row-resize;
+  transition: background 0.15s;
+}
+.rowDivider:hover, .rowDivider:active {
+  background: rgba(124,58,237,0.5);
+}
+
+/* ─── Cairo verifier pane (col 2) ────────────────────────────────────────── */
+
+.cairoPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #080810;
+  border-left: 1px solid rgba(6,182,212,0.12);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+
+.cairoContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+}
+
+.cairoPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  color: #444;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.cairoPlaceholder strong {
+  color: #06b6d4;
+}
+
+.cairoPlaceholderError {
+  padding: 16px;
+  font-size: 12px;
+  color: #f87171;
+  word-break: break-word;
+}
+
+.cairoCode {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  line-height: 1.65;
+  color: #c8c8d4;
+  white-space: pre;
+  background: transparent;
+}
+
+/* ─── Deploy bar ──────────────────────────────────────────────────────────── */
+
+.deployBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #0c0c1a;
+  border-top: 1px solid rgba(6,182,212,0.15);
+  flex-shrink: 0;
+}
+
+.deployLabel {
+  font-size: 11px;
+  color: #555;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.declareBtn {
+  background: rgba(6,182,212,0.12);
+  border: 1px solid rgba(6,182,212,0.3);
+  border-radius: 6px;
+  color: #06b6d4;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.declareBtn:hover {
+  background: rgba(6,182,212,0.22);
+  box-shadow: 0 0 12px rgba(6,182,212,0.2);
+}
+
+.deployBtn {
+  background: linear-gradient(135deg,#7c3aed,#06b6d4);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.3);
+}
+
+.deployBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ─── Small pane label (used in col1 output + col3 VK) ───────────────────── */
+
+.paneLabelSmall {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px 5px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #444;
+  background: #0c0c10;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 /* ─── Pane labels ─────────────────────────────────────────────────────────── */
