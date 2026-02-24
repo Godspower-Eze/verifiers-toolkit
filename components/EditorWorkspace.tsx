@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
 import type { CompileError, CompileResponse } from '@/lib/circom/types';
@@ -16,39 +16,27 @@ type CompileState = 'idle' | 'compiling' | 'success' | 'error';
 type GenerateState = 'idle' | 'generating' | 'success' | 'error';
 type VerifierTab = 'verifier' | 'constants';
 
-// ─── Drag utilities ───────────────────────────────────────────────────────────
+// ─── Drag utility ────────────────────────────────────────────────────────────
 
-function lockBody(cursor: string) {
-  document.body.style.cursor = cursor;
+/** Starts a drag session. Calls onMove(delta) on every mouse move until mouseup. */
+function startDrag(
+  e: React.MouseEvent,
+  axis: 'h' | 'v',
+  onMove: (delta: number) => void,
+) {
+  e.preventDefault();
+  const startPos = axis === 'h' ? e.clientX : e.clientY;
+  document.body.style.cursor = axis === 'h' ? 'col-resize' : 'row-resize';
   document.body.style.userSelect = 'none';
-}
-function unlockBody() {
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
-}
-
-function useHDrag(onDelta: (dx: number) => void) {
-  return useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const onMove = (ev: MouseEvent) => onDelta(ev.clientX - startX);
-    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); unlockBody(); };
-    lockBody('col-resize');
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }, [onDelta]);
-}
-
-function useVDrag(onDelta: (dy: number) => void) {
-  return useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const startY = e.clientY;
-    const onMove = (ev: MouseEvent) => onDelta(ev.clientY - startY);
-    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); unlockBody(); };
-    lockBody('row-resize');
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }, [onDelta]);
+  const move = (ev: MouseEvent) => onMove((axis === 'h' ? ev.clientX : ev.clientY) - startPos);
+  const up = () => {
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', up);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -56,19 +44,23 @@ function useVDrag(onDelta: (dy: number) => void) {
 export default function EditorWorkspace() {
   const editorRef = useRef<MonacoNS.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof MonacoNS | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // ── Column widths in px (snapshotted at drag start)
-  const col1SnapW = useRef(0);
-  const col3SnapW = useRef(0);
-  const [col1Width, setCol1Width] = useState(420);
-  const [col3Width, setCol3Width] = useState(300);
+  // ── Sizes — stored in refs for getValue() snapshots, synced to state for renders
+  const col1WRef = useRef(420);
+  const col3WRef = useRef(300);
+  const outH1Ref = useRef(180);
+  const outH3Ref = useRef(200);
 
-  // ── Output panel heights in px
-  const outH1Snap = useRef(0);
-  const outH3Snap = useRef(0);
-  const [outputHeight1, setOutputHeight1] = useState(180);  // col1 compile output
-  const [outputHeight3, setOutputHeight3] = useState(200);  // col3 generate status
+  const [col1Width, _setCol1Width] = useState(420);
+  const [col3Width, _setCol3Width] = useState(300);
+  const [outputHeight1, _setOutputHeight1] = useState(180);
+  const [outputHeight3, _setOutputHeight3] = useState(200);
+
+  // Setters that keep refs in sync
+  const setCol1Width = useCallback((v: number) => { col1WRef.current = v; _setCol1Width(v); }, []);
+  const setCol3Width = useCallback((v: number) => { col3WRef.current = v; _setCol3Width(v); }, []);
+  const setOut1 = useCallback((v: number) => { outH1Ref.current = v; _setOutputHeight1(v); }, []);
+  const setOut3 = useCallback((v: number) => { outH3Ref.current = v; _setOutputHeight3(v); }, []);
 
   // ── Circuit state
   const [templates, setTemplates] = useState<CircuitTemplate[]>([]);
@@ -106,9 +98,10 @@ export default function EditorWorkspace() {
     clearEditorMarkers();
   }, []);
 
-  // ── Reflow Monaco when col1 width changes (fixes text not reacting to drag)
-  useEffect(() => {
-    editorRef.current?.layout();
+  // ── Monaco reflow: after DOM updates, trigger layout via requestAnimationFrame
+  useLayoutEffect(() => {
+    const raf = requestAnimationFrame(() => { editorRef.current?.layout(); });
+    return () => cancelAnimationFrame(raf);
   }, [col1Width]);
 
   // ── Compile
@@ -161,7 +154,7 @@ export default function EditorWorkspace() {
     }
   }, [validVk]);
 
-  // ── Editor markers
+  // ── Markers
   function clearEditorMarkers() {
     if (!editorRef.current || !monacoRef.current) return;
     monacoRef.current.editor.setModelMarkers(editorRef.current.getModel()!, 'circom-compiler', []);
@@ -180,58 +173,49 @@ export default function EditorWorkspace() {
     m.editor.setModelMarkers(editorRef.current.getModel()!, 'circom-compiler', markers);
   }
 
-  // ── Column drag handlers
-  const onDivider1 = useHDrag(useCallback((dx: number) => {
-    setCol1Width(Math.max(220, Math.min(900, col1SnapW.current + dx)));
-  }, []));
-  const snapDivider1 = useCallback((e: React.MouseEvent) => {
-    col1SnapW.current = containerRef.current
-      ?.querySelector<HTMLElement>(`.${styles.editorPane}`)?.offsetWidth ?? col1Width;
-    onDivider1(e);
-  }, [onDivider1, col1Width]);
+  // ── Drag handlers — each captures startPos + startVal at mousedown ──────────
 
-  const onDivider3 = useHDrag(useCallback((dx: number) => {
-    setCol3Width(Math.max(220, Math.min(700, col3SnapW.current - dx)));
-  }, []));
-  const snapDivider3 = useCallback((e: React.MouseEvent) => {
-    col3SnapW.current = containerRef.current
-      ?.querySelector<HTMLElement>(`.${styles.vkPane}`)?.offsetWidth ?? col3Width;
-    onDivider3(e);
-  }, [onDivider3, col3Width]);
+  // Col1 divider (right of col1): drag right → col1 wider
+  const dragCol1Divider = useCallback((e: React.MouseEvent) => {
+    const startW = col1WRef.current;
+    startDrag(e, 'h', (dx) => setCol1Width(Math.max(220, Math.min(900, startW + dx))));
+  }, [setCol1Width]);
 
-  // ── Row drag handlers
-  const onRowDrag1 = useVDrag(useCallback((dy: number) => {
-    setOutputHeight1(Math.max(60, Math.min(500, outH1Snap.current - dy)));
-  }, []));
-  const snapRow1 = useCallback((e: React.MouseEvent) => {
-    outH1Snap.current = outputHeight1;
-    onRowDrag1(e);
-  }, [onRowDrag1, outputHeight1]);
+  // Col3 divider (left of col3): drag right → col3 narrower (divider moves right = less col3)
+  const dragCol3Divider = useCallback((e: React.MouseEvent) => {
+    const startW = col3WRef.current;
+    startDrag(e, 'h', (dx) => setCol3Width(Math.max(220, Math.min(700, startW - dx))));
+  }, [setCol3Width]);
 
-  const onRowDrag3 = useVDrag(useCallback((dy: number) => {
-    setOutputHeight3(Math.max(60, Math.min(500, outH3Snap.current - dy)));
-  }, []));
-  const snapRow3 = useCallback((e: React.MouseEvent) => {
-    outH3Snap.current = outputHeight3;
-    onRowDrag3(e);
-  }, [onRowDrag3, outputHeight3]);
+  // Row1 divider (above compile output in col1): drag down → output panel smaller
+  const dragRow1Divider = useCallback((e: React.MouseEvent) => {
+    const startH = outH1Ref.current;
+    startDrag(e, 'v', (dy) => setOut1(Math.max(60, Math.min(600, startH - dy))));
+  }, [setOut1]);
+
+  // Row3 divider (above generate output in col3): drag down → generate panel smaller
+  const dragRow3Divider = useCallback((e: React.MouseEvent) => {
+    const startH = outH3Ref.current;
+    startDrag(e, 'v', (dy) => setOut3(Math.max(60, Math.min(600, startH - dy))));
+  }, [setOut3]);
 
   // ── Helpers
   const activeContent = verifier
     ? (activeTab === 'verifier' ? verifier.verifierCairo : verifier.constantsCairo)
     : '';
-  const downloadHref = (c: string) => `data:text/plain;charset=utf-8,${encodeURIComponent(c)}`;
+  const dlHref = (c: string) => `data:text/plain;charset=utf-8,${encodeURIComponent(c)}`;
 
   // ── Render
   return (
     <div className={styles.workspace}>
 
-      {/* ── Header ── */}
+      {/* Header with template picker */}
       <header className={styles.header}>
         <div className={styles.headerBrand}>
           <span className={styles.logo}>◆</span>
           <h1 className={styles.title}>Cairo Verifier Generator</h1>
         </div>
+        <p className={styles.subtitle}>Circom → Groth16 Cairo Verifier · Powered by Garaga</p>
         <div className={styles.templatePicker}>
           <label htmlFor="template-select" className={styles.label}>Template</label>
           <select
@@ -245,26 +229,20 @@ export default function EditorWorkspace() {
           >
             {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
-          {templates.find((t) => t.id === selectedId) && (
-            <span className={styles.templateDescription}>
-              {templates.find((t) => t.id === selectedId)!.description}
-            </span>
-          )}
         </div>
       </header>
 
-      {/* ── Resizable editor row ── */}
-      <div className={styles.editorRow} ref={containerRef}>
+      {/* Resizable 3-column row */}
+      <div className={styles.editorRow}>
 
-        {/* ── Col 1: Circom editor + compile output ── */}
-        <div className={styles.editorPane} style={{ width: col1Width }}>
+        {/* ── Col 1: Circom editor (top) + compile output (bottom) ── */}
+        <div className={styles.colWrap} style={{ width: col1Width, flexShrink: 0 }}>
           <div className={styles.paneLabel}>
             <span>{filename}</span>
             <span className={styles.languageBadge}>Circom 2.0</span>
           </div>
-
-          {/* Monaco fills the remaining space */}
-          <div style={{ flex: 1, minHeight: 0 }}>
+          {/* Monaco fills remaining height */}
+          <div className={styles.monacoWrap}>
             <MonacoEditor
               height="100%"
               defaultLanguage="rust"
@@ -286,17 +264,15 @@ export default function EditorWorkspace() {
               }}
             />
           </div>
-
-          {/* Row drag handle */}
-          <div className={styles.rowDivider} onMouseDown={snapRow1} />
-
-          {/* Compile output + button */}
+          {/* Row drag handle → resize compile output */}
+          <div className={styles.rowDivider} onMouseDown={dragRow1Divider} />
+          {/* Compile output */}
           <div className={styles.outputPanel} style={{ height: outputHeight1 }}>
             <div className={styles.paneLabelSmall}>
               <span>Compile Output</span>
               <button
                 id="compile-btn"
-                className={`${styles.compileBtn} ${styles[compileState]}`}
+                className={`${styles.compileBtn} ${styles[compileState]} ${styles.btnSm}`}
                 onClick={handleCompile}
                 disabled={compileState === 'compiling'}
               >
@@ -311,25 +287,16 @@ export default function EditorWorkspace() {
               {compileState === 'success' && compileResult?.success && (
                 <div className={styles.successBlock}>
                   <div className={styles.successHeader}>✓ Compiled successfully</div>
-                  <table className={styles.statsTable}>
-                    <tbody>
-                      <tr>
-                        <td>Non-linear constraints</td>
-                        <td><strong>{(compileResult.result as { constraintCount: number }).constraintCount}</strong></td>
-                      </tr>
-                      {(compileResult.result as { wireCount?: number }).wireCount !== undefined && (
-                        <tr>
-                          <td>Wires</td>
-                          <td><strong>{(compileResult.result as { wireCount?: number }).wireCount}</strong></td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  <table className={styles.statsTable}><tbody>
+                    <tr><td>Non-linear constraints</td><td><strong>{(compileResult.result as { constraintCount: number }).constraintCount}</strong></td></tr>
+                    {(compileResult.result as { wireCount?: number }).wireCount !== undefined && (
+                      <tr><td>Wires</td><td><strong>{(compileResult.result as { wireCount?: number }).wireCount}</strong></td></tr>
+                    )}
+                  </tbody></table>
                   {(compileResult.result as { warnings: string[] }).warnings.length > 0 && (
-                    <div className={styles.warningsList}>
-                      <strong>Warnings:</strong>
-                      <ul>{(compileResult.result as { warnings: string[] }).warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
-                    </div>
+                    <div className={styles.warningsList}><strong>Warnings:</strong><ul>
+                      {(compileResult.result as { warnings: string[] }).warnings.map((w, i) => <li key={i}>{w}</li>)}
+                    </ul></div>
                   )}
                 </div>
               )}
@@ -349,62 +316,59 @@ export default function EditorWorkspace() {
           </div>
         </div>
 
-        {/* ── Cairo pane (col 2) — only shown after generation ── */}
-        {verifier && (
-          <>
-            <div className={styles.colDivider} />
+        {/* ── Col divider: resize col1 ── */}
+        <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
-            <div className={styles.cairoPane}>
-              <div className={styles.tabBar}>
-                {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
-                  <button
-                    key={tab}
-                    className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab === 'verifier' ? 'groth16_verifier.cairo' : 'constants.cairo'}
-                  </button>
-                ))}
-                <a
-                  className={styles.downloadBtn}
-                  href={downloadHref(activeContent)}
-                  download={activeTab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
-                >↓</a>
-              </div>
-              <pre className={styles.cairoCode}>{activeContent}</pre>
-              <div className={styles.deployBar}>
-                <span className={styles.deployLabel}>Deploy to Starknet</span>
-                <button id="declare-btn" className={styles.declareBtn}>Declare Contract</button>
-                <button id="deploy-btn" className={styles.deployBtn}>Deploy Contract</button>
-              </div>
+        {/* ── Col 2: Cairo verifier — only after generation ── */}
+        {verifier && (
+          <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 200 }}>
+            <div className={styles.tabBar}>
+              {(['verifier', 'constants'] as VerifierTab[]).map((tab) => (
+                <button
+                  key={tab}
+                  className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab === 'verifier' ? 'groth16_verifier.cairo' : 'constants.cairo'}
+                </button>
+              ))}
+              <a
+                className={styles.downloadBtn}
+                href={dlHref(activeContent)}
+                download={activeTab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
+              >↓</a>
             </div>
-          </>
+            <pre className={styles.cairoCode}>{activeContent}</pre>
+            <div className={styles.deployBar}>
+              <span className={styles.deployLabel}>Deploy to Starknet</span>
+              <button id="declare-btn" className={styles.declareBtn}>Declare Contract</button>
+              <button id="deploy-btn" className={styles.deployBtn}>Deploy Contract</button>
+            </div>
+          </div>
         )}
 
-        {/* ── Col divider before VK pane ── */}
-        <div className={styles.colDivider} onMouseDown={snapDivider3} />
+        {/* ── Col divider: resize col3 (inverted — drag left grows col3) ── */}
+        <div className={styles.colDivider} onMouseDown={dragCol3Divider} />
 
-        {/* ── Col 3: VK panel + generate output ── */}
-        <div className={styles.vkPane} style={{ width: col3Width }}>
-          <div className={styles.paneLabelSmall}>Verification Key</div>
+        {/* ── Col 3: VK panel (top) + generate output (bottom) ── */}
+        <div className={styles.colWrap} style={{ width: col3Width, flexShrink: 0 }}>
+          <div className={styles.paneLabelSmall}><span>Verification Key</span></div>
           <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
             <VkPanel
               onValidVk={(vk) => setValidVk(vk)}
               onClearVk={() => { setValidVk(null); setVerifier(null); setGenerateState('idle'); }}
             />
           </div>
-
-          {/* Row drag within col3 */}
-          <div className={styles.rowDivider} onMouseDown={snapRow3} />
-
-          {/* Generate status + button */}
+          {/* Row drag handle → resize generate panel */}
+          <div className={styles.rowDivider} onMouseDown={dragRow3Divider} />
+          {/* Generate output + button */}
           <div className={styles.outputPanel} style={{ height: outputHeight3 }}>
             <div className={styles.paneLabelSmall}>
               <span>Verifier</span>
               {validVk && (
                 <button
                   id="generate-btn"
-                  className={`${styles.generateBtn} ${generateState === 'generating' ? styles.generating : ''}`}
+                  className={`${styles.generateBtn} ${styles.btnSm} ${generateState === 'generating' ? styles.generating : ''}`}
                   onClick={handleGenerate}
                   disabled={generateState === 'generating'}
                 >
@@ -415,31 +379,21 @@ export default function EditorWorkspace() {
               )}
             </div>
             <div className={styles.outputContent}>
-              {generateState === 'idle' && !validVk && (
-                <p className={styles.outputHint}>Upload a VK to generate a Cairo verifier.</p>
-              )}
-              {generateState === 'idle' && validVk && (
-                <p className={styles.outputHint}>VK validated. Click ⬡ Generate to build the Cairo verifier.</p>
-              )}
-              {generateState === 'generating' && (
-                <p className={styles.outputHint}><span className={styles.spinner} /> Generating Cairo verifier…</p>
-              )}
+              {generateState === 'idle' && !validVk && <p className={styles.outputHint}>Upload a VK to generate a Cairo verifier.</p>}
+              {generateState === 'idle' && validVk && <p className={styles.outputHint}>VK validated ✓ — click ⬡ Generate.</p>}
+              {generateState === 'generating' && <p className={styles.outputHint}><span className={styles.spinner} /> Generating Cairo verifier…</p>}
               {generateState === 'error' && (
                 <div className={styles.errorList}>
                   <div className={styles.errorHeader}>✗ Generation failed</div>
-                  <div className={styles.errorItem}>
-                    <span className={styles.errorMessage}>{generateError}</span>
-                  </div>
+                  <div className={styles.errorItem}><span className={styles.errorMessage}>{generateError}</span></div>
                 </div>
               )}
               {generateState === 'success' && verifier && (
                 <div className={styles.successBlock}>
                   <div className={styles.successHeader}>✓ Verifier generated</div>
-                  <table className={styles.statsTable}>
-                    <tbody>
-                      <tr><td>Project</td><td><strong>{verifier.projectName}</strong></td></tr>
-                    </tbody>
-                  </table>
+                  <table className={styles.statsTable}><tbody>
+                    <tr><td>Project</td><td><strong>{verifier.projectName}</strong></td></tr>
+                  </tbody></table>
                 </div>
               )}
             </div>
