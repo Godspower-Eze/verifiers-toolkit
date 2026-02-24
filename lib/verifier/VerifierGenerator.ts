@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { SnarkJsVk } from '@/lib/vk/types';
+import type { GeneratedVerifier, GenerateResult, ProofSystem } from './types';
 
 const execFileAsync = promisify(execFile);
 
@@ -17,39 +18,14 @@ export const GARAGA_TEMP_DIR_PREFIX = 'garaga-gen-';
 
 /**
  * Path to the garaga CLI binary.
- *
  * Resolution order:
- *   1. GARAGA_PATH env var — set this for CI/CD or any environment where
- *      garaga is installed (e.g. via `pip install garaga`, then `which garaga`).
- *   2. The conda venv used in local development.
- *
- * NOTE: PyInstaller bundling was attempted but garaga depends on
- * crypto_cpp_py which uses native .so shared libs that cannot be statically
- * frozen. For production, run `pip install garaga` and set GARAGA_PATH.
+ *   1. GARAGA_PATH env var — set this in .env.local (run `which garaga` after `pip install garaga`).
  */
-export const GARAGA_CLI_PATH =
-  process.env.GARAGA_PATH ??
-  '/home/godspowereze/anaconda3/envs/venv/bin/garaga';
-
-// ─── Output types ─────────────────────────────────────────────────────────────
-
-/** The files produced by a successful garaga gen run. */
-export interface GeneratedVerifier {
-  /** Name of the project / contract (sanitised). */
-  projectName: string;
-  /** Contents of groth16_verifier.cairo — the main contract. */
-  verifierCairo: string;
-  /** Contents of groth16_verifier_constants.cairo — VK constants. */
-  constantsCairo: string;
-  /** Contents of lib.cairo — module declarations. */
-  libCairo: string;
-  /** Contents of Scarb.toml — ready-to-use build manifest. */
-  scarbToml: string;
-}
-
-export type GenerateResult =
-  | { success: true; verifier: GeneratedVerifier }
-  | { success: false; error: string };
+export const GARAGA_CLI_PATH = (() => {
+  const p = process.env.GARAGA_PATH;
+  if (!p) throw new Error('GARAGA_PATH environment variable is not set. Add it to .env.local.');
+  return p;
+})();
 
 // ─── VerifierGenerator ────────────────────────────────────────────────────────
 
@@ -68,9 +44,16 @@ export type GenerateResult =
  *   3. Read the generated Cairo files from the output folder.
  *   4. Return them as a structured object.
  *   5. Clean up the temp dir unconditionally.
+ * @param vk        Validated SnarkJS verification key.
+ * @param system    Proof system to generate for. Currently only 'groth16'.
+ * @param projectName  Scarb project name (sanitised before use).
  */
 export class VerifierGenerator {
-  async generate(vk: SnarkJsVk, projectName = 'groth16_verifier'): Promise<GenerateResult> {
+  async generate(
+    vk: SnarkJsVk,
+    system: ProofSystem = 'groth16',
+    projectName = `${system}_verifier`,
+  ): Promise<GenerateResult> {
     // Sanitise project name: only lowercase letters, digits, underscores
     const safeName = projectName.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
 
@@ -87,7 +70,7 @@ export class VerifierGenerator {
       // garaga outputs the project folder in cwd, so we run it from tempDir
       const args = [
         'gen',
-        '--system', 'groth16',
+        '--system', system,
         '--vk', vkPath,
         '--project-name', safeName,
         '--no-include-test-sample',

@@ -76,7 +76,7 @@ describe('VerifierGenerator.generate (real garaga gen)', () => {
   });
 
   it('uses the sanitised project name in Scarb.toml', async () => {
-    const result = await generator.generate(vk, 'My Test Verifier!');
+    const result = await generator.generate(vk, 'groth16', 'My Test Verifier!');
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.verifier.projectName).toBe('my_test_verifier_');

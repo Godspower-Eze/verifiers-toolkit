@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   }
 
   const generator = new VerifierGenerator();
-  const result = await generator.generate(validation.vk, projectName);
+  const result = await generator.generate(validation.vk, 'groth16', projectName);
 
   return NextResponse.json(result, { status: 200 });
 }
