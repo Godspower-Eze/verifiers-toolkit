@@ -256,6 +256,58 @@
   background: rgba(124,58,237,0.5);
 }
 
+/* paneLabel left group: filename + language switcher */
+.paneLabelLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Language switcher chips inside col1 pane label */
+.langSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.langActive {
+  background: rgba(124, 58, 237, 0.18);
+  color: #a78bfa;
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.langSoon {
+  background: rgba(255,255,255,0.04);
+  color: #444;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: default;
+  position: relative;
+}
+
+.langSoon::after {
+  content: 'soon';
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  font-size: 8px;
+  color: #06b6d4;
+  background: #0c0c18;
+  padding: 0 3px;
+  border-radius: 2px;
+  letter-spacing: 0;
+}
+
 /* ─── Cairo verifier pane (col 2) ────────────────────────────────────────── */
 
 .cairoPane {

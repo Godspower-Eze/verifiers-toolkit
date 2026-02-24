@@ -215,21 +215,7 @@ export default function EditorWorkspace() {
           <span className={styles.logo}>◆</span>
           <h1 className={styles.title}>Cairo Verifier Generator</h1>
         </div>
-        <p className={styles.subtitle}>Circom → Groth16 Cairo Verifier · Powered by Garaga</p>
-        <div className={styles.templatePicker}>
-          <label htmlFor="template-select" className={styles.label}>Template</label>
-          <select
-            id="template-select"
-            className={styles.select}
-            value={selectedId}
-            onChange={(e) => {
-              const t = templates.find((t) => t.id === e.target.value);
-              if (t) applyTemplate(t);
-            }}
-          >
-            {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </div>
+        <p className={styles.subtitle}>Circom / Noir → Groth16 Cairo Verifier · Powered by Garaga</p>
       </header>
 
       {/* Resizable 3-column row */}
@@ -237,9 +223,29 @@ export default function EditorWorkspace() {
 
         {/* ── Col 1: Circom editor (top) + compile output (bottom) ── */}
         <div className={styles.colWrap} style={{ width: col1Width, flexShrink: 0 }}>
+          {/* Pane label: file language switcher + template picker */}
           <div className={styles.paneLabel}>
-            <span>{filename}</span>
-            <span className={styles.languageBadge}>Circom 2.0</span>
+            <div className={styles.paneLabelLeft}>
+              <span>{filename}</span>
+              <div className={styles.langSwitcher}>
+                <span className={styles.langActive}>Circom 2.0</span>
+                <span className={styles.langSoon} title="Coming soon">Noir</span>
+              </div>
+            </div>
+            <div className={styles.templatePicker}>
+              <label htmlFor="template-select" className={styles.label}>Template</label>
+              <select
+                id="template-select"
+                className={styles.select}
+                value={selectedId}
+                onChange={(e) => {
+                  const t = templates.find((t) => t.id === e.target.value);
+                  if (t) applyTemplate(t);
+                }}
+              >
+                {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
           </div>
           {/* Monaco fills remaining height */}
           <div className={styles.monacoWrap}>
@@ -330,7 +336,7 @@ export default function EditorWorkspace() {
                 onClick={() => setActiveTab(tab)}
                 disabled={!verifier}
               >
-                {tab === 'verifier' ? 'groth16_verifier.cairo' : 'constants.cairo'}
+                {tab === 'verifier' ? 'groth16_verifier.cairo' : 'groth16_verifier_constants.cairo'}
               </button>
             ))}
             {verifier && (
