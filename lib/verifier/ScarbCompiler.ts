@@ -14,11 +14,13 @@ export const COMPILE_TIMEOUT_MS = 300_000;
 
 /**
  * Path to the scarb CLI binary.
- * Resolves to the generic `scarb` which should be on the path, or a specific local installation.
+ * Must be set via the SCARB_PATH environment variable (see .env.local).
  */
-export const SCARB_CLI_PATH =
-  process.env.SCARB_PATH ??
-  '/home/godspowereze/.asdf/shims/scarb';
+export const SCARB_CLI_PATH = (() => {
+  const p = process.env.SCARB_PATH;
+  if (!p) throw new Error('SCARB_PATH environment variable is not set. Add it to .env.local.');
+  return p;
+})();
 
 
 
