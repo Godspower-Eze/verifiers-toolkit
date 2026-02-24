@@ -18,15 +18,14 @@ export const GARAGA_TEMP_DIR_PREFIX = 'garaga-gen-';
 
 /**
  * Path to the garaga CLI binary.
- *
  * Resolution order:
- *   1. GARAGA_PATH env var — set this for CI/CD or any environment where
- *      garaga is installed (e.g. via `pip install garaga`, then `which garaga`).
- *   2. The conda venv used in local development.
+ *   1. GARAGA_PATH env var — set this in .env.local (run `which garaga` after `pip install garaga`).
  */
-export const GARAGA_CLI_PATH =
-  process.env.GARAGA_PATH ??
-  '/home/godspowereze/anaconda3/envs/venv/bin/garaga';
+export const GARAGA_CLI_PATH = (() => {
+  const p = process.env.GARAGA_PATH;
+  if (!p) throw new Error('GARAGA_PATH environment variable is not set. Add it to .env.local.');
+  return p;
+})();
 
 // ─── VerifierGenerator ────────────────────────────────────────────────────────
 
