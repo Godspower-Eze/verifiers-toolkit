@@ -9,6 +9,7 @@ import type { SnarkJsVk } from '@/lib/vk/types';
 import type { GeneratedVerifier } from '@/lib/verifier/VerifierGenerator';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
+import { useStarknetWallet } from '@/hooks/useStarknetWallet';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -42,6 +43,7 @@ function startDrag(
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EditorWorkspace() {
+  const { account, address, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
   const editorRef = useRef<MonacoNS.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof MonacoNS | null>(null);
 
@@ -369,9 +371,21 @@ export default function EditorWorkspace() {
           {/* Deploy bar — only when verifier exists */}
           {verifier && (
             <div className={styles.deployBar}>
-              <span className={styles.deployLabel}>Deploy to Starknet</span>
-              <button id="declare-btn" className={styles.declareBtn}>Declare Contract</button>
-              <button id="deploy-btn" className={styles.deployBtn}>Deploy Contract</button>
+              {isConnected ? (
+                <>
+                  <span className={styles.deployLabel} title={address || ''}>
+                    Starknet ({address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'})
+                  </span>
+                  <button id="declare-btn" className={styles.declareBtn}>Compile & Declare</button>
+                  <button id="deploy-btn" className={styles.deployBtn}>Deploy</button>
+                  <button onClick={disconnectWallet} className={styles.disconnectBtn}>Disconnect</button>
+                </>
+              ) : (
+                <>
+                  <span className={styles.deployLabel}>Deploy to Starknet</span>
+                  <button onClick={connectWallet} className={styles.connectWalletBtn}>Connect Wallet</button>
+                </>
+              )}
             </div>
           )}
         </div>
