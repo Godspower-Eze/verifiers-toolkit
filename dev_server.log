@@ -251,3 +251,53 @@
  GET /api/templates 200 in 5ms (compile: 1573µs, render: 3ms)
  POST /api/vk/validate 200 in 14ms (compile: 3ms, render: 11ms)
  POST /api/verifier/generate 200 in 1949ms (compile: 1254µs, render: 1948ms)
+ POST /api/verifier/compile 200 in 4.0s (compile: 120ms, render: 3.9s)
+✓ Compiled in 39ms
+ GET /api/templates 200 in 3ms (compile: 1256µs, render: 1911µs)
+✓ Compiled in 9ms
+✓ Compiled in 10ms
+ GET /api/templates 200 in 4ms (compile: 1584µs, render: 2ms)
+✓ Compiled in 12ms
+  Reload env: .env.local
+ GET / 200 in 292ms (compile: 265ms, render: 27ms)
+✓ Compiled in 41ms
+⨯ ReferenceError: SEPOLIA_CHAIN_ID is not defined
+    at <unknown> (hooks/useStarknetDeploy.ts:12:33)
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:11:30)
+    at EditorWorkspace (components/EditorWorkspace.tsx:89:24)
+  10 |   // Dedicated RPC provider for reliable on-chain reads (class hash checks)
+  11 |   const rpcProvider = useMemo(() => {
+> 12 |     const network = chainId === SEPOLIA_CHAIN_ID ? 'sepolia' : 'mainnet';
+     |                                 ^
+  13 |     return new RpcProvider({ nodeUrl: RPC_URLS[network] });
+  14 |   }, [chainId]);
+  15 | {
+  digest: '1154927266'
+}
+⨯ ReferenceError: SEPOLIA_CHAIN_ID is not defined
+    at <unknown> (hooks/useStarknetDeploy.ts:12:33)
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:11:30)
+    at VkWorkspace (components/VkWorkspace.tsx:80:24)
+  10 |   // Dedicated RPC provider for reliable on-chain reads (class hash checks)
+  11 |   const rpcProvider = useMemo(() => {
+> 12 |     const network = chainId === SEPOLIA_CHAIN_ID ? 'sepolia' : 'mainnet';
+     |                                 ^
+  13 |     return new RpcProvider({ nodeUrl: RPC_URLS[network] });
+  14 |   }, [chainId]);
+  15 | {
+  digest: '3849628232'
+}
+ GET / 500 in 630ms (compile: 68ms, render: 563ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 36ms
+ GET / 200 in 210ms (compile: 56ms, render: 154ms)
+ GET /api/templates 200 in 80ms (compile: 72ms, render: 8ms)
+✓ Compiled in 61ms
+ GET / 200 in 193ms (compile: 46ms, render: 147ms)
+ GET /api/templates 200 in 5ms (compile: 3ms, render: 3ms)
+ POST /api/vk/validate 200 in 41ms (compile: 37ms, render: 4ms)
+ POST /api/verifier/generate 200 in 2.0s (compile: 43ms, render: 2.0s)
+ POST /api/verifier/compile 200 in 322ms (compile: 35ms, render: 286ms)
+✓ Compiled in 11ms
+✓ Compiled in 59ms
+✓ Compiled in 30ms

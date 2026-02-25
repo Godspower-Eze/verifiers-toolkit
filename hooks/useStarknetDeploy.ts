@@ -1,18 +1,16 @@
-import { useState, useCallback, useEffect } from 'react';
-import { hash, Contract, AccountInterface } from 'starknet';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { hash, Contract, RpcProvider } from 'starknet';
 import { LogEntry, LogType } from '@/components/DeploymentLogs';
 import type { GeneratedVerifier } from '@/lib/verifier/types';
-import type { StarknetWindowObject } from 'starknetkit';
+import { UDC_ADDRESS, getRpcUrl } from '@/lib/starknet/constants';
+import type { WalletState } from '@/lib/starknet/types';
 
-const UDC_ADDRESS = '0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf';
+export function useStarknetDeploy(projectId: string, { wallet, account, address, chainId }: WalletState) {
 
-interface DeployHookParams {
-  wallet: StarknetWindowObject | null;
-  account: AccountInterface | null;
-  address: string | null;
-}
-
-export function useStarknetDeploy(projectId: string, { wallet, account, address }: DeployHookParams) {
+  // Dedicated RPC provider for reliable on-chain reads (class hash checks)
+  const rpcProvider = useMemo(() => {
+    return new RpcProvider({ nodeUrl: getRpcUrl(chainId) });
+  }, [chainId]);
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isDeclaring, setIsDeclaring] = useState(false);
@@ -58,20 +56,19 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address 
     }
   }, [projectId, deployClassHash, contractAddress]);
 
-  // 2. Pre-Check Class Hash if we somehow have it and a wallet connects
+  // 2. Pre-Check Class Hash using dedicated RPC provider
   useEffect(() => {
     const checkOnChain = async () => {
-      if (!account || !deployClassHash) return;
+      if (!deployClassHash) return;
       try {
-        // Just probing to see if it exists
-        await account.getClassByHash(deployClassHash);
+        await rpcProvider.getClassByHash(deployClassHash);
         setIsAlreadyDeclared(true);
       } catch (e) {
         setIsAlreadyDeclared(false);
       }
     };
     checkOnChain();
-  }, [account, deployClassHash]);
+  }, [rpcProvider, deployClassHash]);
 
 
   const handleCompileAndDeclare = useCallback(async (verifier: GeneratedVerifier) => {
@@ -100,7 +97,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address 
       addLog(`Compiled successfully. Class Hash: ${cairo1ClassHash}`, 'success');
 
       try {
-        await account.getClassByHash(cairo1ClassHash);
+        await rpcProvider.getClassByHash(cairo1ClassHash);
         addLog('Class is already declared on-chain. Skipping declaration.', 'success');
         setDeployClassHash(cairo1ClassHash);
         setIsAlreadyDeclared(true);
@@ -139,7 +136,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address 
     } finally {
       setIsDeclaring(false);
     }
-  }, [wallet, address, account, addLog]);
+  }, [wallet, address, account, rpcProvider, addLog]);
 
   const handleDeploy = useCallback(async () => {
     if (!wallet || !account || !deployClassHash) return;
