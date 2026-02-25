@@ -165,7 +165,7 @@ export default function VkWorkspace() {
         <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
         {/* ── Col 2: Scarb Project Viewer + Deploy ── */}
-        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180 }}>
+        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}>
             <ScarbProjectViewer 
               verifier={verifier} 
