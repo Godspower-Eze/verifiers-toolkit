@@ -209,7 +209,7 @@ export default function VkWorkspace() {
                     id="deploy-btn"
                     className={styles.deployBtn}
                     onClick={handleDeploy}
-                    disabled={isDeploying || !deployClassHash || !!contractAddress}
+                    disabled={isDeploying || !deployClassHash}
                   >
                     {isDeploying ? 'Deploying...' : contractAddress ? 'Deployed ✓' : 'Deploy'}
                   </button>
