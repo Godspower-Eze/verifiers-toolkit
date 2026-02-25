@@ -167,3 +167,87 @@
 ✓ Compiled in 12ms
  GET / 200 in 185ms (compile: 51ms, render: 134ms)
  GET /api/templates 200 in 4ms (compile: 1865µs, render: 2ms)
+ GET / 200 in 37ms (compile: 2ms, render: 34ms)
+ GET /api/templates 200 in 4ms (compile: 1653µs, render: 1989µs)
+ POST /api/vk/validate 200 in 9ms (compile: 2ms, render: 6ms)
+ POST /api/verifier/generate 200 in 1961ms (compile: 2ms, render: 1959ms)
+ GET / 200 in 42ms (compile: 2ms, render: 40ms)
+ GET /api/templates 200 in 6ms (compile: 3ms, render: 3ms)
+ POST /api/vk/validate 200 in 10ms (compile: 3ms, render: 7ms)
+ POST /api/verifier/generate 200 in 1859ms (compile: 1653µs, render: 1858ms)
+✓ Compiled in 78ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 20ms
+⨯ TypeError: Cannot destructure property 'wallet' of 'undefined' as it is undefined.
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:15:56)
+    at EditorWorkspace (components/EditorWorkspace.tsx:89:24)
+  13 | }
+  14 |
+> 15 | export function useStarknetDeploy(projectId: string, { wallet, account, address }: DeployHookParams) {
+     |                                                        ^
+  16 |
+  17 |   const [logs, setLogs] = useState<LogEntry[]>([]);
+  18 |   const [isDeclaring, setIsDeclaring] = useState(false); {
+  digest: '909050140'
+}
+⨯ ReferenceError: account is not defined
+    at VkWorkspace (components/VkWorkspace.tsx:80:52)
+  78 |     handleCompileAndDeclare,
+  79 |     handleDeploy
+> 80 |   } = useStarknetDeploy(deployProjectId, { wallet, account, address });
+     |                                                    ^
+  81 |
+  82 |   // ── Generate Handler
+  83 |   const handleGenerate = useCallback(async () => { {
+  digest: '2539826030'
+}
+ GET / 500 in 402ms (compile: 79ms, render: 323ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 14ms
+⨯ TypeError: Cannot destructure property 'wallet' of 'undefined' as it is undefined.
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:15:56)
+    at EditorWorkspace (components/EditorWorkspace.tsx:89:24)
+  13 | }
+  14 |
+> 15 | export function useStarknetDeploy(projectId: string, { wallet, account, address }: DeployHookParams) {
+     |                                                        ^
+  16 |
+  17 |   const [logs, setLogs] = useState<LogEntry[]>([]);
+  18 |   const [isDeclaring, setIsDeclaring] = useState(false); {
+  digest: '909050140'
+}
+ GET / 200 in 215ms (compile: 52ms, render: 164ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 35ms
+⨯ TypeError: Cannot destructure property 'wallet' of 'undefined' as it is undefined.
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:15:56)
+    at EditorWorkspace (components/EditorWorkspace.tsx:89:24)
+  13 | }
+  14 |
+> 15 | export function useStarknetDeploy(projectId: string, { wallet, account, address }: DeployHookParams) {
+     |                                                        ^
+  16 |
+  17 |   const [logs, setLogs] = useState<LogEntry[]>([]);
+  18 |   const [isDeclaring, setIsDeclaring] = useState(false); {
+  digest: '3286912273'
+}
+ GET / 200 in 237ms (compile: 58ms, render: 179ms)
+⨯ TypeError: Cannot destructure property 'wallet' of 'undefined' as it is undefined.
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:15:56)
+    at EditorWorkspace (components/EditorWorkspace.tsx:89:24)
+  13 | }
+  14 |
+> 15 | export function useStarknetDeploy(projectId: string, { wallet, account, address }: DeployHookParams) {
+     |                                                        ^
+  16 |
+  17 |   const [logs, setLogs] = useState<LogEntry[]>([]);
+  18 |   const [isDeclaring, setIsDeclaring] = useState(false); {
+  digest: '3286912273'
+}
+ GET / 200 in 34ms (compile: 3ms, render: 31ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 39ms
+ GET / 200 in 178ms (compile: 45ms, render: 132ms)
+ GET /api/templates 200 in 5ms (compile: 1573µs, render: 3ms)
+ POST /api/vk/validate 200 in 14ms (compile: 3ms, render: 11ms)
+ POST /api/verifier/generate 200 in 1949ms (compile: 1254µs, render: 1948ms)

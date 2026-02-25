@@ -13,7 +13,7 @@ import ScarbProjectViewer from './ScarbProjectViewer';
 type GenerateState = 'idle' | 'generating' | 'success' | 'error';
 
 export default function VkWorkspace() {
-  const { wallet, address, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
+  const { wallet, account, address, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
 
   // ── Layout State
   const col1WRef = useRef(350);
@@ -77,7 +77,7 @@ export default function VkWorkspace() {
     isAlreadyDeclared,
     handleCompileAndDeclare,
     handleDeploy
-  } = useStarknetDeploy(deployProjectId);
+  } = useStarknetDeploy(deployProjectId, { wallet, account, address });
 
   // ── Generate Handler
   const handleGenerate = useCallback(async () => {

@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { connect, disconnect } from 'starknetkit';
 import { Account, AccountInterface } from 'starknet';
 import type { StarknetWindowObject } from 'starknetkit';
+
+// Starknet Sepolia chain ID in hex
+const SEPOLIA_CHAIN_ID = '0x534e5f5345504f4c4941';
 
 export function useStarknetWallet() {
   const [account, setAccount] = useState<AccountInterface | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [wallet, setWallet] = useState<StarknetWindowObject | null>(null);
+  const [chainId, setChainId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
+  const isSepolia = chainId === SEPOLIA_CHAIN_ID;
 
   // No auto-reconnect — wallet connection is user-initiated only
 
@@ -26,9 +31,13 @@ export function useStarknetWallet() {
         setWallet(result.wallet);
         if (result.connectorData && result.connectorData.account) {
           setAddress(result.connectorData.account);
-          
-          // StarknetKit v3 usually populates result.wallet.account natively via the extension.
-          // This object already contains the provider context (e.g. from Argent X) bypassing default public rate limits.
+          setChainId(
+            result.connectorData.chainId
+              ? '0x' + result.connectorData.chainId.toString(16)
+              : null
+          );
+
+          // StarknetKit v3 usually populates result.wallet.account natively
           const w = result.wallet as any;
           if (w.account) {
             setAccount(w.account);
@@ -48,18 +57,66 @@ export function useStarknetWallet() {
       setAccount(null);
       setAddress(null);
       setWallet(null);
+      setChainId(null);
     } catch (e) {
       console.error('Wallet disconnect failed:', e);
     }
   }, []);
 
+  const switchToSepolia = useCallback(async () => {
+    if (!wallet) return;
+    try {
+      await wallet.request({
+        type: 'wallet_switchStarknetChain' as any,
+        params: { chainId: SEPOLIA_CHAIN_ID },
+      });
+      setChainId(SEPOLIA_CHAIN_ID);
+    } catch (error) {
+      console.error('Failed to switch network:', error);
+    }
+  }, [wallet]);
+
+  // Listen for wallet network and account changes
+  useEffect(() => {
+    if (!wallet) return;
+
+    const handleNetworkChanged = (newChainId?: string) => {
+      if (newChainId) {
+        const formatted = newChainId.startsWith('0x') ? newChainId : '0x' + newChainId;
+        setChainId(formatted);
+      }
+    };
+
+    const handleAccountsChanged = (accounts?: string[]) => {
+      if (accounts && accounts.length > 0) {
+        setAddress(accounts[0]);
+      } else {
+        setAddress(null);
+        setChainId(null);
+        setWallet(null);
+        setAccount(null);
+      }
+    };
+
+    wallet.on('networkChanged' as any, handleNetworkChanged as any);
+    wallet.on('accountsChanged' as any, handleAccountsChanged as any);
+
+    return () => {
+      wallet.off('networkChanged' as any, handleNetworkChanged as any);
+      wallet.off('accountsChanged' as any, handleAccountsChanged as any);
+    };
+  }, [wallet]);
+
   return {
     account,
     address,
     wallet,
-    isConnected: !!address, // Derived state based on address string
+    chainId,
+    isConnected: !!address,
     isConnecting,
+    isSepolia,
     connectWallet,
     disconnectWallet,
+    switchToSepolia,
   };
 }
