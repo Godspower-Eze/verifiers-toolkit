@@ -157,3 +157,5 @@
  POST /api/vk/validate 200 in 144ms (compile: 141ms, render: 3ms)
  POST /api/verifier/generate 200 in 2.5s (compile: 82ms, render: 2.4s)
 ✓ Compiled in 16ms
+✓ Compiled in 15ms
+ GET / 200 in 98ms (compile: 79ms, render: 20ms)

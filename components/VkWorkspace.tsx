@@ -164,9 +164,8 @@ export default function VkWorkspace() {
 
         <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
-        {/* ── Col 2: Scarb Project Viewer & Deploy ── */}
-        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180, position: 'relative' }}>
-          
+        {/* ── Col 2: Scarb Project Viewer + Deploy ── */}
+        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180 }}>
           <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}>
             <ScarbProjectViewer 
               verifier={verifier} 
@@ -176,7 +175,7 @@ export default function VkWorkspace() {
             />
           </div>
 
-          {/* Deployment logs — shown once verifier is generated */}
+          {/* Deployment logs — below the generated contract */}
           {verifier && (
             <>
               <div className={styles.rowDivider} onMouseDown={dragRow2Divider} />
@@ -189,7 +188,7 @@ export default function VkWorkspace() {
             </>
           )}
 
-          {/* Deploy bar — always visible once verifier exists */}
+          {/* Deploy bar — below deployment logs */}
           {verifier && (
             <div className={styles.deployBar}>
               {isConnected ? (
