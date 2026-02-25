@@ -23,12 +23,13 @@
   align-items: center;
   justify-content: center;
   height: 56px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
+  background: #111114;
+  color: #e8e8ed;
   font-size: 22px;
   font-weight: 700;
   flex-shrink: 0;
   letter-spacing: 0.02em;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 /* Each nav button fills the full sidebar width */
@@ -66,8 +67,8 @@
 }
 
 .navBtnActive {
-  color: #a5b4fc;
-  background: rgba(99, 102, 241, 0.12);
+  color: #e8e8ed;
+  background: rgba(255,255,255,0.06);
 }
 
 .navBtnActive::before {
@@ -79,7 +80,7 @@
   width: 3px;
   height: 32px;
   border-radius: 0 4px 4px 0;
-  background: #818cf8;
+  background: #e8e8ed;
 }
 
 .spacer {

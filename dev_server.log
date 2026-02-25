@@ -304,3 +304,14 @@
 ✓ Compiled in 8ms
 ✓ Compiled in 11ms
 ✓ Compiled in 22ms
+ GET / 200 in 216ms (compile: 43ms, render: 173ms)
+ GET /api/templates 200 in 6ms (compile: 2ms, render: 3ms)
+ GET / 200 in 27ms (compile: 1795µs, render: 25ms)
+ GET /api/templates 200 in 3ms (compile: 1158µs, render: 1831µs)
+ POST /api/vk/validate 200 in 15ms (compile: 5ms, render: 10ms)
+ POST /api/verifier/generate 200 in 1899ms (compile: 3ms, render: 1896ms)
+✓ Compiled in 24ms
+✓ Compiled in 16ms
+✓ Compiled in 12ms
+✓ Compiled in 8ms
+✓ Compiled in 10ms
