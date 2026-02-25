@@ -122,7 +122,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
       const classHash = declareResponse.class_hash;
 
       addLog(`Declare TX sent: ${txHash}. Waiting for L2 acceptance...`, 'info');
-      await account.waitForTransaction(txHash);
+      await rpcProvider.waitForTransaction(txHash);
       
       addLog(`Contract declared successfully! Class Hash: ${classHash}`, 'success');
       setDeployClassHash(classHash);
@@ -161,7 +161,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
       const txHash = deployResponse.transaction_hash;
       
       addLog(`Deploy TX sent: ${txHash}. Waiting for L2 acceptance...`, 'info');
-      await account.waitForTransaction(txHash);
+      await rpcProvider.waitForTransaction(txHash);
       
       // The UDC precomputes the deployed contract's address natively deterministically
       const calculatedAddress = hash.calculateContractAddressFromHash(
@@ -182,7 +182,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
     } finally {
       setIsDeploying(false);
     }
-  }, [wallet, account, deployClassHash, addLog]);
+  }, [wallet, account, deployClassHash, rpcProvider, addLog]);
 
   return {
     logs,
