@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { connect, disconnect } from 'starknetkit';
 import { Account, AccountInterface } from 'starknet';
 import type { StarknetWindowObject } from 'starknetkit';
@@ -11,25 +11,8 @@ export function useStarknetWallet() {
   const [wallet, setWallet] = useState<StarknetWindowObject | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  useEffect(() => {
-    const tryReconnect = async () => {
-      try {
-        const result = await connect({ modalMode: 'neverAsk' });
-        if (result.wallet) {
-          setWallet(result.wallet);
-          if (result.connectorData && result.connectorData.account) {
-            setAddress(result.connectorData.account);
-            // StarknetKit v3 sometimes populates result.wallet.account directly
-            const w = result.wallet as any;
-            if (w.account) setAccount(w.account);
-          }
-        }
-      } catch (err) {
-        // Ignore silent reconnect errors
-      }
-    };
-    tryReconnect();
-  }, []);
+
+  // No auto-reconnect — wallet connection is user-initiated only
 
   const connectWallet = useCallback(async () => {
     if (isConnecting) return;

@@ -171,7 +171,8 @@ export default function VkWorkspace() {
             <ScarbProjectViewer 
               verifier={verifier} 
               generateState={generateState} 
-              generateError={generateError} 
+              generateError={generateError}
+              emptyMessage="Upload a VK on the left, then click ⬡ Generate to see the Cairo verifier here."
             />
           </div>
 

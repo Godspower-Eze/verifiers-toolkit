@@ -300,7 +300,8 @@ export default function EditorWorkspace() {
             <ScarbProjectViewer 
               verifier={verifier} 
               generateState={generateState} 
-              generateError={generateError} 
+              generateError={generateError}
+              emptyMessage="Compile your circuit and generate a verifier to see the Cairo output here."
             />
           </div>
 
