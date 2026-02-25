@@ -341,7 +341,7 @@ export default function EditorWorkspace() {
                     onClick={handleDeploy}
                     disabled={isDeploying || !deployClassHash}
                   >
-                    {isDeploying ? 'Deploying...' : contractAddress ? 'Deployed ✓' : 'Deploy'}
+                    {isDeploying ? 'Deploying...' : contractAddress ? 'Deploy Again' : 'Deploy'}
                   </button>
                   <button onClick={disconnectWallet} className={styles.disconnectBtn} disabled={isDeclaring || isDeploying}>Disconnect</button>
                 </>
