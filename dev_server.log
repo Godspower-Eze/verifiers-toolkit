@@ -139,3 +139,14 @@
 ✓ Compiled in 8ms
 ✓ Compiled in 10ms
 ✓ Compiled in 7ms
+ GET / 200 in 38ms (compile: 3ms, render: 35ms)
+ GET /api/templates 200 in 4ms (compile: 1471µs, render: 2ms)
+✓ Compiled in 7ms
+✓ Compiled in 12ms
+ GET /api/templates 200 in 4ms (compile: 1395µs, render: 2ms)
+ GET /api/templates 200 in 5ms (compile: 1433µs, render: 4ms)
+✓ Compiled in 11ms
+✓ Compiled in 8ms
+✓ Compiled in 17ms
+ GET / 200 in 189ms (compile: 56ms, render: 133ms)
+ GET /api/templates 200 in 4ms (compile: 1994µs, render: 2ms)

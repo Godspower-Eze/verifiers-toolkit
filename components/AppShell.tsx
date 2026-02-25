@@ -37,18 +37,32 @@ export default function AppShell() {
         <span className={styles.brandTitle}>Cairo Verifiers Generator</span>
       </nav>
 
-      {/* ── Content — all panels stay mounted, only the active one is visible ── */}
-      <div className={styles.main}>
-        <div className={`${styles.panel} ${activeTab === 'circuit' ? styles.panelActive : ''}`}>
-          <Suspense fallback={<div style={{ padding: 32, color: '#64748b' }}>Loading editor…</div>}>
-            <EditorWorkspace />
-          </Suspense>
+      {/* ── Content — header bar + panels ── */}
+      <div className={styles.mainWrap}>
+        <div className={styles.contentHeader}>
+          <span className={styles.contentTitle}>
+            {activeTab === 'circuit' && 'Write Circuit'}
+            {activeTab === 'vk' && 'Upload Verification Key'}
+            {activeTab === 'verify' && 'Verify Proof'}
+          </span>
+          <span className={styles.contentSubtitle}>
+            {activeTab === 'circuit' && 'Circom / Noir → Groth16 Cairo Verifier · Powered by Garaga'}
+            {activeTab === 'vk' && 'verification_key.json → Cairo Verifier'}
+            {activeTab === 'verify' && 'proof.json + public.json → On-chain Verification'}
+          </span>
         </div>
-        <div className={`${styles.panel} ${activeTab === 'vk' ? styles.panelActive : ''}`}>
-          <VkWorkspace />
-        </div>
-        <div className={`${styles.panel} ${activeTab === 'verify' ? styles.panelActive : ''}`}>
-          <VerifyWorkspace />
+        <div className={styles.main}>
+          <div className={`${styles.panel} ${activeTab === 'circuit' ? styles.panelActive : ''}`}>
+            <Suspense fallback={<div style={{ padding: 32, color: '#64748b' }}>Loading editor…</div>}>
+              <EditorWorkspace />
+            </Suspense>
+          </div>
+          <div className={`${styles.panel} ${activeTab === 'vk' ? styles.panelActive : ''}`}>
+            <VkWorkspace />
+          </div>
+          <div className={`${styles.panel} ${activeTab === 'verify' ? styles.panelActive : ''}`}>
+            <VerifyWorkspace />
+          </div>
         </div>
       </div>
     </div>
