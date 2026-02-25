@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import type { SnarkJsVk } from '@/lib/vk/types';
+import type { ValidatedVk } from '@/lib/vk/types';
 import type { GeneratedVerifier, GenerateResult, ProofSystem } from './types';
 
 const execFileAsync = promisify(execFile);
@@ -50,7 +50,7 @@ export const GARAGA_CLI_PATH = (() => {
  */
 export class VerifierGenerator {
   async generate(
-    vk: SnarkJsVk,
+    vk: ValidatedVk,
     system: ProofSystem = 'groth16',
     projectName = `${system}_verifier`,
   ): Promise<GenerateResult> {

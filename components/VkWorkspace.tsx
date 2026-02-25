@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useCallback, useRef, useLayoutEffect } from 'react';
-import type { SnarkJsVk } from '@/lib/vk/types';
+import type { ValidatedVk } from '@/lib/vk/types';
 import type { GeneratedVerifier } from '@/lib/verifier/types';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
-import { useStarknetWallet } from '@/hooks/useStarknetWallet';
+import { useStarknetWalletContext } from '@/components/StarknetWalletProvider';
 import { getChainName } from '@/lib/starknet/constants';
 import { useStarknetDeploy } from '@/hooks/useStarknetDeploy';
 import DeploymentLogs from './DeploymentLogs';
@@ -14,7 +14,7 @@ import ScarbProjectViewer from './ScarbProjectViewer';
 type GenerateState = 'idle' | 'generating' | 'success' | 'error';
 
 export default function VkWorkspace() {
-  const { wallet, account, address, chainId, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
+  const { wallet, account, address, chainId, isConnected, connectWallet, disconnectWallet } = useStarknetWalletContext();
 
   // ── Layout State
   const col1WRef = useRef(350);
@@ -62,7 +62,7 @@ export default function VkWorkspace() {
   }, [setOut2, startDrag]);
 
   // ── Verifier State
-  const [validVk, setValidVk] = useState<SnarkJsVk | null>(null);
+  const [validVk, setValidVk] = useState<ValidatedVk | null>(null);
   const [generateState, setGenerateState] = useState<GenerateState>('idle');
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [verifier, setVerifier] = useState<GeneratedVerifier | null>(null);
@@ -76,8 +76,10 @@ export default function VkWorkspace() {
     deployClassHash,
     contractAddress,
     isAlreadyDeclared,
+    isCheckingDeclaration,
     handleCompileAndDeclare,
-    handleDeploy
+    handleDeploy,
+    resetDeployState
   } = useStarknetDeploy(deployProjectId, { wallet, account, address, chainId });
 
   // ── Generate Handler
@@ -86,6 +88,7 @@ export default function VkWorkspace() {
     setGenerateState('generating');
     setGenerateError(null);
     setVerifier(null);
+    resetDeployState(); // Reset any past deployment cache so new verifiers must be compiled
     try {
       const resp = await fetch('/api/verifier/generate', {
         method: 'POST',
@@ -114,9 +117,9 @@ export default function VkWorkspace() {
 
       <div className={styles.editorRow}>
         {/* ── Col 1: VK Panel + Generate Output ── */}
-        <div className={styles.colWrap} style={{ width: col1Width, flexShrink: 0 }}>
+        <div className={styles.colWrap} style={{ width: col1Width, flexShrink: 0, minHeight: 0, minWidth: 0 }}>
           <div className={styles.paneLabelSmall}><span>Verification Key</span></div>
-          <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+          <div style={{ flex: 1, overflow: 'auto', minHeight: 0, minWidth: 0 }}>
             <VkPanel
               onValidVk={(vk) => { setValidVk(vk); setGenerateState('idle'); setVerifier(null); }}
               onClearVk={() => { setValidVk(null); setVerifier(null); setGenerateState('idle'); }}
@@ -125,7 +128,7 @@ export default function VkWorkspace() {
 
           <div className={styles.rowDivider} onMouseDown={dragRow1Divider} />
 
-          <div className={styles.outputPanel} style={{ height: outputHeight1 }}>
+          <div className={styles.outputPanel} style={{ height: outputHeight1, minHeight: 0, minWidth: 0 }}>
             <div className={styles.paneLabelSmall}>
               <span>Generator</span>
               {validVk && (
@@ -166,8 +169,8 @@ export default function VkWorkspace() {
         <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
         {/* ── Col 2: Scarb Project Viewer + Deploy ── */}
-        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 180, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}>
+        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, minWidth: 0 }}>
             <ScarbProjectViewer 
               verifier={verifier} 
               generateState={generateState} 
@@ -180,9 +183,9 @@ export default function VkWorkspace() {
           {verifier && (
             <>
               <div className={styles.rowDivider} onMouseDown={dragRow2Divider} />
-              <div className={styles.outputPanel} style={{ height: outputHeight2, display: 'flex', flexDirection: 'column' }}>
+              <div className={styles.outputPanel} style={{ height: outputHeight2, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
                 <div className={styles.paneLabelSmall}><span>Deployment Logs</span></div>
-                <div style={{ flex: 1, minHeight: 0 }}>
+                <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
                   <DeploymentLogs logs={logs} />
                 </div>
               </div>
@@ -201,15 +204,15 @@ export default function VkWorkspace() {
                     id="declare-btn"
                     className={styles.declareBtn}
                     onClick={() => handleCompileAndDeclare(verifier)}
-                    disabled={isDeclaring || isAlreadyDeclared}
+                    disabled={isDeclaring || isAlreadyDeclared || isCheckingDeclaration}
                   >
-                    {isDeclaring && !isAlreadyDeclared ? 'Compiling & Declaring...' : isAlreadyDeclared ? 'Declared ✓' : 'Compile & Declare'}
+                    {isCheckingDeclaration ? 'Checking status...' : isDeclaring && !isAlreadyDeclared ? 'Compiling & Declaring...' : isAlreadyDeclared ? 'Declared ✓' : 'Compile & Declare'}
                   </button>
                   <button
                     id="deploy-btn"
                     className={styles.deployBtn}
                     onClick={handleDeploy}
-                    disabled={isDeploying || !deployClassHash}
+                    disabled={isDeploying || !deployClassHash || !isAlreadyDeclared || isCheckingDeclaration}
                   >
                     {isDeploying ? 'Deploying...' : contractAddress ? 'Deploy Again' : 'Deploy'}
                   </button>
@@ -218,7 +221,9 @@ export default function VkWorkspace() {
               ) : (
                 <>
                   <span className={styles.deployLabel}>Deploy to Starknet</span>
-                  <button onClick={connectWallet} className={styles.connectWalletBtn}>Connect Wallet</button>
+                  <button onClick={connectWallet} className={styles.connectWalletBtn} title="Connect to Declare/Deploy">
+                    Connect Wallet
+                  </button>
                 </>
               )}
             </div>

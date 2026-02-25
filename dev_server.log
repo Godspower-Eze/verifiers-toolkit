@@ -320,3 +320,1006 @@
 ✓ Compiled in 63ms
 ✓ Compiled in 9ms
 ✓ Compiled in 12ms
+✓ Compiled in 20ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 63ms
+⨯ ReferenceError: getRpcUrl is not defined
+    at <unknown> (hooks/useStarknetDeploy.ts:12:39)
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:11:30)
+    at EditorWorkspace (components/EditorWorkspace.tsx:90:24)
+  10 |   // Dedicated RPC provider for reliable on-chain reads (class hash checks)
+  11 |   const rpcProvider = useMemo(() => {
+> 12 |     return new RpcProvider({ nodeUrl: getRpcUrl(chainId) });
+     |                                       ^
+  13 |   }, [chainId]);
+  14 |
+  15 |   const [logs, setLogs] = useState<LogEntry[]>([]); {
+  digest: '280220858'
+}
+⨯ ReferenceError: getRpcUrl is not defined
+    at <unknown> (hooks/useStarknetDeploy.ts:12:39)
+    at useStarknetDeploy (hooks/useStarknetDeploy.ts:11:30)
+    at VkWorkspace (components/VkWorkspace.tsx:81:24)
+  10 |   // Dedicated RPC provider for reliable on-chain reads (class hash checks)
+  11 |   const rpcProvider = useMemo(() => {
+> 12 |     return new RpcProvider({ nodeUrl: getRpcUrl(chainId) });
+     |                                       ^
+  13 |   }, [chainId]);
+  14 |
+  15 |   const [logs, setLogs] = useState<LogEntry[]>([]); {
+  digest: '651273873'
+}
+ GET / 500 in 691ms (compile: 64ms, render: 627ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 22ms
+ GET / 200 in 202ms (compile: 50ms, render: 152ms)
+ GET /api/templates 200 in 10ms (compile: 4ms, render: 6ms)
+✓ Compiled in 37ms
+ GET / 200 in 66ms (compile: 44ms, render: 22ms)
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./components/VerifyWorkspace.tsx:5:1
+Module not found: Can't resolve './VerifyWorkspace.module.css'
+[0m [90m 3 |[39m [36mimport[39m { useRecentDeployments[33m,[39m usePersistedVk } [36mfrom[39m [32m'../hooks/useRecentDeployments'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mVerifyWorkspace[39m() {
+ [90m 8 |[39m   [36mconst[39m { isConnected[33m,[39m connectWallet[33m,[39m disconnectWallet } [33m=[39m useStarknetWallet()[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 152ms
+ GET / 200 in 263ms (compile: 75ms, render: 187ms)
+ GET / 200 in 166ms (compile: 4ms, render: 161ms)
+ GET /api/templates 200 in 6ms (compile: 2ms, render: 4ms)
+✓ Compiled in 55ms
+✓ Compiled in 117ms
+✓ Compiled in 39ms
+⨯ ./components/VerifyWorkspace.tsx:6:1
+Export generateCalldata doesn't exist in target module
+[0m [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { [33mRpcProvider[39m } [36mfrom[39m [32m'starknet'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { generateCalldata } [36mfrom[39m [32m'../lib/garagaUtils'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m { getRpcUrl } [36mfrom[39m [32m'../lib/starknet/constants'[39m[33m;[39m
+ [90m 8 |[39m [36mimport[39m [33mDeploymentLogs[39m[33m,[39m { [33mLogEntry[39m[33m,[39m [33mLogType[39m } [36mfrom[39m [32m'./DeploymentLogs'[39m[33m;[39m
+ [90m 9 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m[0m
+
+The export generateCalldata was not found in module [project]/lib/garagaUtils.ts [app-client] (ecmascript).
+Did you mean to import bitLength?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+
+
+./components/VerifyWorkspace.tsx:6:1
+Export generateCalldata doesn't exist in target module
+[0m [90m 4 |[39m [36mimport[39m [33mMonacoEditor[39m [36mfrom[39m [32m'@monaco-editor/react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { [33mRpcProvider[39m } [36mfrom[39m [32m'starknet'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { generateCalldata } [36mfrom[39m [32m'../lib/garagaUtils'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m { getRpcUrl } [36mfrom[39m [32m'../lib/starknet/constants'[39m[33m;[39m
+ [90m 8 |[39m [36mimport[39m [33mDeploymentLogs[39m[33m,[39m { [33mLogEntry[39m[33m,[39m [33mLogType[39m } [36mfrom[39m [32m'./DeploymentLogs'[39m[33m;[39m
+ [90m 9 |[39m [36mimport[39m styles [36mfrom[39m [32m'./VerifyWorkspace.module.css'[39m[33m;[39m[0m
+
+The export generateCalldata was not found in module [project]/lib/garagaUtils.ts [app-ssr] (ecmascript).
+Did you mean to import bitLength?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./components/VerifyWorkspace.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Client Component Browser]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/VerifyWorkspace.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Client Component SSR]
+    ./components/AppShell.tsx [Server Component]
+    ./app/page.tsx [Server Component]
+
+
+ GET / 500 in 1031ms (compile: 929ms, render: 102ms)
+ GET /verify 404 in 129ms (compile: 61ms, render: 68ms)
+ GET / 200 in 254ms (compile: 73ms, render: 181ms)
+ GET / 200 in 158ms (compile: 2ms, render: 155ms)
+ GET /api/templates 200 in 6ms (compile: 1880µs, render: 4ms)
+[?25h

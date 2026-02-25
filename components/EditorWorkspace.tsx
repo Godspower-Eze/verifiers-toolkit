@@ -85,6 +85,7 @@ export default function EditorWorkspace() {
     deployClassHash,
     contractAddress,
     isAlreadyDeclared,
+    isCheckingDeclaration,
     handleCompileAndDeclare,
     handleDeploy
   } = useStarknetDeploy(deployProjectId, { wallet, account, address, chainId });
@@ -331,15 +332,15 @@ export default function EditorWorkspace() {
                     id="declare-btn"
                     className={styles.declareBtn}
                     onClick={() => handleCompileAndDeclare(verifier)}
-                    disabled={isDeclaring || isAlreadyDeclared}
+                    disabled={isDeclaring || isAlreadyDeclared || isCheckingDeclaration}
                   >
-                    {isDeclaring && !isAlreadyDeclared ? 'Compiling & Declaring...' : isAlreadyDeclared ? 'Declared ✓' : 'Compile & Declare'}
+                    {isCheckingDeclaration ? 'Checking status...' : isDeclaring && !isAlreadyDeclared ? 'Compiling & Declaring...' : isAlreadyDeclared ? 'Declared ✓' : 'Compile & Declare'}
                   </button>
                   <button
                     id="deploy-btn"
                     className={styles.deployBtn}
                     onClick={handleDeploy}
-                    disabled={isDeploying || !deployClassHash}
+                    disabled={isDeploying || !deployClassHash || !isAlreadyDeclared || isCheckingDeclaration}
                   >
                     {isDeploying ? 'Deploying...' : contractAddress ? 'Deploy Again' : 'Deploy'}
                   </button>
