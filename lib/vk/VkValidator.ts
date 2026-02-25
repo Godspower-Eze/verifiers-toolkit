@@ -1,47 +1,30 @@
-import { VkValidationResult, VkFieldError, SnarkJsVk, ParseResult, BN254CurveName } from './types';
+import { VkValidationResult, VkFieldError, ValidatedVk, VkSummary, ParseResult, BN254CurveName } from './types';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Required top-level fields in a SnarkJS Groth16 VK. */
-const REQUIRED_FIELDS: (keyof SnarkJsVk)[] = [
-  'protocol',
-  'curve',
-  'nPublic',
-  'vk_alpha_1',
-  'vk_beta_2',
-  'vk_gamma_2',
-  'vk_delta_2',
-  'vk_alphabeta_12',
-  'IC',
-];
 
 /** Accepted BN254 curve names (SnarkJS uses "bn128"; Garaga uses "bn254"). */
-const ACCEPTED_CURVES: BN254CurveName[] = ['bn128', 'bn254'];
+import { parseGroth16VerifyingKeyFromObject } from '../garagaUtils';
 
 // ─── VkValidator ──────────────────────────────────────────────────────────────
 
 /**
- * VkValidator — pure validation logic for SnarkJS Groth16 Verification Keys.
+ * VkValidator — validates a parsed VK object using Garaga's native utilities.
  *
  * Why a class: makes it mockable/injectable in future; keeps HTTP layer thin.
  * Why pure (no I/O): fully unit-testable without any server or filesystem.
  */
 export class VkValidator {
   /**
-   * Validates a parsed VK object against the SnarkJS Groth16 BN254 schema.
+   * Validates a parsed VK object against Garaga's supported schemas (SnarkJS, Gnark, sp1, risc0 etc).
    *
    * How:
    *   1. Type-check: must be a non-null object.
-   *   2. Required fields: all fields in REQUIRED_FIELDS must be present.
-   *   3. Protocol check: must equal "groth16".
-   *   4. Curve check: must be "bn128" or "bn254".
-   *   5. IC length: must equal nPublic + 1.
+   *   2. Use `parseGroth16VerifyingKeyFromObject` from `garagaUtils`.
+   *   3. If it does not throw, the schema is cryptographically valid and natively supported.
    *
-   * Returns all errors found (not short-circuit) so the user sees every problem at once.
+   * Returns a summary alongside the original valid format so we can render details in the UI without losing structure.
    */
   validate(vk: unknown): VkValidationResult {
-    const errors: VkFieldError[] = [];
-
     // ── Step 1: Type check ──────────────────────────────────────────────────
     if (typeof vk !== 'object' || vk === null || Array.isArray(vk)) {
       return {
@@ -50,56 +33,36 @@ export class VkValidator {
       };
     }
 
-    const obj = vk as Record<string, unknown>;
-
-    // ── Step 2: Required fields ────────────────────────────────────────────
-    for (const field of REQUIRED_FIELDS) {
-      if (!(field in obj) || obj[field] === undefined || obj[field] === null) {
-        errors.push({ field, message: `Missing required field: "${field}".` });
+    try {
+      // ── Step 2: Use Garaga's internal math parser to validate it ───────
+      const parsedVk = parseGroth16VerifyingKeyFromObject(vk);
+      
+      const curveName = parsedVk.alpha.curveId === 0 ? 'BN254' :
+                        parsedVk.alpha.curveId === 1 ? 'BLS12_381' :
+                        `Unknown Curve (${parsedVk.alpha.curveId})`;
+                        
+      // Identify protocol heuristically for the UI display, default to Groth16
+      const obj = vk as Record<string, unknown>;
+      let protocolName = 'groth16';
+      if (typeof obj.protocol === 'string') {
+        protocolName = obj.protocol;
       }
+
+      return {
+        valid: true,
+        vk: obj,
+        summary: {
+          curve: curveName,
+          protocol: protocolName,
+          icLength: parsedVk.ic.length,
+        }
+      };
+    } catch (e: any) {
+       return {
+         valid: false,
+         errors: [{ field: 'root', message: `Invalid Verification Key format: ${e.message}` }]
+       };
     }
-
-    // If critical fields are missing we can't do further checks reliably
-    if (errors.length > 0) {
-      return { valid: false, errors };
-    }
-
-    // ── Step 3: Protocol ──────────────────────────────────────────────────
-    if (obj.protocol !== 'groth16') {
-      errors.push({
-        field: 'protocol',
-        message: `Expected protocol "groth16", got "${obj.protocol}".`,
-      });
-    }
-
-    // ── Step 4: Curve ─────────────────────────────────────────────────────
-    if (!ACCEPTED_CURVES.includes(obj.curve as BN254CurveName)) {
-      errors.push({
-        field: 'curve',
-        message: `Expected curve "bn128" or "bn254" (BN254), got "${obj.curve}".`,
-      });
-    }
-
-    // ── Step 5: IC length ─────────────────────────────────────────────────
-    const nPublic = obj.nPublic as number;
-    const IC = obj.IC as unknown[];
-
-    if (!Array.isArray(IC)) {
-      errors.push({ field: 'IC', message: 'IC must be an array.' });
-    } else if (typeof nPublic !== 'number' || !Number.isInteger(nPublic) || nPublic < 0) {
-      errors.push({ field: 'nPublic', message: 'nPublic must be a non-negative integer.' });
-    } else if (IC.length !== nPublic + 1) {
-      errors.push({
-        field: 'IC',
-        message: `IC.length must equal nPublic + 1 (expected ${nPublic + 1}, got ${IC.length}).`,
-      });
-    }
-
-    if (errors.length > 0) {
-      return { valid: false, errors };
-    }
-
-    return { valid: true, vk: obj as unknown as SnarkJsVk };
   }
 }
 

@@ -4,6 +4,7 @@ import { LogEntry, LogType } from '@/components/DeploymentLogs';
 import type { GeneratedVerifier } from '@/lib/verifier/types';
 import { UDC_ADDRESS, getRpcUrl } from '@/lib/starknet/constants';
 import type { WalletState } from '@/lib/starknet/types';
+import { useRecentDeployments } from './useRecentDeployments';
 
 export function useStarknetDeploy(projectId: string, { wallet, account, address, chainId }: WalletState) {
 
@@ -17,7 +18,10 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployClassHash, setDeployClassHash] = useState<string | null>(null);
   const [contractAddress, setContractAddress] = useState<string | null>(null);
+  
+  const { addAddress } = useRecentDeployments();
   const [isAlreadyDeclared, setIsAlreadyDeclared] = useState(false);
+  const [isCheckingDeclaration, setIsCheckingDeclaration] = useState(false);
 
   const addLog = useCallback((msg: string, type: LogType = 'info') => {
     setLogs((prev) => [...prev, { id: crypto.randomUUID(), timestamp: new Date(), message: msg, type }]);
@@ -34,7 +38,6 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
         const parsed = JSON.parse(storedState);
         setDeployClassHash(parsed.classHash || null);
         setContractAddress(parsed.contractAddress || null);
-        if (parsed.classHash) setIsAlreadyDeclared(true);
       } catch (e) {
         console.error('Failed to parse deploy state', e);
       }
@@ -60,11 +63,20 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
   useEffect(() => {
     const checkOnChain = async () => {
       if (!deployClassHash) return;
+      setIsCheckingDeclaration(true);
       try {
-        await rpcProvider.getClassByHash(deployClassHash);
-        setIsAlreadyDeclared(true);
-      } catch (e) {
+        const classInfo = await rpcProvider.getClassByHash(deployClassHash) as any;
+        // If the RPC fails silently or returns an empty object, it's not declared
+        if (classInfo && (classInfo.sierra_program || classInfo.program)) {
+          setIsAlreadyDeclared(true);
+        } else {
+          setIsAlreadyDeclared(false);
+        }
+      } catch (e: any) {
+        console.warn('Class not declared or RPC failed:', e.message);
         setIsAlreadyDeclared(false);
+      } finally {
+        setIsCheckingDeclaration(false);
       }
     };
     checkOnChain();
@@ -172,6 +184,8 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
       );
       
       setContractAddress(calculatedAddress);
+      addAddress(calculatedAddress);
+      
       addLog(`Deployment successful! Contract Address: ${calculatedAddress}`, 'success');
       addLog('Switch to the Verify section in the sidebar to verify a proof against this contract.', 'info');
       
@@ -184,6 +198,16 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
     }
   }, [wallet, account, deployClassHash, rpcProvider, addLog]);
 
+  const resetDeployState = useCallback(() => {
+    setDeployClassHash(null);
+    setContractAddress(null);
+    setIsAlreadyDeclared(false);
+    clearLogs();
+    if (projectId) {
+      localStorage.removeItem(`deployState_${projectId}`);
+    }
+  }, [projectId, clearLogs]);
+
   return {
     logs,
     clearLogs,
@@ -193,7 +217,9 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
     deployClassHash,
     contractAddress,
     isAlreadyDeclared,
+    isCheckingDeclaration,
     handleCompileAndDeclare,
-    handleDeploy
+    handleDeploy,
+    resetDeployState
   };
 }
