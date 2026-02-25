@@ -213,7 +213,7 @@ export default function VkWorkspace() {
                   >
                     {isDeploying ? 'Deploying...' : contractAddress ? 'Deployed ✓' : 'Deploy'}
                   </button>
-                  <button onClick={disconnectWallet} className={styles.disconnectBtn}>Disconnect</button>
+                  <button onClick={disconnectWallet} className={styles.disconnectBtn} disabled={isDeclaring || isDeploying}>Disconnect</button>
                 </>
               ) : (
                 <>
