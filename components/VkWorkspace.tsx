@@ -6,6 +6,7 @@ import type { GeneratedVerifier } from '@/lib/verifier/types';
 import VkPanel from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
+import { getChainName } from '@/lib/starknet/constants';
 import { useStarknetDeploy } from '@/hooks/useStarknetDeploy';
 import DeploymentLogs from './DeploymentLogs';
 import ScarbProjectViewer from './ScarbProjectViewer';
@@ -13,7 +14,7 @@ import ScarbProjectViewer from './ScarbProjectViewer';
 type GenerateState = 'idle' | 'generating' | 'success' | 'error';
 
 export default function VkWorkspace() {
-  const { wallet, account, address, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
+  const { wallet, account, address, chainId, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
 
   // ── Layout State
   const col1WRef = useRef(350);
@@ -77,7 +78,7 @@ export default function VkWorkspace() {
     isAlreadyDeclared,
     handleCompileAndDeclare,
     handleDeploy
-  } = useStarknetDeploy(deployProjectId, { wallet, account, address });
+  } = useStarknetDeploy(deployProjectId, { wallet, account, address, chainId });
 
   // ── Generate Handler
   const handleGenerate = useCallback(async () => {
@@ -194,7 +195,7 @@ export default function VkWorkspace() {
               {isConnected ? (
                 <>
                   <span className={styles.deployLabel} title={address || ''}>
-                    Starknet Wallet ({address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'})
+                    {getChainName(chainId)} · {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
                   </span>
                   <button
                     id="declare-btn"

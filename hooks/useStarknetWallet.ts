@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { connect, disconnect } from 'starknetkit';
 import { Account, AccountInterface } from 'starknet';
 import type { StarknetWindowObject } from 'starknetkit';
+import { SEPOLIA_CHAIN_ID } from '@/lib/starknet/constants';
 
-// Starknet Sepolia chain ID in hex
-const SEPOLIA_CHAIN_ID = '0x534e5f5345504f4c4941';
+
 
 export function useStarknetWallet() {
   const [account, setAccount] = useState<AccountInterface | null>(null);

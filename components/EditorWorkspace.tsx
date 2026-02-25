@@ -9,6 +9,7 @@ import type { GeneratedVerifier } from '@/lib/verifier/types';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWallet } from '@/hooks/useStarknetWallet';
 import { useStarknetDeploy } from '@/hooks/useStarknetDeploy';
+import { getChainName } from '@/lib/starknet/constants';
 import DeploymentLogs from './DeploymentLogs';
 import ScarbProjectViewer from './ScarbProjectViewer';
 
@@ -44,7 +45,7 @@ function startDrag(
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EditorWorkspace() {
-  const { account, address, wallet, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
+  const { account, address, wallet, chainId, isConnected, connectWallet, disconnectWallet } = useStarknetWallet();
   const editorRef = useRef<MonacoNS.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof MonacoNS | null>(null);
 
@@ -86,7 +87,7 @@ export default function EditorWorkspace() {
     isAlreadyDeclared,
     handleCompileAndDeclare,
     handleDeploy
-  } = useStarknetDeploy(deployProjectId, { wallet, account, address });
+  } = useStarknetDeploy(deployProjectId, { wallet, account, address, chainId });
 
   // ── Templates
   useEffect(() => {
@@ -324,7 +325,7 @@ export default function EditorWorkspace() {
               {isConnected ? (
                 <>
                   <span className={styles.deployLabel} title={address || ''}>
-                    Starknet Wallet ({address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'})
+                    {getChainName(chainId)} · {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
                   </span>
                   <button
                     id="declare-btn"
