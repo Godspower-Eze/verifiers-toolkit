@@ -9,9 +9,9 @@ import VerifyWorkspace from './VerifyWorkspace';
 type Tab = 'circuit' | 'vk' | 'verify';
 
 const tabs: { id: Tab; icon: string; label: string }[] = [
-  { id: 'circuit', icon: '⌨', label: 'Write Circuit' },
-  { id: 'vk',      icon: '🔑', label: 'Upload VK' },
-  { id: 'verify',  icon: '✓', label: 'Verify Proof' },
+  { id: 'circuit', icon: '⌨', label: 'Circuit' },
+  { id: 'vk',      icon: '🔑', label: 'VK' },
+  { id: 'verify',  icon: '✓', label: 'Verify' },
 ];
 
 export default function AppShell() {
@@ -29,12 +29,12 @@ export default function AppShell() {
             onClick={() => setActiveTab(tab.id)}
             aria-label={tab.label}
           >
-            <span>{tab.icon}</span>
-            <span className={styles.tooltip}>{tab.label}</span>
+            <span className={styles.navIcon}>{tab.icon}</span>
+            <span className={styles.navLabel}>{tab.label}</span>
           </button>
         ))}
         <div className={styles.spacer} />
-        <span className={styles.brandTitle}>Cairo Verifiers Generator</span>
+        <span className={styles.brandTitle}>Verifiers Generator</span>
       </nav>
 
       {/* ── Content — header bar + panels ── */}
