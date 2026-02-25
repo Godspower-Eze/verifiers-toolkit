@@ -1,13 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
-import { hash, Contract } from 'starknet';
-import { useStarknetWallet } from './useStarknetWallet';
+import { hash, Contract, AccountInterface } from 'starknet';
 import { LogEntry, LogType } from '@/components/DeploymentLogs';
 import type { GeneratedVerifier } from '@/lib/verifier/types';
+import type { StarknetWindowObject } from 'starknetkit';
 
 const UDC_ADDRESS = '0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf';
 
-export function useStarknetDeploy(projectId: string) {
-  const { wallet, account, address } = useStarknetWallet();
+interface DeployHookParams {
+  wallet: StarknetWindowObject | null;
+  account: AccountInterface | null;
+  address: string | null;
+}
+
+export function useStarknetDeploy(projectId: string, { wallet, account, address }: DeployHookParams) {
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isDeclaring, setIsDeclaring] = useState(false);

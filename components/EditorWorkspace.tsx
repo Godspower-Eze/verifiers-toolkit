@@ -86,7 +86,7 @@ export default function EditorWorkspace() {
     isAlreadyDeclared,
     handleCompileAndDeclare,
     handleDeploy
-  } = useStarknetDeploy(deployProjectId);
+  } = useStarknetDeploy(deployProjectId, { wallet, account, address });
 
   // ── Templates
   useEffect(() => {
