@@ -1,14 +1,35 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { connect, disconnect } from 'starknetkit';
-import { Account, AccountInterface } from 'starknet';
+import { AccountInterface } from 'starknet';
 import type { StarknetWindowObject } from 'starknetkit';
 import { SEPOLIA_CHAIN_ID } from '@/lib/starknet/constants';
 
+interface StarknetWalletContextValue {
+  account: AccountInterface | null;
+  address: string | null;
+  wallet: StarknetWindowObject | null;
+  chainId: string | null;
+  isConnected: boolean;
+  isConnecting: boolean;
+  isSepolia: boolean;
+  connectWallet: () => Promise<void>;
+  disconnectWallet: () => Promise<void>;
+  switchToSepolia: () => Promise<void>;
+}
 
+const StarknetWalletContext = createContext<StarknetWalletContextValue | null>(null);
 
-export function useStarknetWallet() {
+export function useStarknetWalletContext() {
+  const ctx = useContext(StarknetWalletContext);
+  if (!ctx) {
+    throw new Error('useStarknetWalletContext must be used within a StarknetWalletProvider');
+  }
+  return ctx;
+}
+
+export function StarknetWalletProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<AccountInterface | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [wallet, setWallet] = useState<StarknetWindowObject | null>(null);
@@ -17,7 +38,28 @@ export function useStarknetWallet() {
 
   const isSepolia = chainId === SEPOLIA_CHAIN_ID;
 
-  // No auto-reconnect — wallet connection is user-initiated only
+  // Auto-reconnect if previously connected (Silent connect)
+  useEffect(() => {
+    const trySilentConnect = async () => {
+      try {
+        const result = await connect({ modalMode: 'neverAsk' });
+        if (result && result.wallet && result.connectorData?.account) {
+           setWallet(result.wallet);
+           setAddress(result.connectorData.account);
+           setChainId(
+             result.connectorData.chainId
+               ? '0x' + result.connectorData.chainId.toString(16)
+               : null
+           );
+           const w = result.wallet as any;
+           if (w.account) setAccount(w.account);
+        }
+      } catch (e) {
+        // Safe to ignore on silent connect
+      }
+    };
+    trySilentConnect();
+  }, []);
 
   const connectWallet = useCallback(async () => {
     if (isConnecting) return;
@@ -36,8 +78,6 @@ export function useStarknetWallet() {
               ? '0x' + result.connectorData.chainId.toString(16)
               : null
           );
-
-          // StarknetKit v3 usually populates result.wallet.account natively
           const w = result.wallet as any;
           if (w.account) {
             setAccount(w.account);
@@ -107,16 +147,22 @@ export function useStarknetWallet() {
     };
   }, [wallet]);
 
-  return {
-    account,
-    address,
-    wallet,
-    chainId,
-    isConnected: !!address,
-    isConnecting,
-    isSepolia,
-    connectWallet,
-    disconnectWallet,
-    switchToSepolia,
-  };
+  return (
+    <StarknetWalletContext.Provider
+      value={{
+        account,
+        address,
+        wallet,
+        chainId,
+        isConnected: !!address,
+        isConnecting,
+        isSepolia,
+        connectWallet,
+        disconnectWallet,
+        switchToSepolia,
+      }}
+    >
+      {children}
+    </StarknetWalletContext.Provider>
+  );
 }

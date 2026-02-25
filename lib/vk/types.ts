@@ -6,17 +6,13 @@
  */
 export type BN254CurveName = 'bn128' | 'bn254';
 
-/** A parsed SnarkJS Groth16 Verification Key object. */
-export interface SnarkJsVk {
-  protocol: string;
+/** A validated Verification Key object, originating from any supported format. */
+export type ValidatedVk = Record<string, unknown>;
+
+export interface VkSummary {
   curve: string;
-  nPublic: number;
-  vk_alpha_1: unknown;
-  vk_beta_2: unknown;
-  vk_gamma_2: unknown;
-  vk_delta_2: unknown;
-  vk_alphabeta_12: unknown;
-  IC: unknown[];
+  protocol: string;
+  icLength: number;
 }
 
 // ─── Validation result ─────────────────────────────────────────────────────────
@@ -28,7 +24,7 @@ export interface VkFieldError {
 }
 
 export type VkValidationResult =
-  | { valid: true; vk: SnarkJsVk }
+  | { valid: true; vk: ValidatedVk; summary: VkSummary }
   | { valid: false; errors: VkFieldError[] };
 
 // ─── JSON parse result ─────────────────────────────────────────────────────────

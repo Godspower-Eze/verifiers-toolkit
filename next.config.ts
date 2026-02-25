@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
    * browser equivalent and must stay in the Node.js server runtime.
    */
   serverExternalPackages: ['@distributedlab/circom2'],
+  /**
+   * Optimize large barrel files to prevent Out-Of-Memory (OOM) crashes in dev.
+   */
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'starknet', 'starknetkit', 'monaco-editor'],
+  },
 };
 
 export default nextConfig;

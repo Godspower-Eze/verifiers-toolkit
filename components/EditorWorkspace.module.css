@@ -31,10 +31,7 @@
 
 .logo {
   font-size: 20px;
-  background: linear-gradient(135deg, #7c3aed, #06b6d4);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #e8e8ed;
 }
 
 .title {
@@ -84,12 +81,12 @@
 }
 
 .select:hover {
-  border-color: rgba(124, 58, 237, 0.5);
+  border-color: rgba(255,255,255,0.2);
 }
 
 .select:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: none;
 }
 
 .templateDescription {
@@ -105,31 +102,29 @@
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.12);
   cursor: pointer;
   transition: all 0.15s ease;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-  color: #fff;
+  background: #1c1c1f;
+  color: #e8e8ed;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
   white-space: nowrap;
 }
 
 .compileBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.5);
-  transform: translateY(-1px);
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
 }
 
 .compileBtn:active:not(:disabled) {
-  transform: translateY(0);
+  background: #1a1a1d;
 }
 
 .compileBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -138,17 +133,18 @@
 .paneLabelSmall .generateBtn {
   padding: 3px 10px;
   font-size: 11px;
-  box-shadow: none;
 }
 
 .compileBtn.success {
-  background: linear-gradient(135deg, #059669, #047857);
-  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+  background: #0d3320;
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #34d399;
 }
 
 .compileBtn.error {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  background: #2d1215;
+  border-color: rgba(248, 113, 113, 0.25);
+  color: #f87171;
 }
 
 .spinner {
@@ -171,6 +167,7 @@
   display: flex;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -180,6 +177,7 @@
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  min-height: 0;
 }
 
 /* monacoWrap: fills remaining height inside col1, lets Monaco auto-size */
@@ -233,7 +231,7 @@
   transition: background 0.15s;
 }
 .colDivider:hover, .colDivider:active {
-  background: rgba(124,58,237,0.5);
+  background: rgba(255,255,255,0.1);
 }
 .colDivider::after {
   content: '';
@@ -253,7 +251,7 @@
   transition: background 0.15s;
 }
 .rowDivider:hover, .rowDivider:active {
-  background: rgba(124,58,237,0.5);
+  background: rgba(255,255,255,0.1);
 }
 
 /* paneLabel left group: filename + language switcher */
@@ -272,9 +270,9 @@
 }
 
 .langActive {
-  background: rgba(124, 58, 237, 0.18);
-  color: #a78bfa;
-  border: 1px solid rgba(124, 58, 237, 0.35);
+  background: rgba(255,255,255,0.08);
+  color: #e8e8ed;
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 4px;
   padding: 1px 8px;
   font-size: 10px;
@@ -315,7 +313,7 @@
   display: flex;
   flex-direction: row; /* row so sidebar is on left */
   background: #080810;
-  border-left: 1px solid rgba(6,182,212,0.12);
+  border-left: 1px solid rgba(255,255,255,0.06);
   border-right: 1px solid rgba(255,255,255,0.06);
   min-width: 0;
 }
@@ -364,9 +362,9 @@
 }
 
 .fileTreeActive {
-  background: rgba(6,182,212,0.1);
-  color: #06b6d4;
-  border-left: 2px solid #06b6d4;
+  background: rgba(255,255,255,0.06);
+  color: #e8e8ed;
+  border-left: 2px solid #e8e8ed;
   padding-left: 10px; /* offset for border */
 }
 
@@ -385,14 +383,15 @@
 .downloadIconBtn {
   background: transparent;
   border: none;
-  color: #06b6d4;
+  color: #888;
   cursor: pointer;
   font-size: 14px;
   padding: 0 4px;
   border-radius: 4px;
 }
 .downloadIconBtn:hover {
-  background: rgba(6,182,212,0.2);
+  background: rgba(255,255,255,0.08);
+  color: #ccc;
 }
 
 .cairoMain {
@@ -422,7 +421,7 @@
 }
 
 .cairoPlaceholder strong {
-  color: #06b6d4;
+  color: #888;
 }
 
 .cairoPlaceholderError {
@@ -450,23 +449,23 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  background: #0c0c1a;
-  border-top: 1px solid rgba(6,182,212,0.15);
+  background: #111114;
+  border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
 }
 
 .deployLabel {
   font-size: 11px;
-  color: #555;
+  color: #888;
   flex: 1;
   white-space: nowrap;
 }
 
 .declareBtn {
-  background: rgba(6,182,212,0.12);
-  border: 1px solid rgba(6,182,212,0.3);
+  background: #1c1c1f;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
-  color: #06b6d4;
+  color: #e8e8ed;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -476,15 +475,15 @@
 }
 
 .declareBtn:hover {
-  background: rgba(6,182,212,0.22);
-  box-shadow: 0 0 12px rgba(6,182,212,0.2);
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
 }
 
 .connectWalletBtn {
-  background: rgba(124,58,237,0.15);
-  border: 1px solid rgba(124,58,237,0.4);
+  background: #1c1c1f;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
-  color: #c4b5fd;
+  color: #e8e8ed;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -494,15 +493,15 @@
 }
 
 .connectWalletBtn:hover {
-  background: rgba(124,58,237,0.3);
-  box-shadow: 0 0 12px rgba(124,58,237,0.3);
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
 }
 
 .disconnectBtn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 6px;
-  color: #888;
+  color: #666;
   cursor: pointer;
   font-size: 12px;
   padding: 6px 12px;
@@ -511,28 +510,30 @@
 }
 
 .disconnectBtn:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.2);
-  color: #ccc;
+  background: rgba(255,255,255,0.04);
+  color: #999;
 }
 
 .deployBtn {
-  background: linear-gradient(135deg,#7c3aed,#06b6d4);
+  background: #e8e8ed;
   border: none;
   border-radius: 6px;
-  color: #fff;
+  color: #0d0d0f;
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
   padding: 6px 14px;
   transition: all 0.15s;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(124,58,237,0.3);
 }
 
-.deployBtn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+.deployBtn:hover:not(:disabled) {
+  background: #fff;
+}
+
+.deployBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ─── Small pane label (used in col1 output + col3 VK) ───────────────────── */
@@ -571,9 +572,9 @@
 }
 
 .languageBadge {
-  background: rgba(124, 58, 237, 0.15);
-  color: #a78bfa;
-  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: rgba(255,255,255,0.06);
+  color: #888;
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 4px;
   padding: 1px 7px;
   font-size: 10px;
@@ -722,27 +723,25 @@
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid rgba(6, 182, 212, 0.4);
+  border: 1px solid rgba(255,255,255,0.12);
   cursor: pointer;
   transition: all 0.15s ease;
-  background: linear-gradient(135deg, #0e7490, #06b6d4);
-  color: #fff;
+  background: #1c1c1f;
+  color: #e8e8ed;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
   white-space: nowrap;
 }
 
 .generateBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0891b2, #22d3ee);
-  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.45);
-  transform: translateY(-1px);
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
 }
 
 .generateBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -751,8 +750,8 @@
 .verifierPane {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid rgba(6, 182, 212, 0.2);
-  background: #080810;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: #0a0a0d;
   flex-shrink: 0;
   max-height: 55%;
   overflow: hidden;
@@ -763,8 +762,8 @@
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
-  background: #0e1020;
-  border-bottom: 1px solid rgba(6, 182, 212, 0.12);
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
 }
 
@@ -790,9 +789,9 @@
 
 .projectName {
   font-size: 10px;
-  color: #06b6d4;
-  background: rgba(6, 182, 212, 0.08);
-  border: 1px solid rgba(6, 182, 212, 0.2);
+  color: #888;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 4px;
   padding: 1px 7px;
   font-family: 'JetBrains Mono', monospace;

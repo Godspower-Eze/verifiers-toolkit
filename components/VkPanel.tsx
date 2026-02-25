@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import type { SnarkJsVk, VkFieldError } from '@/lib/vk/types';
+import type { ValidatedVk, VkFieldError, VkSummary } from '@/lib/vk/types';
 import styles from './VkPanel.module.css';
+import { usePersistedVk } from '@/hooks/useRecentDeployments';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -10,7 +11,7 @@ type VkState = 'idle' | 'validating' | 'valid' | 'invalid';
 
 interface VkPanelProps {
   /** Called when a VK is successfully validated. Parent passes it to Feature 05. */
-  onValidVk: (vk: SnarkJsVk) => void;
+  onValidVk: (vk: ValidatedVk) => void;
   /** Called when the VK is cleared. */
   onClearVk: () => void;
 }
@@ -22,13 +23,16 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
   const [pasteValue, setPasteValue] = useState('');
   const [vkState, setVkState] = useState<VkState>('idle');
   const [errors, setErrors] = useState<VkFieldError[]>([]);
-  const [validVk, setValidVk] = useState<SnarkJsVk | null>(null);
+  const [validVk, setValidVk] = useState<ValidatedVk | null>(null);
+  const [vkSummary, setVkSummary] = useState<VkSummary | null>(null);
+  const { saveVk } = usePersistedVk();
 
   // ── Validate ────────────────────────────────────────────────────────────────
   const validateRawJson = useCallback(async (raw: string) => {
     setVkState('validating');
     setErrors([]);
     setValidVk(null);
+    setVkSummary(null);
 
     try {
       const resp = await fetch('/api/vk/validate', {
@@ -37,12 +41,14 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
         body: JSON.stringify({ vkJson: raw }),
       });
       const result = await resp.json() as
-        | { valid: true; vk: SnarkJsVk }
+        | { valid: true; vk: ValidatedVk; summary: VkSummary }
         | { valid: false; errors: VkFieldError[] };
 
       if (result.valid) {
         setVkState('valid');
         setValidVk(result.vk);
+        setVkSummary(result.summary);
+        saveVk(raw);
         onValidVk(result.vk);
       } else {
         setVkState('invalid');
@@ -52,7 +58,7 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
       setVkState('invalid');
       setErrors([{ field: 'network', message: 'Could not reach the validation API.' }]);
     }
-  }, [onValidVk]);
+  }, [onValidVk, saveVk]);
 
   // ── File upload ────────────────────────────────────────────────────────────
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +71,8 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
       validateRawJson(text);
     };
     reader.readAsText(file);
+    // Reset the input so the same file could be selected again if needed
+    e.target.value = '';
   }, [validateRawJson]);
 
   // ── Clear ──────────────────────────────────────────────────────────────────
@@ -87,7 +95,7 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
         )}
       </div>
 
-      {vkState !== 'valid' && (
+      {(vkState === 'idle' || vkState === 'validating' || vkState === 'invalid') && (
         <>
           {/* File upload */}
           <div className={styles.uploadRow}>
@@ -128,13 +136,12 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
       )}
 
       {/* Valid state summary */}
-      {vkState === 'valid' && validVk && (
+      {vkState === 'valid' && validVk && vkSummary && (
         <div className={styles.validBlock}>
           <div className={styles.vkSummary}>
-            <span>Protocol</span><strong>{validVk.protocol}</strong>
-            <span>Curve</span><strong>{validVk.curve}</strong>
-            <span>Public inputs</span><strong>{validVk.nPublic}</strong>
-            <span>IC length</span><strong>{validVk.IC.length}</strong>
+            <span>Protocol</span><strong>{vkSummary.protocol}</strong>
+            <span>Curve</span><strong>{vkSummary.curve}</strong>
+            <span>IC length</span><strong>{vkSummary.icLength}</strong>
           </div>
           <button className={styles.clearBtn} onClick={handleClear}>
             ✕ Remove VK
@@ -151,9 +158,11 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
               <span className={styles.errorMsg}>{e.message}</span>
             </div>
           ))}
-          <button className={styles.retryBtn} onClick={handleClear}>
-            Try again
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <button className={styles.retryBtn} onClick={handleClear}>
+              Clear & Try again
+            </button>
+          </div>
         </div>
       )}
     </div>

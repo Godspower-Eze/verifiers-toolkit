@@ -12,6 +12,7 @@ const config: Config = {
       tsconfig: {
         module: 'commonjs',
         moduleResolution: 'node',
+        target: 'ES2020',
       },
     }],
   },
