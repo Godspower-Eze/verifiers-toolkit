@@ -173,6 +173,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
       
       setContractAddress(calculatedAddress);
       addLog(`Deployment successful! Contract Address: ${calculatedAddress}`, 'success');
+      addLog('Switch to the Verify section in the sidebar to verify a proof against this contract.', 'info');
       
       return calculatedAddress;
     } catch (err: any) {
