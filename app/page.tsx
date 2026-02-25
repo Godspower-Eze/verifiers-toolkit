@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
+import AppShell from '@/components/AppShell';
 
 export default function Home() {
-  // Redirect the root path to the circuit editor tool by default
-  redirect('/circuit');
+  return <AppShell />;
 }

@@ -12,9 +12,11 @@ interface ScarbProjectViewerProps {
   verifier: GeneratedVerifier | null;
   generateState: 'idle' | 'generating' | 'success' | 'error';
   generateError: string | null;
+  /** Message shown when no verifier is generated yet */
+  emptyMessage?: string;
 }
 
-export default function ScarbProjectViewer({ verifier, generateState, generateError }: ScarbProjectViewerProps) {
+export default function ScarbProjectViewer({ verifier, generateState, generateError, emptyMessage }: ScarbProjectViewerProps) {
   const [activeFile, setActiveFile] = useState<ActiveFile>('groth16_verifier.cairo');
   const [isRootOpen, setIsRootOpen] = useState(true);
   const [isSrcOpen, setIsSrcOpen] = useState(true);
@@ -135,7 +137,7 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
           <div className={styles.cairoContent} style={{ flex: 1, minHeight: 0 }}>
             {!verifier && generateState === 'idle' && (
               <div className={styles.cairoPlaceholder}>
-                <p>Upload a VK on the right, then click <strong>⬡ Generate</strong></p>
+                <p>{emptyMessage || 'Generated Cairo verifier will appear here.'}</p>
               </div>
             )}
             {generateState === 'generating' && (

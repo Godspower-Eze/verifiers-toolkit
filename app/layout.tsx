@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import TopNav from "@/components/TopNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,17 +29,13 @@ export default function RootLayout({
         style={{
           margin: 0,
           minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
           background: '#020617',
           color: '#e2e8f0',
           fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+          overflow: 'hidden',
         }}
       >
-        <TopNav />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );

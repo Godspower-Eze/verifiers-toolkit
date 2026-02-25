@@ -94,3 +94,48 @@
  GET /api/templates 200 in 4ms (compile: 1911µs, render: 2ms)
  GET /vk 200 in 144ms (compile: 92ms, render: 52ms)
  GET /verify 200 in 195ms (compile: 160ms, render: 35ms)
+ GET /vk 200 in 24ms (compile: 3ms, render: 20ms)
+ GET /circuit 200 in 15ms (compile: 1656µs, render: 13ms)
+ GET /api/templates 200 in 14ms (compile: 6ms, render: 8ms)
+ GET /api/templates 200 in 8ms (compile: 3ms, render: 5ms)
+ GET /vk 200 in 23ms (compile: 5ms, render: 18ms)
+ GET /circuit 200 in 24ms (compile: 4ms, render: 20ms)
+ GET /api/templates 200 in 5ms (compile: 1810µs, render: 3ms)
+ GET /api/templates 200 in 6ms (compile: 2ms, render: 4ms)
+ GET / 200 in 101ms (compile: 74ms, render: 27ms)
+ GET /circuit 200 in 21ms (compile: 2ms, render: 19ms)
+ GET /circuit 200 in 10ms (compile: 1533µs, render: 9ms)
+ GET /api/templates 200 in 4ms (compile: 1848µs, render: 2ms)
+ GET /api/templates 200 in 3ms (compile: 941µs, render: 2ms)
+ GET /vk 200 in 19ms (compile: 3ms, render: 16ms)
+ GET /verify 200 in 22ms (compile: 4ms, render: 18ms)
+ GET /circuit 200 in 24ms (compile: 4ms, render: 20ms)
+ GET /api/templates 200 in 3ms (compile: 1339µs, render: 2ms)
+ GET /api/templates 200 in 4ms (compile: 1792µs, render: 2ms)
+ GET /vk 200 in 21ms (compile: 1676µs, render: 19ms)
+ GET /verify 200 in 21ms (compile: 3ms, render: 18ms)
+ GET /verify 200 in 121ms (compile: 4ms, render: 118ms)
+✓ Compiled in 227ms
+ GET /verify 200 in 152ms (compile: 65ms, render: 88ms)
+ GET /verify 200 in 86ms (compile: 3ms, render: 83ms)
+ GET /verify 200 in 29ms (compile: 3ms, render: 26ms)
+ GET /verify 200 in 85ms (compile: 2ms, render: 83ms)
+ GET /verify 200 in 26ms (compile: 5ms, render: 20ms)
+✓ Compiled in 64ms
+ GET /verify 404 in 517ms (compile: 365ms, render: 152ms)
+ GET /verify 404 in 112ms (compile: 14ms, render: 98ms)
+ GET /verify 404 in 70ms (compile: 51ms, render: 19ms)
+ GET /verify 404 in 95ms (compile: 5ms, render: 91ms)
+ GET / 200 in 192ms (compile: 49ms, render: 143ms)
+ GET /api/templates 200 in 38ms (compile: 33ms, render: 5ms)
+✓ Compiled in 26ms
+ POST /api/compile 200 in 275ms (compile: 133ms, render: 142ms)
+✓ Compiled in 33ms
+✓ Compiled in 12ms
+✓ Compiled in 19ms
+✓ Compiled in 18ms
+ GET / 200 in 192ms (compile: 48ms, render: 143ms)
+ GET /api/templates 200 in 7ms (compile: 3ms, render: 4ms)
+✓ Compiled in 8ms
+✓ Compiled in 10ms
+✓ Compiled in 7ms
