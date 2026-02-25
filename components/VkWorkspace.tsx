@@ -176,6 +176,7 @@ export default function VkWorkspace() {
             />
           </div>
 
+          {/* Deployment logs — shown once verifier is generated */}
           {verifier && (
             <>
               <div className={styles.rowDivider} onMouseDown={dragRow2Divider} />
@@ -188,6 +189,7 @@ export default function VkWorkspace() {
             </>
           )}
 
+          {/* Deploy bar — always visible once verifier exists */}
           {verifier && (
             <div className={styles.deployBar}>
               {isConnected ? (
