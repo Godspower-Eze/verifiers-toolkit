@@ -27,31 +27,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (
-    typeof body !== 'object' ||
-    body === null ||
-    typeof (body as Record<string, unknown>).source !== 'string'
-  ) {
+  const b = body as Record<string, unknown>;
+  const language: LanguageId = (b.language as LanguageId) ?? 'circom';
+
+  // ── Accept multi-file payload: { files: [{filename, content}], entrypoint }
+  // OR legacy single-file payload: { source, filename } — converted internally.
+  let compileSource: CompileSource;
+
+  if (Array.isArray(b.files)) {
+    // Multi-file path
+    const files = b.files as { filename: string; content: string }[];
+    const entrypoint = (b.entrypoint as string) ?? files[0]?.filename;
+
+    if (!files.length || files.some((f) => typeof f.filename !== 'string' || typeof f.content !== 'string')) {
+      return NextResponse.json(
+        { success: false, errors: [{ message: 'Each file must have "filename" and "content" string fields.', category: 'validation' }] },
+        { status: 400 }
+      );
+    }
+
+    compileSource = { language, files, entrypoint };
+  } else if (typeof b.source === 'string') {
+    // Legacy single-file path — wrap in files array
+    const filename = (b.filename as string) ?? (language === 'noir' ? 'circuit.nr' : 'circuit.circom');
+    compileSource = {
+      language,
+      files: [{ filename, content: b.source }],
+      entrypoint: filename,
+    };
+  } else {
     return NextResponse.json(
-      {
-        success: false,
-        errors: [{ message: 'Request body must include a "source" string field.', category: 'validation' }],
-      },
+      { success: false, errors: [{ message: 'Request body must include "files" array or "source" string.', category: 'validation' }] },
       { status: 400 }
     );
   }
-
-  const { source, filename, language } = body as {
-    source: string;
-    filename?: string;
-    language?: LanguageId;
-  };
-
-  const compileSource: CompileSource = {
-    language: language ?? 'circom',
-    code: source,
-    filename: filename ?? (language === 'noir' ? 'circuit.nr' : 'circuit.circom'),
-  };
 
   const compileResult = await compileCircom(compileSource);
 

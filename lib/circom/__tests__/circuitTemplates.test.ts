@@ -29,12 +29,15 @@ describe('getCircuitTemplates()', () => {
     templates.forEach((t) => expect(t.description.trim()).not.toBe(''));
   });
 
-  it('every template has non-empty code', () => {
-    templates.forEach((t) => expect(t.code.trim()).not.toBe(''));
+  it('every template has at least one non-empty file', () => {
+    templates.forEach((t) => {
+      expect(t.files.length).toBeGreaterThan(0);
+      t.files.forEach((f) => expect(f.content.trim()).not.toBe(''));
+    });
   });
 
-  it('every template has a filename', () => {
-    templates.forEach((t) => expect(t.filename.trim()).not.toBe(''));
+  it('every template has a non-empty entrypoint', () => {
+    templates.forEach((t) => expect(t.entrypoint.trim()).not.toBe(''));
   });
 
   it('every template has a valid language id', () => {
@@ -53,10 +56,10 @@ describe('getCircuitTemplates()', () => {
     expect(templates.find((t) => t.id === 'custom')).toBeDefined();
   });
 
-  it('all circom templates have filenames ending in .circom', () => {
+  it('all circom templates have an entrypoint ending in .circom', () => {
     templates
       .filter((t) => t.language === 'circom')
-      .forEach((t) => expect(t.filename).toMatch(/\.circom$/));
+      .forEach((t) => expect(t.entrypoint).toMatch(/\.circom$/));
   });
 });
 
@@ -69,8 +72,8 @@ describe('circuit templates compile successfully', () => {
     it(`template "${template.name}" compiles without errors`, async () => {
       const response = await compileCircom({
         language: 'circom',
-        code: template.code,
-        filename: template.filename,
+        files: template.files,
+        entrypoint: template.entrypoint,
       });
 
       if (!response.success) {

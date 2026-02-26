@@ -10,16 +10,29 @@ export type LanguageId = 'circom' | 'noir';
 // ─── Input ────────────────────────────────────────────────────────────────────
 
 /**
+ * A single file in a multi-file circuit project.
+ */
+export interface CircomFile {
+  /** Filename (e.g. "circuit.circom", "gates.circom"). Must be unique within the project. */
+  filename: string;
+  /** Raw source content. */
+  content: string;
+}
+
+/**
  * Language-agnostic circuit source. The `language` field routes the request to
  * the correct compiler (CircomServerCompiler, NoirServerCompiler, etc.).
+ *
+ * Multi-file projects pass all files in `files[]`. Single-file projects wrap
+ * their source in a one-element array.
  */
 export interface CompileSource {
   /** Circuit language. */
   language: LanguageId;
-  /** Raw source code (single file, no includes in Phase 1). */
-  code: string;
-  /** Filename shown in error messages (default: depends on language). */
-  filename?: string;
+  /** All project files. Must contain at least one entry. */
+  files: CircomFile[];
+  /** Filename of the entry point — must match an entry in `files`. */
+  entrypoint: string;
 }
 
 // ─── Errors ───────────────────────────────────────────────────────────────────
