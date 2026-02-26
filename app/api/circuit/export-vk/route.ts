@@ -6,42 +6,39 @@ import { SnarkjsSetup } from '@/lib/snarkjs/SnarkjsSetup';
 export const runtime = 'nodejs';
 
 /**
- * POST /api/circuit/setup
+ * POST /api/circuit/export-vk
  *
  * Body expected:
  * {
- *   r1csBase64: string
+ *   zkeyBase64: string
  * }
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { r1csBase64 } = body;
+    const { zkeyBase64 } = body;
 
-    if (!r1csBase64 || typeof r1csBase64 !== 'string') {
+    if (!zkeyBase64 || typeof zkeyBase64 !== 'string') {
       return NextResponse.json({ 
         success: false, 
-        error: "Missing or invalid 'r1csBase64' payload. Ensure you compiled the circuit first." 
+        error: "Missing or invalid 'zkeyBase64' payload. Ensure you generated a ZKey first." 
       }, { status: 400 });
     }
 
-    // Decode R1CS Buffer
-    const r1csBuffer = Buffer.from(r1csBase64, 'base64');
+    // Decode ZKey Buffer
+    const zkeyBuffer = Buffer.from(zkeyBase64, 'base64');
 
-    // Run Setup
+    // Run Export
     const setup = new SnarkjsSetup();
-    const zkeyBuffer = await setup.generateZkey(r1csBuffer);
-
-    // Encode ZKey Buffer for client network
-    const zkeyBase64 = zkeyBuffer.toString('base64');
+    const vkJsonRaw = await setup.exportVerificationKey(zkeyBuffer);
 
     return NextResponse.json({
       success: true,
-      zkeyBase64: zkeyBase64
+      vkJson: vkJsonRaw
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Setup failed:', error);
+    console.error('Export VK failed:', error);
     return NextResponse.json(
       { success: false, error: error.message || String(error) },
       { status: 500 }
