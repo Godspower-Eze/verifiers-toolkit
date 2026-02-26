@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useStarknetWalletContext } from '@/components/StarknetWalletProvider';
 import { useRecentDeployments, usePersistedVk } from '../hooks/useRecentDeployments';
 import MonacoEditor from '@monaco-editor/react';
@@ -16,6 +16,47 @@ export default function VerifyWorkspace() {
   const { wallet, address, chainId, isConnected, connectWallet, disconnectWallet } = useStarknetWalletContext();
   const { recentAddresses } = useRecentDeployments();
   const { vkJson, saveVk } = usePersistedVk();
+
+  // ── Layout State
+  const outHRef = useRef(180);
+  const [outputHeight, _setOutputHeight] = useState(180);
+  const setOutputHeight = useCallback((v: number) => { outHRef.current = v; _setOutputHeight(v); }, []);
+
+  // ── Drag Handlers
+  const startDrag = useCallback((e: React.MouseEvent, type: 'h' | 'v', onMove: (d: number) => void) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.zIndex = '999999';
+    overlay.style.cursor = type === 'h' ? 'col-resize' : 'row-resize';
+    document.body.appendChild(overlay);
+
+    document.body.style.cursor = type === 'h' ? 'col-resize' : 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    const handleMove = (ev: MouseEvent) => {
+      if (type === 'h') onMove(ev.clientX - startX);
+      else onMove(ev.clientY - startY);
+    };
+    const handleUp = () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      if (document.body.contains(overlay)) document.body.removeChild(overlay);
+    };
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+  }, []);
+
+  const dragRowDivider = useCallback((e: React.MouseEvent) => {
+    const startH = outHRef.current;
+    startDrag(e, 'v', (dy) => setOutputHeight(Math.max(60, Math.min(600, startH - dy))));
+  }, [setOutputHeight, startDrag]);
 
   const [contractAddress, setContractAddress] = useState('');
   const [proofJson, setProofJson] = useState(`{
@@ -111,11 +152,22 @@ export default function VerifyWorkspace() {
   // Proof Validation Effect
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (!proofJson.trim() || !proofJson.startsWith('{')) {
+      const trimmed = proofJson.trim();
+      if (!trimmed || !trimmed.startsWith('{')) {
         setProofSummary(null);
         setProofError(null);
         return;
       }
+      
+      // Fast-fail JSON parsing locally to prevent 400 Bad Request logs in the browser console.
+      try {
+        JSON.parse(trimmed);
+      } catch (err) {
+        setProofSummary(null);
+        setProofError('Invalid JSON format (check comments and syntax)');
+        return;
+      }
+
       setIsValidatingProof(true);
       setProofError(null);
       setProofSummary(null);
@@ -143,11 +195,21 @@ export default function VerifyWorkspace() {
   // VK Validation Effect
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (!currentVkJson.trim() || !currentVkJson.startsWith('{')) {
+      const trimmed = currentVkJson.trim();
+      if (!trimmed || !trimmed.startsWith('{')) {
         setVkSummary(null);
         setVkError(null);
         return;
       }
+
+      try {
+        JSON.parse(trimmed);
+      } catch (err) {
+        setVkSummary(null);
+        setVkError('Invalid JSON format (check comments and syntax)');
+        return;
+      }
+
       setIsValidatingVk(true);
       setVkError(null);
       setVkSummary(null);
@@ -181,6 +243,15 @@ export default function VerifyWorkspace() {
         setPublicError(null);
         return;
       }
+
+      try {
+        JSON.parse(trimmed);
+      } catch (err) {
+        setPublicSummary(null);
+        setPublicError('Invalid JSON format (check comments and syntax)');
+        return;
+      }
+
       setIsValidatingPublic(true);
       setPublicError(null);
       setPublicSummary(null);
@@ -349,8 +420,10 @@ export default function VerifyWorkspace() {
               value={currentVkJson}
               onChange={(v) => {
                 const val = v ?? '';
-                setCurrentVkJson(val);
-                saveVk(val);
+                if (val !== currentVkJson) {
+                  setCurrentVkJson(val);
+                  saveVk(val);
+                }
               }}
               options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
             />
@@ -376,7 +449,10 @@ export default function VerifyWorkspace() {
               defaultLanguage="json"
               theme="vs-dark"
               value={proofJson}
-              onChange={(v) => setProofJson(v ?? '')}
+              onChange={(v) => {
+                const val = v ?? '';
+                if (val !== proofJson) setProofJson(val);
+              }}
               options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
             />
           </div>
@@ -401,49 +477,58 @@ export default function VerifyWorkspace() {
               defaultLanguage="json"
               theme="vs-dark"
               value={publicJson}
-              onChange={(v) => setPublicJson(v ?? '')}
+              onChange={(v) => {
+                const val = v ?? '';
+                if (val !== publicJson) setPublicJson(val);
+              }}
               options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
             />
           </div>
         </div>
       </div>
       
-      {/* Logs section (styled identically to VkWorkspace) */}
-      <div className={editorStyles.outputPanel} style={{ height: 180, display: 'flex', flexDirection: 'column' }}>
-        <div className={editorStyles.paneLabelSmall}><span>Operation Logs</span></div>
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <DeploymentLogs logs={logs} />
-        </div>
-      </div>
+      {/* Resizable Divider */}
+      <div className={editorStyles.rowDivider} onMouseDown={dragRowDivider} style={{ zIndex: 10 }} />
 
-      <div className={editorStyles.deployBar}>
-        {isConnected ? (
-          <>
-            <span className={editorStyles.deployLabel} title={address || ''}>
-               {getChainName(chainId)} · {address?.slice(0, 6)}...{address?.slice(-4)}
-            </span>
-            <button 
-              onClick={handleVerify}
-              disabled={isVerifying || !contractAddress || !vkSummary || !proofSummary || !publicSummary} 
-              className={editorStyles.deployBtn}
-              title={(!vkSummary || !proofSummary || !publicSummary) ? "All JSON inputs must be valid" : (!contractAddress ? "Enter a contract address" : "")}
-            >
-              {isVerifying ? 'Verifying...' : 'Verify Onchain'}
-            </button>
-            <button onClick={disconnectWallet} className={editorStyles.disconnectBtn}>Disconnect</button>
-          </>
-        ) : (
-          <>
-            <span className={editorStyles.deployLabel}>Verify on Starknet</span>
-            <button 
-              onClick={connectWallet} 
-              className={editorStyles.deployBtn}
-              title="Connect to Verify"
-            >
-              Connect Wallet
-            </button>
-          </>
-        )}
+      <div className={editorStyles.deployFooterWrap}>
+        {/* The Verify / Deploy Bar sits on top of the logs */}
+        <div className={editorStyles.deployBar}>
+          {isConnected ? (
+            <>
+              <span className={editorStyles.deployLabel} title={address || ''}>
+                 {getChainName(chainId)} · {address?.slice(0, 6)}...{address?.slice(-4)}
+              </span>
+              <button 
+                onClick={handleVerify}
+                disabled={isVerifying || !contractAddress || !vkSummary || !proofSummary || !publicSummary} 
+                className={editorStyles.deployBtn}
+                title={(!vkSummary || !proofSummary || !publicSummary) ? "All JSON inputs must be valid" : (!contractAddress ? "Enter a contract address" : "")}
+              >
+                {isVerifying ? 'Verifying...' : 'Verify Onchain'}
+              </button>
+              <button onClick={disconnectWallet} className={editorStyles.disconnectBtn}>Disconnect</button>
+            </>
+          ) : (
+            <>
+              <span className={editorStyles.deployLabel}>Verify on Starknet</span>
+              <button 
+                onClick={connectWallet} 
+                className={editorStyles.deployBtn}
+                title="Connect to Verify"
+              >
+                Connect Wallet
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Logs section */}
+        <div className={editorStyles.outputPanel} style={{ height: outputHeight, display: 'flex', flexDirection: 'column' }}>
+          <div className={editorStyles.paneLabelSmall}><span>Operation Logs</span></div>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <DeploymentLogs logs={logs} emptyText="Verification logs will appear here..." />
+          </div>
+        </div>
       </div>
     </div>
   );

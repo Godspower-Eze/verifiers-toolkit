@@ -140,5 +140,9 @@ export function normalizeCompileOutput(raw: RawCompileOutput) {
     constraintCount: parseConstraintCount(raw.stdout),
     wireCount: parseWireCount(raw.stdout),
     warnings,
+    r1csBuffer: raw.artifactBuffer,
+    symContent: raw.symContent,
+    wasmBuffer: raw.wasmBuffer,
+    wasmJs: raw.wasmJs,
   };
 }

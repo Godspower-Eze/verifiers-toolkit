@@ -12,9 +12,10 @@ export interface LogEntry {
 
 interface DeploymentLogsProps {
   logs: LogEntry[];
+  emptyText?: string;
 }
 
-export default function DeploymentLogs({ logs }: DeploymentLogsProps) {
+export default function DeploymentLogs({ logs, emptyText }: DeploymentLogsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new logs arrive
@@ -27,7 +28,7 @@ export default function DeploymentLogs({ logs }: DeploymentLogsProps) {
   if (logs.length === 0) {
     return (
       <div className={styles.emptyContainer}>
-        <span className={styles.emptyText}>Deployment logs will appear here...</span>
+        <span className={styles.emptyText}>{emptyText || 'Deployment logs will appear here...'}</span>
       </div>
     );
   }
