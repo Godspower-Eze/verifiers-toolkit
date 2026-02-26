@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { logInternalError } from '../utils/serverLogger';
 import type { ValidatedVk } from '@/lib/vk/types';
 import type { GeneratedVerifier, GenerateResult, ProofSystem } from './types';
 
@@ -86,10 +87,13 @@ export class VerifierGenerator {
         const msg = isExecError(err)
           ? (err.stderr ?? err.stdout ?? String(err))
           : String(err);
+        
+        logInternalError('Garaga Verifier Generation (exec)', err);
+        
         if (isExecError(err) && (err.killed || err.signal === 'SIGTERM')) {
-          return { success: false, error: `garaga gen timed out after ${GENERATE_TIMEOUT_MS / 1000}s` };
+          return { success: false, error: `garaga gen timed out.` };
         }
-        return { success: false, error: `garaga gen failed: ${msg}` };
+        return { success: false, error: `Failed to generate verifier.` };
       }
 
       // Step 3: Read generated files
@@ -108,7 +112,8 @@ export class VerifierGenerator {
         verifier: { projectName: safeName, verifierCairo, constantsCairo, libCairo, scarbToml },
       };
     } catch (err: unknown) {
-      return { success: false, error: String(err) };
+      logInternalError('Garaga Verifier Generation (catch)', err);
+      return { success: false, error: "Failed to generate verifier." };
     } finally {
       // Step 4: Always clean up
       await fs.promises.rm(tempDir, { recursive: true, force: true });

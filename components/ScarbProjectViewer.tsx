@@ -52,7 +52,7 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
   }, [verifier]);
 
   return (
-    <>
+    <div className={styles.viewerRoot}>
       {/* File tree sidebar - only show when verifier exists */}
       {verifier && (
         <div className={styles.fileTreeSidebar}>
@@ -67,66 +67,120 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
             </button>
           </div>
           <div className={styles.fileTreeContent}>
-            <div 
-              className={styles.fileTreeFolder} 
-              onClick={() => setIsRootOpen(!isRootOpen)}
-              style={{ cursor: 'pointer', paddingLeft: 8 }}
-            >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, transform: isRootOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.1s' }}><polyline points="9 18 15 12 9 6"></polyline></svg>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
-              {verifier.projectName}
+            <div className={styles.desktopFileTree}>
+              {/* Desktop-only Tree View */}
+              <div 
+                className={styles.fileTreeFolder} 
+                onClick={() => setIsRootOpen(!isRootOpen)}
+                style={{ cursor: 'pointer', paddingLeft: 8 }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, transform: isRootOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.1s' }}><polyline points="9 18 15 12 9 6"></polyline></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
+                {verifier.projectName}
+              </div>
+              
+              {isRootOpen && (
+                <>
+                  <div
+                    className={`${styles.fileTreeItem} ${activeFile === 'Scarb.toml' ? styles.fileTreeActive : ''}`}
+                    onClick={() => setActiveFile('Scarb.toml')}
+                    style={{ paddingLeft: 30, ...(activeFile === 'Scarb.toml' ? { paddingLeft: 28 } : {}) }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Scarb.toml
+                  </div>
+                  <div 
+                    className={styles.fileTreeFolder} 
+                    onClick={() => setIsSrcOpen(!isSrcOpen)}
+                    style={{ marginTop: 4, paddingLeft: 30, cursor: 'pointer' }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, transform: isSrcOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.1s' }}><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
+                    src
+                  </div>
+                  
+                  {isSrcOpen && (
+                    <>
+                      <div
+                        className={`${styles.fileTreeItemNested} ${activeFile === 'lib.cairo' ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile('lib.cairo')}
+                        style={{ paddingLeft: 52, ...(activeFile === 'lib.cairo' ? { paddingLeft: 50 } : {}) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        lib.cairo
+                      </div>
+                      <div
+                        className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier.cairo' ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile('groth16_verifier.cairo')}
+                        style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier.cairo' ? { paddingLeft: 50 } : {}) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        groth16_verifier.cairo
+                      </div>
+                      <div
+                        className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier_constants.cairo' ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile('groth16_verifier_constants.cairo')}
+                        style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier_constants.cairo' ? { paddingLeft: 50 } : {}) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        groth16_verifier_constants.cairo
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </div>
-            
-            {isRootOpen && (
-              <>
-                <div
-                  className={`${styles.fileTreeItem} ${activeFile === 'Scarb.toml' ? styles.fileTreeActive : ''}`}
-                  onClick={() => setActiveFile('Scarb.toml')}
-                  style={{ paddingLeft: 30, ...(activeFile === 'Scarb.toml' ? { paddingLeft: 28 } : {}) }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                  Scarb.toml
-                </div>
-                <div 
-                  className={styles.fileTreeFolder} 
-                  onClick={() => setIsSrcOpen(!isSrcOpen)}
-                  style={{ marginTop: 4, paddingLeft: 30, cursor: 'pointer' }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, transform: isSrcOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.1s' }}><polyline points="9 18 15 12 9 6"></polyline></svg>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><polygon points="3 6 9 6 12 9 21 9 21 19 3 19"></polygon></svg>
-                  src
-                </div>
-                
-                {isSrcOpen && (
-                  <>
-                    <div
-                      className={`${styles.fileTreeItemNested} ${activeFile === 'lib.cairo' ? styles.fileTreeActive : ''}`}
-                      onClick={() => setActiveFile('lib.cairo')}
-                      style={{ paddingLeft: 52, ...(activeFile === 'lib.cairo' ? { paddingLeft: 50 } : {}) }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                      lib.cairo
-                    </div>
-                    <div
-                      className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier.cairo' ? styles.fileTreeActive : ''}`}
-                      onClick={() => setActiveFile('groth16_verifier.cairo')}
-                      style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier.cairo' ? { paddingLeft: 50 } : {}) }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                      groth16_verifier.cairo
-                    </div>
-                    <div
-                      className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier_constants.cairo' ? styles.fileTreeActive : ''}`}
-                      onClick={() => setActiveFile('groth16_verifier_constants.cairo')}
-                      style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier_constants.cairo' ? { paddingLeft: 50 } : {}) }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                      groth16_verifier_constants.cairo
-                    </div>
-                  </>
-                )}
-              </>
-            )}
+
+            {/* Mobile-only Tabs View */}
+            <div 
+              className={styles.mobileFileTabs} 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'row', 
+                flexWrap: 'nowrap', 
+                overflowX: 'auto', 
+                WebkitOverflowScrolling: 'touch',
+                width: '100%', 
+                maxWidth: '100vw', 
+                minHeight: '40px' 
+              }}
+            >
+              <div
+                className={`${styles.fileTreeItem} ${activeFile === 'Scarb.toml' ? styles.fileTreeActive : ''}`}
+                onClick={() => setActiveFile('Scarb.toml')}
+                style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                Scarb.toml
+              </div>
+              
+              <div
+                className={`${styles.fileTreeItem} ${activeFile === 'lib.cairo' ? styles.fileTreeActive : ''}`}
+                onClick={() => setActiveFile('lib.cairo')}
+                style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                src/lib.cairo
+              </div>
+              
+              <div
+                className={`${styles.fileTreeItem} ${activeFile === 'groth16_verifier.cairo' ? styles.fileTreeActive : ''}`}
+                onClick={() => setActiveFile('groth16_verifier.cairo')}
+                style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                src/groth16_verifier.cairo
+              </div>
+              
+              <div
+                className={`${styles.fileTreeItem} ${activeFile === 'groth16_verifier_constants.cairo' ? styles.fileTreeActive : ''}`}
+                onClick={() => setActiveFile('groth16_verifier_constants.cairo')}
+                style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                src/groth16_verifier_constants.cairo
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -167,6 +221,6 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
