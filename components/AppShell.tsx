@@ -54,7 +54,7 @@ export default function AppShell() {
         <div className={styles.main}>
           <div className={`${styles.panel} ${activeTab === 'circuit' ? styles.panelActive : ''}`}>
             <Suspense fallback={<div style={{ padding: 32, color: '#64748b' }}>Loading editor…</div>}>
-              <EditorWorkspace />
+              <EditorWorkspace onNavigateToVk={() => setActiveTab('vk')} />
             </Suspense>
           </div>
           <div className={`${styles.panel} ${activeTab === 'vk' ? styles.panelActive : ''}`}>

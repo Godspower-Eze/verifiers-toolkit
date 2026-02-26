@@ -19,6 +19,7 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "snarkjs": "^0.7.6",
     "starknet": "^8.9.2",
     "starknetkit": "^3.4.3"
   },
@@ -32,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/snarkjs": "^0.7.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jest": "^30.2.0",

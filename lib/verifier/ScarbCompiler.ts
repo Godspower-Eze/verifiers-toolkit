@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { logInternalError } from '../utils/serverLogger';
 import type { ScarbCompileInput, ScarbCompileResult } from './types';
 
 const execFileAsync = promisify(execFile);
@@ -65,10 +66,12 @@ export class ScarbCompiler {
           ? (err.stderr || err.stdout || String(err))
           : String(err);
         
+        logInternalError('Scarb Build (exec)', err);
+        
         if (isExecError(err) && (err.killed || err.signal === 'SIGTERM')) {
-          return { success: false, error: `scarb build timed out after ${COMPILE_TIMEOUT_MS / 1000}s` };
+          return { success: false, error: `scarb build timed out.` };
         }
-        return { success: false, error: `scarb build failed: ${msg}` };
+        return { success: false, error: `Failed to compile verifier contract.` };
       }
 
       // Step 3: Read generated artifacts
@@ -97,7 +100,8 @@ export class ScarbCompiler {
       };
 
     } catch (err: unknown) {
-      return { success: false, error: String(err) };
+      logInternalError('Scarb Build (catch)', err);
+      return { success: false, error: "Failed to compile verifier contract." };
     } finally {
       // Intentionally *not* cleaning up the directory so Scarb caches the dependencies
       // It will just be overwritten next compile.

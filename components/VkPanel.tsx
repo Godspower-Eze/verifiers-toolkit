@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import type { ValidatedVk, VkFieldError, VkSummary } from '@/lib/vk/types';
 import styles from './VkPanel.module.css';
 import { usePersistedVk } from '@/hooks/useRecentDeployments';
@@ -59,6 +59,21 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
       setErrors([{ field: 'network', message: 'Could not reach the validation API.' }]);
     }
   }, [onValidVk, saveVk]);
+
+  // ── Auto-load generated VKs ────────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const pendingVk = localStorage.getItem('cairo_verifier_generator_pending_vk');
+      if (pendingVk) {
+        setPasteValue(pendingVk);
+        validateRawJson(pendingVk);
+        // Clean up so it doesn't auto-load again if they clear and refresh
+        localStorage.removeItem('cairo_verifier_generator_pending_vk');
+      }
+    } catch (err) {
+      console.error('Failed to read pending VK from local storage:', err);
+    }
+  }, [validateRawJson]);
 
   // ── File upload ────────────────────────────────────────────────────────────
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

@@ -67,6 +67,7 @@ export class CircomServerCompiler {
         '--no-warnings',          // suppress Node's WASI ExperimentalWarning
         CIRCOM_CLI_PATH,
         inputPath,
+        '--wasm',                 // emit witness generation logic
         '--r1cs',
         '--sym',
         '-o', `${tempDir}/`,
@@ -122,9 +123,31 @@ export class CircomServerCompiler {
         // sym not produced — expected on error path
       }
 
-      return { stdout, stderr, artifactBuffer, symContent };
+      // Step 6: Read WebAssembly parameters if `--wasm` succeeded
+      const baseName = filename.replace(/\.circom$/, '');
+      const wasmDir = path.join(tempDir, `${baseName}_js`);
+      let wasmBuffer: Buffer | undefined;
+      let wasmJs: string | undefined;
+
+      try {
+        const wasmPath = path.join(wasmDir, `${baseName}.wasm`);
+        if (fs.existsSync(wasmPath)) {
+          wasmBuffer = await fs.promises.readFile(wasmPath);
+        }
+        
+        const jsPath = path.join(wasmDir, 'generate_witness.js');
+        if (fs.existsSync(jsPath)) {
+            // SnarkJS conventionally relies on `generate_witness.js` runtime logic that
+            // circom bundles alongside the `.wasm` binary. We read it as a string.
+            wasmJs = await fs.promises.readFile(jsPath, 'utf8');
+        }
+      } catch {
+        // wasm not produced — expected on error
+      }
+
+      return { stdout, stderr, artifactBuffer, symContent, wasmBuffer, wasmJs };
     } finally {
-      // Step 6: Always clean up — even on error
+      // Step 7: Always clean up — even on error
       await fs.promises.rm(tempDir, { recursive: true, force: true });
     }
   }

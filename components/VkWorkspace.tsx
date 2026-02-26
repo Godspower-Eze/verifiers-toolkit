@@ -144,7 +144,7 @@ export default function VkWorkspace() {
                 </button>
               )}
             </div>
-            <div className={styles.outputContent}>
+            <div className={`${styles.outputContent} ${generateState === 'success' ? styles.hideOnMobile : ''}`}>
               {generateState === 'idle' && !validVk && <p className={styles.outputHint}>Upload a BN254 VK above to start.</p>}
               {generateState === 'idle' && validVk && <p className={styles.outputHint}>VK validated ✓ — click ⬡ Generate.</p>}
               {generateState === 'generating' && <p className={styles.outputHint}><span className={styles.spinner} /> Generating Cairo verifier…</p>}
@@ -155,7 +155,7 @@ export default function VkWorkspace() {
                 </div>
               )}
               {generateState === 'success' && verifier && (
-                <div className={styles.successBlock}>
+                <div className={`${styles.successBlock} ${styles.hideOnMobile}`}>
                   <div className={styles.successHeader}>✓ Verifier generated successfully</div>
                   <table className={styles.statsTable}><tbody>
                     <tr><td>Project</td><td><strong>{verifier.projectName}</strong></td></tr>
@@ -169,19 +169,54 @@ export default function VkWorkspace() {
         <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
         {/* ── Col 2: Scarb Project Viewer + Deploy ── */}
-        <div className={`${styles.colWrap} ${styles.cairoPane}`} style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className={`${styles.colWrap} ${styles.cairoPane} ${!verifier ? styles.hideOnMobileEmpty : ''}`} style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, minWidth: 0 }}>
             <ScarbProjectViewer 
               verifier={verifier} 
               generateState={generateState} 
               generateError={generateError}
-              emptyMessage="Upload a VK on the left, then click ⬡ Generate to see the Cairo verifier here."
+              emptyMessage="Upload a VK, then click ⬡ Generate to see the Cairo verifier here."
             />
           </div>
 
-          {/* Deployment logs — below the generated contract */}
           {verifier && (
-            <>
+            <div className={styles.deployFooterWrap}>
+              {/* Deploy bar */}
+              <div className={styles.deployBar}>
+                {isConnected ? (
+                  <>
+                    <span className={styles.deployLabel} title={address || ''}>
+                      {getChainName(chainId)} · {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
+                    </span>
+                    <button
+                      id="declare-btn"
+                      className={styles.declareBtn}
+                      onClick={() => handleCompileAndDeclare(verifier)}
+                      disabled={isDeclaring || isAlreadyDeclared || isCheckingDeclaration}
+                    >
+                      {isCheckingDeclaration ? 'Checking status...' : isDeclaring && !isAlreadyDeclared ? 'Compiling & Declaring...' : isAlreadyDeclared ? 'Declared ✓' : 'Compile & Declare'}
+                    </button>
+                    <button
+                      id="deploy-btn"
+                      className={styles.deployBtn}
+                      onClick={handleDeploy}
+                      disabled={isDeploying || !deployClassHash || !isAlreadyDeclared || isCheckingDeclaration}
+                    >
+                      {isDeploying ? 'Deploying...' : contractAddress ? 'Deploy Again' : 'Deploy'}
+                    </button>
+                    <button onClick={disconnectWallet} className={styles.disconnectBtn} disabled={isDeclaring || isDeploying}>Disconnect</button>
+                  </>
+                ) : (
+                  <>
+                    <span className={styles.deployLabel}>Deploy to Starknet</span>
+                    <button onClick={connectWallet} className={styles.connectWalletBtn} title="Connect to Declare/Deploy">
+                      Connect Wallet
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Deployment logs — just above lower menu */}
               <div className={styles.rowDivider} onMouseDown={dragRow2Divider} />
               <div className={styles.outputPanel} style={{ height: outputHeight2, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
                 <div className={styles.paneLabelSmall}><span>Deployment Logs</span></div>
@@ -189,43 +224,6 @@ export default function VkWorkspace() {
                   <DeploymentLogs logs={logs} />
                 </div>
               </div>
-            </>
-          )}
-
-          {/* Deploy bar — below deployment logs */}
-          {verifier && (
-            <div className={styles.deployBar}>
-              {isConnected ? (
-                <>
-                  <span className={styles.deployLabel} title={address || ''}>
-                    {getChainName(chainId)} · {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
-                  </span>
-                  <button
-                    id="declare-btn"
-                    className={styles.declareBtn}
-                    onClick={() => handleCompileAndDeclare(verifier)}
-                    disabled={isDeclaring || isAlreadyDeclared || isCheckingDeclaration}
-                  >
-                    {isCheckingDeclaration ? 'Checking status...' : isDeclaring && !isAlreadyDeclared ? 'Compiling & Declaring...' : isAlreadyDeclared ? 'Declared ✓' : 'Compile & Declare'}
-                  </button>
-                  <button
-                    id="deploy-btn"
-                    className={styles.deployBtn}
-                    onClick={handleDeploy}
-                    disabled={isDeploying || !deployClassHash || !isAlreadyDeclared || isCheckingDeclaration}
-                  >
-                    {isDeploying ? 'Deploying...' : contractAddress ? 'Deploy Again' : 'Deploy'}
-                  </button>
-                  <button onClick={disconnectWallet} className={styles.disconnectBtn} disabled={isDeclaring || isDeploying}>Disconnect</button>
-                </>
-              ) : (
-                <>
-                  <span className={styles.deployLabel}>Deploy to Starknet</span>
-                  <button onClick={connectWallet} className={styles.connectWalletBtn} title="Connect to Declare/Deploy">
-                    Connect Wallet
-                  </button>
-                </>
-              )}
             </div>
           )}
         </div>
