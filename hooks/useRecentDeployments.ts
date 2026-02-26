@@ -39,18 +39,21 @@ export function useRecentDeployments() {
   }, [loadContracts]);
 
   const addAddress = useCallback((address: string) => {
+    // We update state first
     setRecentAddresses(prev => {
-      // Remove if it's already there to move it to the front
       const filtered = prev.filter(a => a !== address);
       const updated = [address, ...filtered].slice(0, MAX_RECENT);
       
-      try {
-        localStorage.setItem(RECENT_CONTRACTS_KEY, JSON.stringify(updated));
-        // Dispatch local event for same-tab components to react
-        window.dispatchEvent(new Event('recentDeploymentsUpdated'));
-      } catch (e) {
-        console.warn('Failed to save recent contracts to localStorage');
-      }
+      // Schedule side effects outside the React update cycle
+      setTimeout(() => {
+        try {
+          localStorage.setItem(RECENT_CONTRACTS_KEY, JSON.stringify(updated));
+          window.dispatchEvent(new Event('recentDeploymentsUpdated'));
+        } catch (e) {
+          console.warn('Failed to save recent contracts to localStorage');
+        }
+      }, 0);
+
       return updated;
     });
   }, []);

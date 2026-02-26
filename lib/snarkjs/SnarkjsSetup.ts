@@ -41,7 +41,8 @@ export class SnarkjsSetup {
         throw new Error(`Universal ptau file not found at ${PTAU_PATH}. Check your /lib/snarkjs directory.`);
       }
 
-      await execAsync(`npx snarkjs groth16 setup "${r1csPath}" "${PTAU_PATH}" "${zkeyPath}"`);
+      // Using the modern 'zkey new' instead of 'groth16 setup' for better compatibility with Circom 2 artifacts
+      await execAsync(`npx snarkjs zkey new "${r1csPath}" "${PTAU_PATH}" "${zkeyPath}"`);
 
       const zkeyBuffer = await fs.promises.readFile(zkeyPath);
       return zkeyBuffer;
@@ -108,7 +109,12 @@ export class SnarkjsSetup {
 
       try {
         // Execute full prove via snarkjs CLI
-        await execAsync(`npx snarkjs groth16 fullprove "${inputPath}" "${wasmPath}" "${zkeyPath}" "${proofPath}" "${publicPath}"`);
+        // This calculates the witness and generates the proof in one step.
+        const { stdout, stderr } = await execAsync(`npx snarkjs groth16 fullprove "${inputPath}" "${wasmPath}" "${zkeyPath}" "${proofPath}" "${publicPath}"`);
+
+        if (stderr && stderr.includes('Error')) {
+           console.error('[SnarkjsSetup] groth16 fullprove error details:', stderr);
+        }
 
         const proofRaw = await fs.promises.readFile(proofPath, 'utf-8');
         const publicRaw = await fs.promises.readFile(publicPath, 'utf-8');
@@ -119,7 +125,12 @@ export class SnarkjsSetup {
         };
       } catch (err: any) {
          logInternalError('Snarkjs Prove (exec)', err);
-         throw new Error("Failed to generate zero-knowledge proof.");
+         // Surface specific snarkjs errors if available
+         const detail = err.stdout || err.stderr || "";
+         if (detail.includes('Invalid witness length')) {
+            throw new Error("Invalid witness length: your inputs might not match the circuit signals or the WASM/ZKey are mismatched. Try re-compiling and re-running Setup.");
+         }
+         throw new Error("Failed to generate zero-knowledge proof. Check your inputs.");
       }
     } finally {
       await fs.promises.rm(tempDir, { recursive: true, force: true });
