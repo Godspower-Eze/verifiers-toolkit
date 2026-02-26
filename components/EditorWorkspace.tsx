@@ -579,7 +579,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   {vkState === 'success' && setupResult?.vkJson && (
                     <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #222' }}>
-                        <span className={styles.paneLabelSmall} style={{ color: '#10b981' }}>verification_key.json</span>
+                        <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key</span>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button
                             onClick={() => {
