@@ -157,7 +157,7 @@ template Semaphore(MAX_DEPTH) {
 
 // MAX_DEPTH = 10 supports groups of up to 2^10 = 1024 members.
 // Increase for larger groups (at the cost of more constraints).
-component main { public [merkleProofLength, merkleProofIndex, merkleProofSiblings, message, scope] } = Semaphore(10);`,
+component main { public [message, scope] } = Semaphore(10);`,
     },
   ],
 };
