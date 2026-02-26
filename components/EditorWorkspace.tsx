@@ -472,16 +472,38 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
             {/* Tab bar */}
-            <div className={styles.tabBar}>
+            <div style={{ display: 'flex', gap: 32, borderBottom: '1px solid #222', padding: '0 24px', background: '#0a0a0c' }}>
               <button
-                className={rightTab === 'setup' ? styles.tabActive : styles.tab}
                 onClick={() => setRightTab('setup')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: rightTab === 'setup' ? '2px solid #3b82f6' : '2px solid transparent',
+                  color: rightTab === 'setup' ? '#f8fafc' : '#94a3b8',
+                  padding: '16px 4px',
+                  fontSize: 14,
+                  fontWeight: rightTab === 'setup' ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  outline: 'none',
+                }}
               >
                 Setup
               </button>
               <button
-                className={rightTab === 'prove' ? styles.tabActive : styles.tab}
                 onClick={() => setRightTab('prove')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: rightTab === 'prove' ? '2px solid #3b82f6' : '2px solid transparent',
+                  color: rightTab === 'prove' ? '#f8fafc' : '#94a3b8',
+                  padding: '16px 4px',
+                  fontSize: 14,
+                  fontWeight: rightTab === 'prove' ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  outline: 'none',
+                }}
               >
                 Prove
               </button>
@@ -491,98 +513,108 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
             {rightTab === 'setup' && (
               <div style={{ flex: 1, overflowY: 'auto', padding: 24, paddingBottom: 40 }}>
 
-                {/* Step 1: ZKey Generation */}
-                <div style={{ padding: 20, background: 'linear-gradient(145deg, rgba(20,20,22,0.8) 0%, rgba(10,10,12,0.9) 100%)', border: '1px solid #222', borderRadius: 12, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <h3 style={{ margin: 0, fontSize: 14, color: '#e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 11 }}>1</span>
-                      Proving Key Generation (ZKey)
-                    </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 6 }}>
-                      <span style={{ color: '#10b981', fontSize: 12 }}>✓</span>
-                      <span style={{ color: '#10b981', fontSize: 12, fontWeight: 500 }}>{r1csName} attached</span>
-                    </div>
-                  </div>
+                <div style={{ padding: 20, background: 'linear-gradient(145deg, rgba(20,20,22,0.8) 0%, rgba(10,10,12,0.9) 100%)', border: '1px solid #222', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
                   
-                  <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}>
-                    This phase maps your R1CS constraints against the universal <code>powersOfTau</code> parameters to generate the unique ZKey needed for proving.
-                  </p>
-
-                  <button
-                    className={`${styles.compileBtn} ${styles[setupState]}`}
-                    onClick={handleSetup}
-                    disabled={setupState === 'compiling' || setupState === 'success'}
-                    style={{ width: '100%', padding: '14px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, transition: 'all 0.2s' }}
-                  >
-                    {setupState === 'compiling'
-                      ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Generating ZKey securely on Server…</>
-                      : setupState === 'success'
-                        ? '✓ ZKey Generated Successfully'
-                        : 'Generate ZKey'}
-                  </button>
-
-                  {setupState === 'error' && (
-                    <div className={styles.errorList} style={{ marginTop: 16, padding: 16 }}>
-                      <div className={styles.errorHeader}>✗ ZKey Generation failed</div>
-                      <div className={styles.errorItem}>
-                        <span className={styles.errorMessage}>{setupResult?.error || 'An error occurred during the Groth16 trusted setup phase.'}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Step 2: Verification Key Export (Revealed after Step 1) */}
-                <div style={{ 
-                  padding: 20, 
-                  background: 'linear-gradient(145deg, rgba(20,20,22,0.8) 0%, rgba(10,10,12,0.9) 100%)', 
-                  border: '1px solid #222', 
-                  borderRadius: 12, 
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                  opacity: setupState === 'success' ? 1 : 0.4,
-                  pointerEvents: setupState === 'success' ? 'auto' : 'none',
-                  transition: 'opacity 0.3s ease'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-                    <h3 style={{ margin: 0, fontSize: 14, color: '#e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: setupState === 'success' ? '#3b82f6' : '#334155', color: '#fff', fontSize: 11, transition: 'background 0.3s' }}>2</span>
-                      Verification Key Export
-                    </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+                     <h3 style={{ margin: 0, fontSize: 14, color: '#e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                       Trusted Setup Configuration
+                     </h3>
                   </div>
 
-                  <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}>
-                    Extract the JSON representation of the Verifying Key from the compressed ZKey structure. This is required to deploy your Cairo verifier.
-                  </p>
-
-                  <button
-                    className={`${styles.compileBtn} ${styles[vkState]}`}
-                    onClick={handleExportVk}
-                    disabled={vkState === 'compiling' || vkState === 'success' || setupState !== 'success'}
-                    style={{ width: '100%', padding: '14px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, marginBottom: vkState === 'success' ? 24 : 0 }}
-                  >
-                    {vkState === 'compiling'
-                      ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Extracting Verification Key…</>
-                      : vkState === 'success'
-                        ? '✓ Verification Key Extracted'
-                        : 'Export Verification Key'}
-                  </button>
-
-                  {vkState === 'error' && (
-                    <div className={styles.errorList} style={{ marginTop: 16, padding: 16 }}>
-                      <div className={styles.errorHeader}>✗ VK Export failed</div>
-                      <div className={styles.errorItem}>
-                        <span className={styles.errorMessage}>{setupResult?.error || 'An error occurred during VK extraction.'}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Step 1: ZKey Generation */}
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #222', borderRadius: 8, padding: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', fontSize: 12 }}>1</span>
+                          <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>Proving Key Generation (ZKey)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: '#10b981', fontSize: 13 }}>✓</span>
+                          <span style={{ color: '#10b981', fontSize: 13, fontWeight: 500 }}>{r1csName} attached</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                      
+                      <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5, marginBottom: 16 }}>
+                        This phase maps your R1CS constraints against the universal <code>powersOfTau</code> parameters to generate the unique ZKey needed for proving.
+                      </p>
 
-                  {/* VK Output Display */}
-                  {vkState === 'success' && setupResult?.vkJson && (
-                    <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #222' }}>
-                        <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key</span>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button
-                            onClick={() => {
+                      <div style={{ paddingLeft: 30 }}>
+                        <button
+                          className={`${styles.compileBtn} ${styles[setupState]}`}
+                          onClick={handleSetup}
+                          disabled={setupState === 'compiling' || setupState === 'success'}
+                          style={{ width: '100%', padding: '12px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, transition: 'all 0.2s' }}
+                        >
+                          {setupState === 'compiling'
+                            ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Generating ZKey securely on Server…</>
+                            : setupState === 'success'
+                              ? '✓ ZKey Generated Successfully'
+                              : 'Generate ZKey'}
+                        </button>
+                      </div>
+
+                      {setupState === 'error' && (
+                        <div className={styles.errorList} style={{ marginTop: 16, padding: 16, marginLeft: 30 }}>
+                          <div className={styles.errorHeader}>✗ ZKey Generation failed</div>
+                          <div className={styles.errorItem}>
+                            <span className={styles.errorMessage}>{setupResult?.error || 'An error occurred during the Groth16 trusted setup phase.'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Step 2: Verification Key Export (Revealed after Step 1) */}
+                    <div style={{ 
+                      background: setupState === 'success' ? 'rgba(59, 130, 246, 0.02)' : 'rgba(255,255,255,0.02)', 
+                      border: setupState === 'success' ? '1px solid rgba(59, 130, 246, 0.2)' : '1px solid #222', 
+                      borderRadius: 8, 
+                      padding: 16,
+                      opacity: setupState === 'success' ? 1 : 0.4,
+                      pointerEvents: setupState === 'success' ? 'auto' : 'none',
+                      transition: 'all 0.3s ease'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: setupState === 'success' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)', color: setupState === 'success' ? '#3b82f6' : '#64748b', fontSize: 12, transition: 'all 0.3s' }}>2</span>
+                        <span style={{ color: setupState === 'success' ? '#e2e8f0' : '#a1a1aa', fontSize: 14, fontWeight: 600 }}>Verification Key Export</span>
+                      </div>
+
+                      <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5, marginBottom: 16 }}>
+                        Extract the JSON representation of the Verifying Key from the compressed ZKey structure. This is required to deploy your Cairo verifier.
+                      </p>
+
+                      <div style={{ paddingLeft: 30 }}>
+                        <button
+                          className={`${styles.compileBtn} ${styles[vkState]}`}
+                          onClick={handleExportVk}
+                          disabled={vkState === 'compiling' || vkState === 'success' || setupState !== 'success'}
+                          style={{ width: '100%', padding: '12px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, marginBottom: vkState === 'success' ? 24 : 0 }}
+                        >
+                          {vkState === 'compiling'
+                            ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Extracting Verification Key…</>
+                            : vkState === 'success'
+                              ? '✓ Verification Key Extracted'
+                              : 'Export Verification Key'}
+                        </button>
+                      </div>
+
+                      {vkState === 'error' && (
+                        <div className={styles.errorList} style={{ marginTop: 16, padding: 16, marginLeft: 30 }}>
+                          <div className={styles.errorHeader}>✗ VK Export failed</div>
+                          <div className={styles.errorItem}>
+                            <span className={styles.errorMessage}>{setupResult?.error || 'An error occurred during VK extraction.'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* VK Output Display */}
+                      {vkState === 'success' && setupResult?.vkJson && (
+                        <div style={{ animation: 'fadeIn 0.3s ease-out', paddingLeft: 30 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #222' }}>
+                            <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key</span>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button
+                                onClick={() => {
                               navigator.clipboard.writeText(setupResult.vkJson);
                               setCopiedVk(true);
                               setTimeout(() => setCopiedVk(false), 2000);
@@ -624,9 +656,11 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   )}
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+        )}
 
-            {/* ── Prove tab ── */}
+        {/* ── Prove tab ── */}
             {rightTab === 'prove' && (
               <div style={{ flex: 1, overflowY: 'auto', padding: 24, paddingBottom: 40 }}>
 
