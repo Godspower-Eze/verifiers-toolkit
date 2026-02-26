@@ -124,7 +124,6 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   const [copiedPublic, setCopiedPublic] = useState(false);
 
   // ── Derived availability
-  const hasWasm = !!(compileResult as any)?.result?.wasmBase64;
   const hasZkey = !!setupResult?.zkeyBase64;
 
   const handleDownload = useCallback((base64Data: string, dlFilename: string, mimeType: string) => {
@@ -182,6 +181,14 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
     setCompileState('compiling');
     setCompileResult(null);
     clearEditorMarkers();
+
+    // Reset downstream states to prevent stale data persistence
+    setSetupState('idle');
+    setSetupResult(null);
+    setVkState('idle');
+    setProveState('idle');
+    setProveResult(null);
+
     try {
       const resp = await fetch('/api/compile', {
         method: 'POST',

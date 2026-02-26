@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       ...circomRes,
       r1csBase64: circomRes.r1csBuffer?.toString('base64'),
       wasmBase64: circomRes.wasmBuffer?.toString('base64'),
+      symContent: circomRes.symContent,
     };
     
     // Explicitly delete the raw buffers so `NextResponse.json` doesn't choke on them
