@@ -638,19 +638,31 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                      </h3>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
                     {/* WASM status */}
-                    <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 8 }}>
-                      <span style={{ color: '#10b981', fontSize: 13 }}>✓</span>
-                      <span style={{ color: '#10b981', fontSize: 13, fontWeight: 500 }}>{wasmName} attached</span>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #222', borderRadius: 8, padding: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: 13 }}>✓</span>
+                        <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>{wasmName} attached</span>
+                      </div>
+                      <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+                        The compiled WebAssembly executable representation of your circuit constraints. 
+                        It is used by the prover to calculate the final <strong>witness</strong> vectors (intermediate signals) from your private inputs.
+                      </p>
                     </div>
 
                     {/* ZKey status */}
-                    <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: hasZkey ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)', border: hasZkey ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid #333', borderRadius: 8 }}>
-                      <span style={{ color: hasZkey ? '#10b981' : '#64748b', fontSize: 13 }}>{hasZkey ? '✓' : '✗'}</span>
-                      <span style={{ color: hasZkey ? '#10b981' : '#a1a1aa', fontSize: 13, fontWeight: 500 }}>
-                        {hasZkey ? 'ZKey attached' : 'Run Setup to attach ZKey'}
-                      </span>
+                    <div style={{ background: hasZkey ? 'rgba(16, 185, 129, 0.02)' : 'rgba(255,255,255,0.02)', border: hasZkey ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid #333', borderRadius: 8, padding: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: hasZkey ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', color: hasZkey ? '#10b981' : '#64748b', fontSize: 13 }}>{hasZkey ? '✓' : '✗'}</span>
+                        <span style={{ color: hasZkey ? '#e2e8f0' : '#a1a1aa', fontSize: 14, fontWeight: 600 }}>
+                          {hasZkey ? 'ZKey attached' : 'Run Setup to attach ZKey'}
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+                        The cryptographic <strong>Proving Key</strong> generated exclusively during the Trusted Setup phase. 
+                        It contains the specific cryptographic parameters required to mathematically prove knowledge of the calculated witness.
+                      </p>
                     </div>
                   </div>
 
@@ -704,11 +716,11 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   {proveState === 'success' && proveResult?.success && (
                     <div style={{ animation: 'fadeIn 0.3s ease-out', borderTop: '1px solid #222', paddingTop: 24 }}>
                       
-                      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                         {/* Proof JSON */}
-                        <div style={{ flex: 1, minWidth: 250 }}>
+                        <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                            <span className={styles.paneLabelSmall} style={{ color: '#10b981' }}>proof.json</span>
+                            <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Proof</span>
                             <div style={{ display: 'flex', gap: 6 }}>
                               <button
                                 onClick={() => {
@@ -717,28 +729,28 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                                   setTimeout(() => setCopiedProof(false), 2000);
                                 }}
                                 className={styles.downloadIconBtn}
-                                style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
                               >
-                                {copiedProof ? <span style={{ color: '#10b981' }}>✓</span> : 'Copy'}
+                                {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
                               </button>
                               <button
                                 onClick={() => handleDownload(window.btoa(proveResult.proofJson), 'proof.json', 'application/json')}
                                 className={styles.downloadIconBtn}
-                                style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
                               >
-                                ↓ DL
+                                ↓ Download
                               </button>
                             </div>
                           </div>
-                          <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', maxHeight: 200, overflowY: 'auto' }}>
+                          <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                             {proveResult.proofJson}
                           </pre>
                         </div>
 
                         {/* Public Inputs JSON */}
-                        <div style={{ flex: 1, minWidth: 250 }}>
+                        <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                            <span className={styles.paneLabelSmall} style={{ color: '#10b981' }}>public.json</span>
+                            <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs</span>
                             <div style={{ display: 'flex', gap: 6 }}>
                               <button
                                 onClick={() => {
@@ -747,20 +759,20 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                                   setTimeout(() => setCopiedPublic(false), 2000);
                                 }}
                                 className={styles.downloadIconBtn}
-                                style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
                               >
-                                {copiedPublic ? <span style={{ color: '#10b981' }}>✓</span> : 'Copy'}
+                                {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
                               </button>
                               <button
                                 onClick={() => handleDownload(window.btoa(proveResult.publicInputsJson), 'public.json', 'application/json')}
                                 className={styles.downloadIconBtn}
-                                style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
                               >
-                                ↓ DL
+                                ↓ Download
                               </button>
                             </div>
                           </div>
-                          <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', maxHeight: 200, overflowY: 'auto' }}>
+                          <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                             {proveResult.publicInputsJson}
                           </pre>
                         </div>
