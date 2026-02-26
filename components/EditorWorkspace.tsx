@@ -531,7 +531,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ color: '#10b981', fontSize: 13 }}>✓</span>
-                          <span style={{ color: '#10b981', fontSize: 13, fontWeight: 500 }}>{r1csName} attached</span>
+                          <span style={{ color: '#10b981', fontSize: 13, fontWeight: 500 }}>{r1csName} from compilation</span>
                         </div>
                       </div>
                       
@@ -633,7 +633,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                           </button>
                         </div>
                       </div>
-                      <pre style={{ margin: 0, padding: 16, background: '#0a0a0c', borderRadius: 6, fontFamily: 'monospace', fontSize: 12, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', maxHeight: 250, overflowY: 'auto' }}>
+                      <pre style={{ margin: 0, padding: 16, background: '#0a0a0c', borderRadius: 6, fontFamily: 'monospace', fontSize: 12, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', maxHeight: 500, overflowY: 'auto' }}>
                         {(() => {
                           try { return JSON.stringify(JSON.parse(setupResult.vkJson), null, 2); }
                           catch(e) { return setupResult.vkJson; }
@@ -677,7 +677,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                     <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #222', borderRadius: 8, padding: 16 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: 13 }}>✓</span>
-                        <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>{wasmName} attached</span>
+                        <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>{wasmName} from compilation</span>
                       </div>
                       <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
                         The compiled WebAssembly executable representation of your circuit constraints. 
@@ -690,7 +690,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: hasZkey ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', color: hasZkey ? '#10b981' : '#64748b', fontSize: 13 }}>{hasZkey ? '✓' : '✗'}</span>
                         <span style={{ color: hasZkey ? '#e2e8f0' : '#a1a1aa', fontSize: 14, fontWeight: 600 }}>
-                          {hasZkey ? 'ZKey attached' : 'Run Setup to attach ZKey'}
+                          {hasZkey ? 'ZKey from Setup' : 'Run Setup to generate ZKey'}
                         </span>
                       </div>
                       <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
