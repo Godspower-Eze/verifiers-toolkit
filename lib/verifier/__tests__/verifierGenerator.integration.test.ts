@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { VerifierGenerator } from '@/lib/verifier/VerifierGenerator';
 import { VkValidator } from '@/lib/vk/VkValidator';
-import type { SnarkJsVk } from '@/lib/vk/types';
+import type { ValidatedVk } from '@/lib/vk/types';
 
 jest.setTimeout(180_000); // garaga gen can take up to ~2 min first run
 
@@ -10,7 +10,7 @@ jest.setTimeout(180_000); // garaga gen can take up to ~2 min first run
 
 const VK_FIXTURE_PATH = path.join(__dirname, 'fixtures', 'snarkjs_vk_bn254.json');
 
-function loadRealVk(): SnarkJsVk {
+function loadRealVk(): ValidatedVk {
   const raw = fs.readFileSync(VK_FIXTURE_PATH, 'utf8');
   const result = new VkValidator().validate(JSON.parse(raw));
   if (!result.valid) throw new Error('Test fixture VK is invalid: ' + JSON.stringify(result.errors));
@@ -21,7 +21,7 @@ function loadRealVk(): SnarkJsVk {
 
 describe('VerifierGenerator.generate (real garaga gen)', () => {
   const generator = new VerifierGenerator();
-  let vk: SnarkJsVk;
+  let vk: ValidatedVk;
 
   beforeAll(() => {
     vk = loadRealVk();

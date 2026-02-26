@@ -97,11 +97,16 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   const setCol1Width = useCallback((v: number) => { col1WRef.current = v; _setCol1Width(v); }, []);
   const setOut1 = useCallback((v: number) => { outH1Ref.current = v; _setOutputHeight1(v); }, []);
 
-  // ── Circuit state
+  // ── Circuit state — multi-file
   const [templates, setTemplates] = useState<CircuitTemplate[]>([]);
   const [selectedId, setSelectedId] = useState('');
-  const [code, setCode] = useState('');
-  const [filename, setFilename] = useState('circuit.circom');
+  const [fileTabs, setFileTabs] = useState<{ id: string; filename: string }[]>([]);
+  const [fileContents, setFileContents] = useState<Record<string, string>>({});
+  const [activeFileId, setActiveFileId] = useState('');
+  const [entrypoint, setEntrypoint] = useState('circuit.circom');
+  // Adding-file inline input state
+  const [addingFile, setAddingFile] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
   const [compileState, setCompileState] = useState<CompileState>('idle');
   const [compileResult, setCompileResult] = useState<CompileResponse | null>(null);
 
@@ -139,15 +144,17 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
     URL.revokeObjectURL(url);
   }, []);
 
-  // ── Auto-populate signal inputs from source on successful compilation
+  // ── Auto-populate signal inputs from entrypoint source on successful compilation
   useEffect(() => {
     if (compileState !== 'success') return;
-    const signals = parseCircomInputSignals(code);
+    const entrypointContent = fileContents[entrypoint] ?? '';
+    const signals = parseCircomInputSignals(entrypointContent);
     if (Object.keys(signals).length > 0) {
       setSignalsInput(JSON.stringify(signals, null, 2));
     }
     setRightTab('setup');
-  }, [compileState, code]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compileState]);
 
   // ── Templates
   useEffect(() => {
@@ -163,12 +170,39 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
 
   const applyTemplate = useCallback((t: CircuitTemplate) => {
     setSelectedId(t.id);
-    setCode(t.code);
-    setFilename(t.filename);
+    const tabs = t.files.map((f) => ({ id: f.filename, filename: f.filename }));
+    const contents: Record<string, string> = {};
+    for (const f of t.files) contents[f.filename] = f.content;
+    setFileTabs(tabs);
+    setFileContents(contents);
+    setActiveFileId(t.entrypoint);
+    setEntrypoint(t.entrypoint);
     setCompileResult(null);
     setCompileState('idle');
     clearEditorMarkers();
   }, []);
+
+  const handleAddFile = useCallback(() => {
+    setAddingFile(true);
+    setNewFileName('');
+  }, []);
+
+  const commitAddFile = useCallback(() => {
+    const name = newFileName.trim();
+    if (!name) { setAddingFile(false); return; }
+    const filename = name.endsWith('.circom') ? name : `${name}.circom`;
+    if (fileTabs.some((t) => t.filename === filename)) { setAddingFile(false); return; }
+    setFileTabs((prev) => [...prev, { id: filename, filename }]);
+    setFileContents((prev) => ({ ...prev, [filename]: `pragma circom 2.0.0;\n` }));
+    setActiveFileId(filename);
+    setAddingFile(false);
+  }, [newFileName, fileTabs]);
+
+  const handleDeleteFile = useCallback((id: string) => {
+    setFileTabs((prev) => prev.filter((t) => t.id !== id));
+    setFileContents((prev) => { const next = { ...prev }; delete next[id]; return next; });
+    setActiveFileId((cur) => (cur === id ? entrypoint : cur));
+  }, [entrypoint]);
 
   // ── Monaco reflow: after DOM updates, trigger layout via requestAnimationFrame
   useLayoutEffect(() => {
@@ -193,7 +227,11 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
       const resp = await fetch('/api/compile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: code, filename, language: 'circom' }),
+        body: JSON.stringify({
+          files: fileTabs.map((tab) => ({ filename: tab.filename, content: fileContents[tab.id] ?? '' })),
+          entrypoint,
+          language: 'circom',
+        }),
       });
       const result: CompileResponse = await resp.json();
       setCompileResult(result);
@@ -203,7 +241,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
       console.error('Compile failed:', err);
       setCompileState('error');
     }
-  }, [code, filename]);
+  }, [fileTabs, fileContents, entrypoint]);
 
   // ── Setup
   const handleSetup = useCallback(async () => {
@@ -324,7 +362,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   }, [setOut1]);
 
   // ── Render
-  const baseName = filename.replace('.circom', '');
+  const baseName = entrypoint.replace('.circom', '');
   const r1csName = `${baseName}.r1cs`;
   const wasmName = `${baseName}.wasm`;
 
@@ -341,7 +379,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
           <div className={styles.paneLabel} style={{ flexShrink: 0, flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className={styles.paneLabelLeft}>
-                <span>{filename}</span>
+                <span>Circuit</span>
                 <div className={styles.langSwitcher}>
                   <span className={styles.langActive}>Circom 2.0</span>
                   <span className={styles.langSoon} title="Coming soon">Noir</span>
@@ -365,16 +403,73 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
             </div>
           </div>
 
+          {/* File tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', background: '#111114', borderBottom: '1px solid #222', overflowX: 'auto', flexShrink: 0 }}>
+            {fileTabs.map((tab) => (
+              <div
+                key={tab.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 12px',
+                  background: activeFileId === tab.id ? '#0a0a0c' : 'transparent',
+                  borderRight: '1px solid #222',
+                  borderBottom: activeFileId === tab.id ? '2px solid #3b82f6' : '2px solid transparent',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  color: activeFileId === tab.id ? '#f8fafc' : '#94a3b8',
+                  whiteSpace: 'nowrap',
+                  userSelect: 'none',
+                }}
+                onClick={() => setActiveFileId(tab.id)}
+              >
+                <span>{tab.filename}</span>
+                {tab.filename === entrypoint && (
+                  <span style={{ fontSize: 10, color: '#3b82f6', padding: '1px 4px', background: 'rgba(59,130,246,0.1)', borderRadius: 3 }}>entry</span>
+                )}
+                {tab.filename !== entrypoint && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteFile(tab.id); }}
+                    style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: '0 2px' }}
+                    title="Remove file"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            {addingFile ? (
+              <input
+                autoFocus
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitAddFile(); if (e.key === 'Escape') setAddingFile(false); }}
+                onBlur={() => setAddingFile(false)}
+                placeholder="filename.circom"
+                style={{ margin: '4px 8px', padding: '2px 6px', background: '#1e293b', border: '1px solid #3b82f6', color: '#f8fafc', fontSize: 12, borderRadius: 4, width: 140, outline: 'none' }}
+              />
+            ) : (
+              <button
+                onClick={handleAddFile}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18, padding: '4px 12px', lineHeight: 1 }}
+                title="Add file"
+              >
+                +
+              </button>
+            )}
+          </div>
+
           {/* Monaco fills remaining height */}
           <div className={styles.monacoWrap} style={{ flex: 1, minHeight: 0 }}>
             <MonacoEditor
               height="100%"
               defaultLanguage="rust"
               theme="vs-dark"
-              value={code}
+              value={fileContents[activeFileId] ?? ''}
               onChange={(v) => {
                 const val = v ?? '';
-                if (val !== code) setCode(val);
+                setFileContents((prev) => ({ ...prev, [activeFileId]: val }));
               }}
               options={{
                 fontSize: 13,

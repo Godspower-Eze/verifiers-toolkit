@@ -13,6 +13,8 @@
   "dependencies": {
     "@distributedlab/circom2": "^0.2.22-rc.1",
     "@monaco-editor/react": "^4.7.0",
+    "@zk-kit/binary-merkle-root.circom": "^2.0.0",
+    "circomlib": "^2.0.5",
     "garaga": "^1.0.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.575.0",

@@ -64,7 +64,7 @@ component main = Bad();
 `.trim();
 
 function circomSource(code: string): CompileSource {
-  return { language: 'circom', code };
+  return { language: 'circom', files: [{ filename: 'circuit.circom', content: code }], entrypoint: 'circuit.circom' };
 }
 
 // ─── Real compiler tests ──────────────────────────────────────────────────────
