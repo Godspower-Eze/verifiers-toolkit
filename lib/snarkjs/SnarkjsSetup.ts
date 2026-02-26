@@ -22,44 +22,58 @@ export interface ProveOutput {
 export class SnarkjsSetup {
   
   /**
-   * Orchestrates the Groth16 Trusted Setup locally on the server.
+   * Orchestrates Phase 2 of the Groth16 Trusted Setup locally on the server.
    * Maps an R1CS constraint payload against the universal `ptau` file
-   * to produce the Verification Key and ZKey.
+   * to produce the ZKey (Proving Key).
    * 
    * @param r1csBuffer Raw buffer extracted from compiler `main.r1cs`
    */
-  async generateGroth16Setup(r1csBuffer: Buffer): Promise<SetupOutput> {
-    const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'snarkjs-setup-'));
+  async generateZkey(r1csBuffer: Buffer): Promise<Buffer> {
+    const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'snarkjs-zkey-'));
     
     try {
-      try {
-        const r1csPath = path.join(tempDir, 'circuit.r1cs');
-        const zkeyPath = path.join(tempDir, 'circuit.zkey');
-        const vkPath = path.join(tempDir, 'verification_key.json');
-        
-        await fs.promises.writeFile(r1csPath, r1csBuffer);
+      const r1csPath = path.join(tempDir, 'circuit.r1cs');
+      const zkeyPath = path.join(tempDir, 'circuit.zkey');
+      
+      await fs.promises.writeFile(r1csPath, r1csBuffer);
 
-        if (!fs.existsSync(PTAU_PATH)) {
-          throw new Error(`Universal ptau file not found at ${PTAU_PATH}. Check your /lib/snarkjs directory.`);
-        }
-
-        // Step 1: Generate `.zkey` (Proving Key) via snarkjs CLI
-        await execAsync(`npx snarkjs groth16 setup "${r1csPath}" "${PTAU_PATH}" "${zkeyPath}"`);
-
-        // Step 2: Export Verification Key (.json format) via snarkjs CLI
-        await execAsync(`npx snarkjs zkey export verificationkey "${zkeyPath}" "${vkPath}"`);
-
-        const zkeyBuffer = await fs.promises.readFile(zkeyPath);
-        const vkJsonRaw = await fs.promises.readFile(vkPath, 'utf-8');
-
-        return {
-          vkJson: vkJsonRaw,
-          zkeyBuffer
-        };
-      } catch (err: any) {
-         logInternalError('Snarkjs Setup (exec)', err);
-         throw new Error("Failed to generate trusted setup.");
+      if (!fs.existsSync(PTAU_PATH)) {
+        throw new Error(`Universal ptau file not found at ${PTAU_PATH}. Check your /lib/snarkjs directory.`);
       }
+
+      await execAsync(`npx snarkjs groth16 setup "${r1csPath}" "${PTAU_PATH}" "${zkeyPath}"`);
+
+      const zkeyBuffer = await fs.promises.readFile(zkeyPath);
+      return zkeyBuffer;
+    } catch (err: any) {
+      logInternalError('Snarkjs Setup (ZKey)', err);
+      throw new Error("Failed to generate ZKey.");
+    } finally {
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
+    }
+  }
+
+  /**
+   * Extracts the Verification Key (VK) in JSON format from a generated ZKey.
+   * 
+   * @param zkeyBuffer Raw buffer of the generated `.zkey`
+   */
+  async exportVerificationKey(zkeyBuffer: Buffer): Promise<string> {
+    const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'snarkjs-vkey-'));
+    
+    try {
+      const zkeyPath = path.join(tempDir, 'circuit.zkey');
+      const vkPath = path.join(tempDir, 'verification_key.json');
+      
+      await fs.promises.writeFile(zkeyPath, zkeyBuffer);
+
+      await execAsync(`npx snarkjs zkey export verificationkey "${zkeyPath}" "${vkPath}"`);
+
+      const vkJsonRaw = await fs.promises.readFile(vkPath, 'utf-8');
+      return vkJsonRaw;
+    } catch (err: any) {
+      logInternalError('Snarkjs Export VK', err);
+      throw new Error("Failed to export verification key.");
     } finally {
       await fs.promises.rm(tempDir, { recursive: true, force: true });
     }
