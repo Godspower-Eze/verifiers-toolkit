@@ -92,16 +92,99 @@ export interface CircomCompileResult {
   wasmJs?: string;
 }
 
+// ─── Noir ABI ─────────────────────────────────────────────────────────────────
+
 /**
- * Noir compilation result placeholder.
- * To be defined in Phase 3 when Noir compiler integration begins.
- * Noir produces ACIR (Abstract Circuit IR) + a witness generator (ACVM).
+ * Recursive type descriptor for a Noir ABI parameter.
+ *
+ * Noir's type system maps to these kinds:
+ *   field   — a single BN254 field element (252-bit integer)
+ *   integer — a bounded integer (u8, u32, i64, …); width in bits
+ *   boolean — a single bit (0 or 1)
+ *   array   — fixed-length homogeneous sequence; carries length + element type
+ *   string  — fixed-length UTF-8 byte array (rare in circuits)
+ *   tuple   — heterogeneous fixed-length sequence
+ *   struct  — named-field composite type
+ */
+export interface NoirAbiType {
+  kind: 'field' | 'integer' | 'boolean' | 'string' | 'array' | 'tuple' | 'struct';
+  /** integer: 'unsigned' | 'signed' */
+  sign?: 'unsigned' | 'signed';
+  /** integer: bit width (e.g. 32 for u32) */
+  width?: number;
+  /** array / string: number of elements */
+  length?: number;
+  /** array: element type */
+  type?: NoirAbiType;
+  /** tuple: ordered element types */
+  fields?: NoirAbiType[];
+}
+
+/**
+ * A single parameter in the Noir ABI.
+ *
+ * All `fn main(...)` parameters appear here — both `pub` and private.
+ * `visibility` controls whether the value ends up in the proof's public
+ * inputs, but every parameter must be supplied by the prover at witness
+ * generation time.
+ */
+export interface NoirAbiParameter {
+  name: string;
+  type: NoirAbiType;
+  /** 'public' → value appears in the proof's public inputs; 'private' → witness-only. */
+  visibility: 'private' | 'public';
+}
+
+/**
+ * The ABI section of a compiled Noir artifact (`target/circuit.json`).
+ *
+ * Why the ABI is the authoritative source for input inference (vs Circom's sym):
+ *   - It is a first-class compiler output, not a side-effect wire table.
+ *   - Array lengths are already resolved (no template-parameter ambiguity).
+ *   - Types are explicit (field / integer / boolean / array / struct).
+ *   - No cross-referencing with source text is needed.
+ */
+export interface NoirAbi {
+  /** All `fn main` parameters in declaration order. */
+  parameters: NoirAbiParameter[];
+  /**
+   * Return type of `fn main`, if any.
+   * This is an output — excluded from input inference.
+   */
+  return_type: { abi_type: NoirAbiType; visibility: 'private' | 'public' } | null;
+}
+
+// ─── Noir compile result ───────────────────────────────────────────────────────
+
+/**
+ * Noir compilation result produced by NoirServerCompiler.
+ *
+ * Noir produces ACIR (Abstract Circuit IR) via `nargo compile`.
+ * The artifact is a JSON file (`target/circuit.json`) containing the bytecode
+ * and ABI.  Unlike Circom there is no trusted setup — UltraHonk is a
+ * transparent proof system.
  */
 export interface NoirCompileResult {
-  /** Number of ACIR opcodes/gates, if reported. */
-  gates?: number;
-  /** Warnings emitted by the compiler. */
+  /**
+   * Number of ACIR opcodes (gates).
+   * Set to 0 when nargo does not report it directly (nargo v1.x does not
+   * expose gate count in the JSON; a separate `bb gates` call would be needed).
+   */
+  gateCount: number;
+  /** Warnings emitted by nargo (lines matching `[warning]` in stdout). */
   warnings: string[];
+  /**
+   * Parsed ABI from the compiled artifact.
+   * Used by the client to infer input signal names and types without
+   * re-parsing the source.
+   */
+  abi: NoirAbi;
+  /**
+   * Base64-encoded raw content of `target/circuit.json`.
+   * Passed back to `/api/circuit/prove` so witness generation can proceed
+   * without re-compiling.
+   */
+  acirBase64: string;
 }
 
 /** Union of all language-specific compile results. */
