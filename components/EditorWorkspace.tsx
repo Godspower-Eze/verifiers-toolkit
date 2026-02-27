@@ -4,45 +4,12 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
-import type { CompileError, CompileResponse } from '@/lib/circom/types';
+import type { CompileError, CompileResponse, CompileSuccessResponse, CircomCompileResult } from '@/lib/circom/types';
+import { parseSymInputSignals, parseCircomInputSignals } from '@/lib/circom/parseInputSignals';
 import styles from './EditorWorkspace.module.css';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
-/**
- * Parses a Circom source file for `signal input` declarations and returns
- * a template object with each input signal set to 0.
- *
- * Handles:
- *   - Scalar inputs:     `signal input a;`      → { a: 0 }
- *   - Fixed-size arrays: `signal input a[3];`   → { "a[0]": 0, "a[1]": 0, "a[2]": 0 }
- *
- * Variable-size arrays (e.g. `signal input a[n]`) are skipped since the size
- * is not statically known.
- */
-function parseCircomInputSignals(source: string): Record<string, number> {
-  const result: Record<string, number> = {};
-  const arrayNames = new Set<string>();
-
-  const arrayRegex = /signal\s+input\s+(\w+)\s*\[(\d+)\]/g;
-  let m: RegExpExecArray | null;
-  while ((m = arrayRegex.exec(source)) !== null) {
-    const name = m[1];
-    const size = parseInt(m[2], 10);
-    arrayNames.add(name);
-    for (let i = 0; i < size; i++) {
-      result[`${name}[${i}]`] = 0;
-    }
-  }
-
-  const scalarRegex = /signal\s+input\s+(\w+)\s*;/g;
-  while ((m = scalarRegex.exec(source)) !== null) {
-    const name = m[1];
-    if (!arrayNames.has(name)) result[name] = 0;
-  }
-
-  return result;
-}
 
 type CompileState = 'idle' | 'compiling' | 'success' | 'error';
 
@@ -100,6 +67,10 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   // ── Circuit state — multi-file
   const [templates, setTemplates] = useState<CircuitTemplate[]>([]);
   const [selectedId, setSelectedId] = useState('');
+  // Refs so the compile-success useEffect can read latest values without being
+  // re-triggered by every template/selection change.
+  const templatesRef = useRef<CircuitTemplate[]>([]);
+  const selectedIdRef = useRef('');
   const [fileTabs, setFileTabs] = useState<{ id: string; filename: string }[]>([]);
   const [fileContents, setFileContents] = useState<Record<string, string>>({});
   const [activeFileId, setActiveFileId] = useState('');
@@ -148,7 +119,35 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   useEffect(() => {
     if (compileState !== 'success') return;
     const entrypointContent = fileContents[entrypoint] ?? '';
-    const signals = parseCircomInputSignals(entrypointContent);
+
+    // Prefer sym-based parsing — handles template-parameter arrays and
+    // comma-separated declarations that trip up the regex fallback.
+    const symContent = compileResult?.success
+      ? ((compileResult as CompileSuccessResponse).result as CircomCompileResult).symContent
+      : undefined;
+
+    let signals = symContent
+      ? parseSymInputSignals(symContent, entrypointContent)
+      : parseCircomInputSignals(entrypointContent);
+
+    // If sym parsing returned nothing (malformed sym), fall back to regex
+    if (symContent && Object.keys(signals).length === 0) {
+      signals = parseCircomInputSignals(entrypointContent);
+    }
+
+    // Overlay pre-computed valid defaults from the active template.
+    // Sym parsing gives the correct structure (names + array sizes);
+    // defaultInputs supplies real values so the first proof attempt succeeds.
+    const activeTemplate = templatesRef.current.find((t) => t.id === selectedIdRef.current);
+    if (activeTemplate?.defaultInputs) {
+      const defaults = activeTemplate.defaultInputs;
+      for (const key of Object.keys(signals)) {
+        if (Object.prototype.hasOwnProperty.call(defaults, key)) {
+          (signals as Record<string, unknown>)[key] = defaults[key];
+        }
+      }
+    }
+
     if (Object.keys(signals).length > 0) {
       setSignalsInput(JSON.stringify(signals, null, 2));
     }
@@ -162,6 +161,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
       .then((r) => r.json())
       .then((data: CircuitTemplate[]) => {
         setTemplates(data);
+        templatesRef.current = data;
         if (data.length > 0) applyTemplate(data[0]);
       })
       .catch(console.error);
@@ -170,6 +170,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
 
   const applyTemplate = useCallback((t: CircuitTemplate) => {
     setSelectedId(t.id);
+    selectedIdRef.current = t.id;
     const tabs = t.files.map((f) => ({ id: f.filename, filename: f.filename }));
     const contents: Record<string, string> = {};
     for (const f of t.files) contents[f.filename] = f.content;
@@ -440,15 +441,18 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
               </div>
             ))}
             {addingFile ? (
-              <input
-                autoFocus
-                value={newFileName}
-                onChange={(e) => setNewFileName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitAddFile(); if (e.key === 'Escape') setAddingFile(false); }}
-                onBlur={() => setAddingFile(false)}
-                placeholder="filename.circom"
-                style={{ margin: '4px 8px', padding: '2px 6px', background: '#1e293b', border: '1px solid #3b82f6', color: '#f8fafc', fontSize: 12, borderRadius: 4, width: 140, outline: 'none' }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', margin: '4px 8px', background: '#1e293b', border: '1px solid #3b82f6', borderRadius: 4, overflow: 'hidden' }}>
+                <input
+                  autoFocus
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') commitAddFile(); if (e.key === 'Escape') setAddingFile(false); }}
+                  onBlur={commitAddFile}
+                  placeholder="filename"
+                  style={{ padding: '2px 4px 2px 6px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: 12, width: 100, outline: 'none' }}
+                />
+                <span style={{ color: '#64748b', fontSize: 12, paddingRight: 6, userSelect: 'none', flexShrink: 0 }}>.circom</span>
+              </div>
             ) : (
               <button
                 onClick={handleAddFile}

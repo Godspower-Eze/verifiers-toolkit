@@ -7,7 +7,7 @@ import { logInternalError } from '../utils/serverLogger';
 
 const execAsync = promisify(exec);
 
-export const PTAU_PATH = path.join(process.cwd(), 'lib/snarkjs/powersOfTau28_hez_final_14.ptau');
+export const PTAU_PATH = path.join(process.cwd(), 'lib/snarkjs/powersOfTau28_hez_final_17_final.ptau');
 
 export interface SetupOutput {
   zkeyBuffer: Buffer;
