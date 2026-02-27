@@ -16,22 +16,47 @@ import { mapCompileErrors, makeValidationError, normalizeCompileOutput } from '.
  */
 export async function compileCircom(source: CompileSource): Promise<CompileResponse> {
   // ── Step 1: Pre-validation ─────────────────────────────────────────────────
-  if (!source.code || !source.code.trim()) {
+  if (!source.files || source.files.length === 0) {
     return {
       success: false,
       language: source.language,
-      errors: [makeValidationError('Source code must not be empty.')],
+      errors: [makeValidationError('At least one source file is required.')],
     };
   }
 
-  const byteLength = Buffer.byteLength(source.code, 'utf8');
-  if (byteLength > MAX_SOURCE_BYTES) {
+  if (!source.entrypoint) {
+    return {
+      success: false,
+      language: source.language,
+      errors: [makeValidationError('An entrypoint filename is required.')],
+    };
+  }
+
+  const entrypointFile = source.files.find((f) => f.filename === source.entrypoint);
+  if (!entrypointFile) {
+    return {
+      success: false,
+      language: source.language,
+      errors: [makeValidationError(`Entrypoint "${source.entrypoint}" not found in provided files.`)],
+    };
+  }
+
+  if (!entrypointFile.content.trim()) {
+    return {
+      success: false,
+      language: source.language,
+      errors: [makeValidationError('Entry file must not be empty.')],
+    };
+  }
+
+  const totalBytes = source.files.reduce((sum, f) => sum + Buffer.byteLength(f.content, 'utf8'), 0);
+  if (totalBytes > MAX_SOURCE_BYTES) {
     return {
       success: false,
       language: source.language,
       errors: [
         makeValidationError(
-          `Source code exceeds maximum allowed size of ${MAX_SOURCE_BYTES} bytes (got ${byteLength} bytes).`
+          `Total source size exceeds maximum allowed size of ${MAX_SOURCE_BYTES} bytes (got ${totalBytes} bytes).`
         ),
       ],
     };

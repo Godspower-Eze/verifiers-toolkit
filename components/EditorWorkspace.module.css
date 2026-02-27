@@ -1,0 +1,1079 @@
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0d0d0f;
+  color: #e8e8ed;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 24px;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 20px;
+  color: #e8e8ed;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: #f0f0f5;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: none; /* Template picker moved into header */
+}
+
+.templatePicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  white-space: nowrap;
+}
+
+.select {
+  background: #1c1c1f;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #e8e8ed;
+  font-size: 13px;
+  padding: 6px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.select:hover {
+  border-color: rgba(255,255,255,0.2);
+}
+
+.select:focus {
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: none;
+}
+
+.templateDescription {
+  font-size: 12px;
+  color: #555;
+  font-style: italic;
+}
+
+/* ─── Compile button ──────────────────────────────────────────────────────── */
+
+.compileBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #1c1c1f;
+  color: #e8e8ed;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.compileBtn:hover:not(:disabled) {
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.compileBtn:active:not(:disabled) {
+  background: #1a1a1d;
+}
+
+.compileBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Compact size when embedded in small label bar */
+.paneLabelSmall .compileBtn,
+.paneLabelSmall .generateBtn {
+  padding: 3px 10px;
+  font-size: 11px;
+}
+
+.compileBtn.success {
+  background: #0d3320;
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #34d399;
+}
+
+.compileBtn.error {
+  background: #2d1215;
+  border-color: rgba(248, 113, 113, 0.25);
+  color: #f87171;
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Editor row (Monaco + Output) ───────────────────────────────────────── */
+
+.editorRow {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* colWrap: base class for every column — vertical flex, clips overflow */
+.colWrap {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* monacoWrap: fills remaining height inside col1, lets Monaco auto-size */
+.monacoWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* btnSm: compact button variant for embedding in small panel label bars */
+.btnSm {
+  padding: 3px 10px !important;
+  font-size: 11px !important;
+  box-shadow: none !important;
+  letter-spacing: 0;
+}
+
+/* editorPane: visual styling for col1 (border kept for fallback) */
+.editorPane {
+  border-right: none;
+}
+
+/* Compile output panel — lives below Monaco in col1 */
+.outputPanel {
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0d;
+}
+
+/* VK pane col3 — layout via inline width, visual styling here */
+.vkPane {
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0d;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+/* ─── Drag dividers ───────────────────────────────────────────────────────── */
+
+/* Vertical column resize handle */
+.colDivider {
+  width: 5px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  cursor: col-resize;
+  position: relative;
+  transition: background 0.15s;
+}
+.colDivider:hover, .colDivider:active {
+  background: rgba(255,255,255,0.1);
+}
+.colDivider::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 2px;
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Horizontal row resize handle */
+.rowDivider {
+  height: 5px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  cursor: row-resize;
+  transition: background 0.15s;
+}
+.rowDivider:hover, .rowDivider:active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* paneLabel left group: filename + language switcher */
+.paneLabelLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Language switcher chips inside col1 pane label */
+.langSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.langActive {
+  background: rgba(255,255,255,0.08);
+  color: #e8e8ed;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.langSoon {
+  background: rgba(255,255,255,0.04);
+  color: #444;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: default;
+  position: relative;
+}
+
+.langSoon::after {
+  content: 'soon';
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  font-size: 8px;
+  color: #06b6d4;
+  background: #0c0c18;
+  padding: 0 3px;
+  border-radius: 2px;
+  letter-spacing: 0;
+}
+
+/* ─── Cairo verifier pane (col 2) ────────────────────────────────────────── */
+
+.cairoPane {
+  flex: 1;
+  display: flex;
+  flex-direction: row; /* row so sidebar is on left */
+  background: #080810;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+
+/* File tree sidebar */
+.fileTreeSidebar {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #06060c;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+.fileTreeContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.viewerRoot {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.mobileFileTabs {
+  display: none;
+}
+
+.desktopFileTree {
+  display: flex;
+  flex-direction: column;
+}
+
+.fileTreeGroup {
+  display: flex;
+  flex-direction: column !important;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding-left: 20px;
+}
+
+.fileTreeItem, .fileTreeFolder, .fileTreeItemNested {
+  padding: 4px 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: #a1a1aa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fileTreeItem:hover, .fileTreeItemNested:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.fileTreeItemNested {
+  padding-left: 28px;
+}
+
+.fileTreeFolder {
+  color: #e4e4e7;
+  font-weight: 600;
+  cursor: default;
+  margin-top: 8px;
+}
+
+.fileTreeActive {
+  background: rgba(255,255,255,0.06);
+  color: #e8e8ed;
+  border-left: 2px solid #e8e8ed;
+  padding-left: 10px; /* offset for border */
+}
+
+.fileTreeItemNested.fileTreeActive {
+  padding-left: 26px; /* 28 - 2 offset */
+}
+
+.fileTreePlaceholder {
+  padding: 12px;
+  font-size: 11px;
+  color: #555;
+  font-style: italic;
+  text-align: center;
+}
+
+.downloadIconBtn {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+.downloadIconBtn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #ccc;
+}
+
+.cairoMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cairoContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+}
+
+.cairoPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  color: #444;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.cairoPlaceholder strong {
+  color: #888;
+}
+
+.cairoPlaceholderError {
+  padding: 16px;
+  font-size: 12px;
+  color: #f87171;
+  word-break: break-word;
+}
+
+.cairoCode {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  line-height: 1.65;
+  color: #c8c8d4;
+  white-space: pre;
+  background: transparent;
+}
+
+/* ─── Deploy bar ──────────────────────────────────────────────────────────── */
+
+.deployBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #111114;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.deployLabel {
+  font-size: 11px;
+  color: #888;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.declareBtn {
+  background: #1c1c1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: #e8e8ed;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.declareBtn:hover {
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.connectWalletBtn {
+  background: #1c1c1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: #e8e8ed;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.connectWalletBtn:hover {
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.disconnectBtn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 12px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.disconnectBtn:hover {
+  background: rgba(255,255,255,0.04);
+  color: #999;
+}
+
+.deployBtn {
+  background: #e8e8ed;
+  border: none;
+  border-radius: 6px;
+  color: #0d0d0f;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.deployBtn:hover:not(:disabled) {
+  background: #fff;
+}
+
+.deployBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Small pane label (used in col1 output + col3 VK) ───────────────────── */
+
+.paneLabelSmall {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px 5px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #444;
+  background: #0c0c10;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* ─── Pane labels ─────────────────────────────────────────────────────────── */
+
+.paneLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #555;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.languageBadge {
+  background: rgba(255,255,255,0.06);
+  color: #888;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Output pane content ─────────────────────────────────────────────────── */
+
+.outputContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.outputHint {
+  color: #444;
+  font-size: 13px;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Success block */
+
+.successBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.successHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #34d399;
+}
+
+.statsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.statsTable td {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.statsTable td:first-child {
+  color: #888;
+}
+
+.statsTable td:last-child {
+  text-align: right;
+  color: #e8e8ed;
+}
+
+.warningsList {
+  font-size: 12px;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.warningsList ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+/* Error list */
+
+.errorList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.errorHeader {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f87171;
+  margin-bottom: 4px;
+}
+
+.errorItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(248, 113, 113, 0.06);
+  border: 1px solid rgba(248, 113, 113, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.errorCategory {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #f87171;
+}
+
+.errorMessage {
+  font-size: 12px;
+  color: #e8e8ed;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.errorLocation {
+  font-size: 11px;
+  color: #666;
+}
+
+/* ─── Loading state ───────────────────────────────────────────────────────── */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #0d0d0f;
+  color: #555;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+/* ─── Toolbar actions group ───────────────────────────────────────────────── */
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ─── Generate Verifier button ────────────────────────────────────────────── */
+
+.generateBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #1c1c1f;
+  color: #e8e8ed;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.generateBtn:hover:not(:disabled) {
+  background: #252528;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.generateBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Generated verifier pane ─────────────────────────────────────────────── */
+
+.verifierPane {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: #0a0a0d;
+  flex-shrink: 0;
+  max-height: 55%;
+  overflow: hidden;
+}
+
+.verifierHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.generateSuccess {
+  font-size: 11px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.generateError {
+  font-size: 11px;
+  color: #f87171;
+  word-break: break-word;
+}
+
+.generatingHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #888;
+}
+
+.projectName {
+  font-size: 10px;
+  color: #888;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── Tab bar ─────────────────────────────────────────────────────────────── */
+
+.tabBar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+  background: #0c0c18;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #555;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  padding: 6px 10px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tab:hover {
+  color: #888;
+  background: rgba(255,255,255,0.02);
+}
+
+.tabActive {
+  color: #06b6d4;
+  border-bottom-color: #06b6d4;
+}
+
+/* ─── Cairo file content ──────────────────────────────────────────────────── */
+
+.cairoOutput {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: #c8c8d4;
+  background: transparent;
+  white-space: pre;
+  word-break: normal;
+  min-height: 0;
+}
+
+/* ─── Download row ────────────────────────────────────────────────────────── */
+
+.downloadRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: #0c0c18;
+  flex-shrink: 0;
+}
+
+.downloadBtn {
+  font-size: 10px;
+  font-weight: 600;
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.07);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  text-decoration: none;
+  transition: all 0.15s;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+.downloadBtn:hover {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.mobileCompilerLogs {
+  display: none !important;
+}
+
+/* ─── Mobile Responsiveness ───────────────────────────────────────── */
+@media (max-width: 800px) {
+  .hideOnMobile {
+    display: none !important;
+  }
+  .viewerRoot {
+    flex-direction: column !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .workspace {
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding-bottom: 0px !important;
+  }
+  .editorRow {
+    display: contents !important;
+  }
+  .desktopCompilerLogs {
+    display: none !important;
+  }
+  .mobileCompilerLogs {
+    display: flex !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+    max-height: 40vh !important;
+    margin-top: auto !important;
+  }
+  .colWrap {
+    width: 100% !important;
+    flex: none !important;
+    height: auto !important;
+    min-height: 0;
+    justify-content: flex-start;
+    border-right: none !important;
+    border-bottom: 1px solid #222;
+  }
+  .colWrap.cairoPane {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .colDivider {
+    display: none;
+  }
+  .rowDivider {
+    display: none;  /* Mobile has natural auto heights based on content */
+  }
+  .monacoWrap {
+    flex: 1 1 0;
+    min-height: 40vh !important;
+    position: relative;
+    z-index: 5;
+  }
+  .outputPanel {
+    height: auto !important;
+  }
+  .deployFooterWrap .outputPanel {
+    height: 220px !important;
+  }
+  .cairoMain {
+    flex: 1 1 0;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .fileTreeSidebar {
+    width: 100% !important;
+    flex-shrink: 0;
+    border-right: none !important;
+    border-bottom: 1px solid #222;
+  }
+  /* On setup panel */
+  .colWrap[style*="width: 400px"] {
+    width: 100% !important;
+  }
+  .hideOnMobileEmpty {
+    display: none !important;
+  }
+  .deployFooterWrap {
+    margin-top: auto;
+    flex-shrink: 0;
+    margin-bottom: -1px;
+    margin-inline: -16px;
+    padding: 16px;
+    background: #0a0a0d;
+    border-top: 1px solid #222;
+    position: relative;
+    z-index: 10;
+  }
+  
+  /* Convert File Tree to Horizontal Tabs on Mobile */
+  .desktopFileTree {
+    display: none !important;
+  }
+  .fileTreeGroup, .mobileFileTabs {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100vw;
+    padding: 0 16px !important;
+    gap: 4px;
+    margin-bottom: -1px;
+  }
+  .fileTreeGroup::-webkit-scrollbar, .mobileFileTabs::-webkit-scrollbar {
+    height: 4px; /* Thin visible scrollbar */
+    display: block;
+  }
+  .fileTreeGroup::-webkit-scrollbar-thumb, .mobileFileTabs::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+  .fileTreeGroup::-webkit-scrollbar-track, .mobileFileTabs::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .fileTreeItem, .fileTreeItemNested {
+    flex-shrink: 0;
+    white-space: nowrap;
+    background: #0d0d0f; /* darker inactive tab */
+    padding: 10px 14px !important;
+    border-radius: 6px 6px 0 0;
+    border: 1px solid #1a1a1a;
+    border-bottom: none;
+    color: #888;
+    position: relative;
+    top: 1px; /* allow active tab to cover the bottom border of the sidebar container */
+  }
+  .fileTreeActive {
+    background: #0a0a0c !important; /* matches content pane */
+    color: #e2e8f0 !important;
+    border-color: #222 !important;
+    z-index: 0;
+  }
+  .fileTreeFolder {
+    display: none !important; /* Hide root folders to save space */
+  }
+  .fileTreeSidebar {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100vw;
+    min-width: 0;
+    overflow: hidden;
+    border-right: none !important;
+    border-bottom: 1px solid #222;
+    padding: 16px 0 0 0 !important; /* Padding moved to scroll group */
+  }
+  .fileTreeContent {
+    padding: 0 !important;
+    max-width: 100vw;
+    min-width: 0;
+    overflow: visible; /* Prevent clipping */
+  }
+
+  /* Hide Deployment on Mobile Specific */
+  .hideDeployMobile {
+    display: none !important;
+  }
+}

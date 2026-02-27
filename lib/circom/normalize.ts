@@ -1,34 +1,47 @@
 import { CompileError, RawCompileOutput } from './types';
 
 // ─── Known circom stderr patterns ─────────────────────────────────────────────
-// These are pattern-matched against real circom stderr (populated in Feature 02).
-// Patterns are ordered most-specific first.
+// Matched against real circom stderr output.
+// Real format example:
+//   error[P1012]: UnrecognizedEOF { ... }
+//     ┌─ "/tmp/.../bad.circom":1:1
+//     │
+//   1 │ pragma circom 2.0.0;
+//     │ ^ here
+// Patterns ordered most-specific first.
 
 interface ErrorPattern {
   regex: RegExp;
   category: CompileError['category'];
-  /** Extract location from match groups: [file, line, column] */
+  /** Extract location from match groups */
   extractLocation?: (match: RegExpMatchArray) => Partial<Pick<CompileError, 'file' | 'line' | 'column'>>;
 }
 
 const PATTERNS: ErrorPattern[] = [
-  // circom syntax error: "error[P1002]: ... at filename:line:col"
+  // Syntax errors (parser/lexer): error[P\d+]: ...
+  // followed by a location block: ┌─ "path":line:col
   {
-    regex: /error\[P\d+\]:.*?(?:\n.*?)*?-->\s*(.+?):(\d+):(\d+)/i,
+    regex: /error\[P(\d+)\]:[\s\S]*?┌─\s*"([^"]+)":(\d+):(\d+)/,
     category: 'syntax',
-    extractLocation: (m) => ({ file: m[1], line: Number(m[2]), column: Number(m[3]) }),
+    extractLocation: (m) => ({ file: m[2], line: Number(m[3]), column: Number(m[4]) }),
   },
-  // circom type/semantic error: "error[T...]: ..."
+  // Type/semantic errors: error[T\d+]: ...
   {
-    regex: /error\[T\d+\]:/i,
+    regex: /error\[T(\d+)\]:[\s\S]*?┌─\s*"([^"]+)":(\d+):(\d+)/,
+    category: 'semantic',
+    extractLocation: (m) => ({ file: m[2], line: Number(m[3]), column: Number(m[4]) }),
+  },
+  // Syntax errors without location block
+  {
+    regex: /error\[P\d+\]/,
+    category: 'syntax',
+  },
+  // Semantic errors without location block
+  {
+    regex: /error\[T\d+\]/,
     category: 'semantic',
   },
-  // include/import not supported check
-  {
-    regex: /include\s+"[^"]+"/i,
-    category: 'unsupported',
-  },
-  // generic "error:" prefix fallback
+  // Generic error: prefix fallback
   {
     regex: /error:/i,
     category: 'internal',
@@ -87,7 +100,7 @@ export function makeValidationError(message: string): CompileError {
  */
 export function parseConstraintCount(stdout: string): number {
   const patterns = [
-    /non linear constraints:\s*(\d+)/i,
+    /non[- ]linear constraints:\s*(\d+)/i,
     /total number of constraints:\s*(\d+)/i,
     /constraints:\s*(\d+)/i,
   ];
@@ -122,5 +135,9 @@ export function normalizeCompileOutput(raw: RawCompileOutput) {
     constraintCount: parseConstraintCount(raw.stdout),
     wireCount: parseWireCount(raw.stdout),
     warnings,
+    r1csBuffer: raw.artifactBuffer,
+    symContent: raw.symContent,
+    wasmBuffer: raw.wasmBuffer,
+    wasmJs: raw.wasmJs,
   };
 }
