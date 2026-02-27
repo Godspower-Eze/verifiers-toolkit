@@ -7,8 +7,11 @@ import { CompileSource, RawCompileOutput } from './types';
 
 const execFileAsync = promisify(execFile);
 
-/** Maximum allowed source code size in bytes (10 KB pre-compile guard). */
-export const MAX_SOURCE_BYTES = 10_000;
+/**
+ * Maximum total source bytes across all user-provided files (100 KB guard).
+ * Library files resolved via -l are not counted.
+ */
+export const MAX_SOURCE_BYTES = 100_000;
 
 /** Default compilation timeout in milliseconds. */
 export const COMPILE_TIMEOUT_MS = 30_000;
@@ -34,6 +37,24 @@ const CIRCOM_CLI_PATH =
   path.join(process.cwd(), 'node_modules/@distributedlab/circom2/dist/cli.js');
 
 /**
+ * Library include paths passed to circom via `-l`.
+ * Resolution order:
+ *   1. CIRCOM_INCLUDE_PATHS env var — colon-separated list of absolute paths.
+ *   2. Defaults: circomlib/circuits + @zk-kit/binary-merkle-root.circom/src,
+ *      both resolved from node_modules at process.cwd().
+ */
+function getIncludePaths(): string[] {
+  if (process.env.CIRCOM_INCLUDE_PATHS) {
+    return process.env.CIRCOM_INCLUDE_PATHS.split(':').filter(Boolean);
+  }
+  const nm = path.join(process.cwd(), 'node_modules');
+  return [
+    path.join(nm, 'circomlib', 'circuits'),
+    path.join(nm, '@zk-kit', 'binary-merkle-root.circom', 'src'),
+  ];
+}
+
+/**
  * CircomServerCompiler — encapsulates all compiler subprocess invocation details.
  *
  * Why: Isolating FS and process concerns here (SRP) keeps the API route and
@@ -51,18 +72,26 @@ const CIRCOM_CLI_PATH =
  */
 export class CircomServerCompiler {
   async compile(source: CompileSource): Promise<RawCompileOutput> {
-    const filename = source.filename ?? 'main.circom';
+    const entrypoint = source.entrypoint;
     const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), TEMP_DIR_PREFIX));
 
     try {
-      // Step 1: Write source to temp dir
-      const inputPath = path.join(tempDir, filename);
-      await fs.promises.writeFile(inputPath, source.code, 'utf8');
+      // Step 1: Write all project files to temp dir
+      for (const file of source.files) {
+        const filePath = path.join(tempDir, file.filename);
+        await fs.promises.writeFile(filePath, file.content, 'utf8');
+      }
+
+      const inputPath = path.join(tempDir, entrypoint);
 
       // Step 2: Build circom args
       // --r1cs: emit R1CS constraints file
       // --sym:  emit symbol file (signal names, useful for debugging)
       // -o:     output directory
+      // -l:     library include search paths (circomlib, zk-kit, etc.)
+      const includePaths = getIncludePaths();
+      const libraryArgs = includePaths.flatMap((p) => ['-l', p]);
+
       const args = [
         '--no-warnings',          // suppress Node's WASI ExperimentalWarning
         CIRCOM_CLI_PATH,
@@ -71,6 +100,7 @@ export class CircomServerCompiler {
         '--r1cs',
         '--sym',
         '-o', `${tempDir}/`,
+        ...libraryArgs,
       ];
 
       // Step 3: Spawn circom via node CLI, with timeout
@@ -98,7 +128,7 @@ export class CircomServerCompiler {
       }
 
       // Step 4: Read R1CS artifact if present
-      const r1csName = filename.replace(/\.circom$/, '.r1cs');
+      const r1csName = entrypoint.replace(/\.circom$/, '.r1cs');
       const r1csPath = path.join(tempDir, r1csName);
       let artifactBuffer: Buffer | undefined;
 
@@ -111,7 +141,7 @@ export class CircomServerCompiler {
       }
 
       // Step 5: Read sym file if present
-      const symName = filename.replace(/\.circom$/, '.sym');
+      const symName = entrypoint.replace(/\.circom$/, '.sym');
       const symPath = path.join(tempDir, symName);
       let symContent: string | undefined;
 
@@ -124,7 +154,7 @@ export class CircomServerCompiler {
       }
 
       // Step 6: Read WebAssembly parameters if `--wasm` succeeded
-      const baseName = filename.replace(/\.circom$/, '');
+      const baseName = entrypoint.replace(/\.circom$/, '');
       const wasmDir = path.join(tempDir, `${baseName}_js`);
       let wasmBuffer: Buffer | undefined;
       let wasmJs: string | undefined;

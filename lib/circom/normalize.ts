@@ -41,11 +41,6 @@ const PATTERNS: ErrorPattern[] = [
     regex: /error\[T\d+\]/,
     category: 'semantic',
   },
-  // Unsupported: include statements (we don't support multi-file)
-  {
-    regex: /include\s+"[^"]+"/i,
-    category: 'unsupported',
-  },
   // Generic error: prefix fallback
   {
     regex: /error:/i,

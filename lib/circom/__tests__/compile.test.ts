@@ -11,8 +11,8 @@ function asCircom(result: unknown): CircomCompileResult {
   return result as CircomCompileResult;
 }
 
-function circomSource(code: string, filename?: string): CompileSource {
-  return { language: 'circom', code, filename };
+function circomSource(code: string, filename = 'circuit.circom'): CompileSource {
+  return { language: 'circom', files: [{ filename, content: code }], entrypoint: filename };
 }
 
 // ─── Fixture circuits ─────────────────────────────────────────────────────────
