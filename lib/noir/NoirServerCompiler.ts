@@ -82,9 +82,15 @@ export class NoirServerCompiler {
 
     try {
       // Step 1: Write Nargo.toml if the user hasn't provided one
-      const hasNargoToml = source.files.some((f) => f.filename === 'Nargo.toml');
-      if (!hasNargoToml) {
+      const nargoTomlFile = source.files.find((f) => f.filename === 'Nargo.toml');
+      let packageName = 'circuit';
+      if (!nargoTomlFile) {
         await fs.promises.writeFile(path.join(tempDir, 'Nargo.toml'), DEFAULT_NARGO_TOML, 'utf8');
+      } else {
+        // Parse the package name from the user-provided Nargo.toml so that
+        // --package and the output path (target/<name>.json) stay in sync.
+        const nameMatch = nargoTomlFile.content.match(/name\s*=\s*"([^"]+)"/);
+        if (nameMatch) packageName = nameMatch[1];
       }
 
       // Step 2: Write all source files (creating subdirectories as needed)
@@ -102,7 +108,7 @@ export class NoirServerCompiler {
       try {
         const result = await execFileAsync(
           NARGO_PATH,
-          ['compile', '--package', 'circuit'],
+          ['compile', '--package', packageName],
           {
             cwd: tempDir,
             timeout: COMPILE_TIMEOUT_MS,
@@ -124,8 +130,8 @@ export class NoirServerCompiler {
         }
       }
 
-      // Step 4: Read target/circuit.json if produced
-      const acirPath = path.join(tempDir, 'target', 'circuit.json');
+      // Step 4: Read target/<packageName>.json if produced
+      const acirPath = path.join(tempDir, 'target', `${packageName}.json`);
       let acirJson: string | undefined;
 
       try {

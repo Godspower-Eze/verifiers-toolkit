@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { hash, Contract, RpcProvider } from 'starknet';
 import { LogEntry, LogType } from '@/components/DeploymentLogs';
-import type { GeneratedVerifier } from '@/lib/verifier/types';
+import type { GeneratedVerifier, ProofSystem } from '@/lib/verifier/types';
 import { UDC_ADDRESS, getRpcUrl } from '@/lib/starknet/constants';
 import type { WalletState } from '@/lib/starknet/types';
 import { useRecentDeployments } from './useRecentDeployments';
@@ -18,6 +18,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployClassHash, setDeployClassHash] = useState<string | null>(null);
   const [contractAddress, setContractAddress] = useState<string | null>(null);
+  const [deploySystem, setDeploySystem] = useState<ProofSystem>('groth16');
   
   const { addAddress } = useRecentDeployments();
   const [isAlreadyDeclared, setIsAlreadyDeclared] = useState(false);
@@ -86,10 +87,14 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
   const handleCompileAndDeclare = useCallback(async (verifier: GeneratedVerifier) => {
     if (!wallet || !account || !address || !verifier) return;
     setIsDeclaring(true);
+    setDeploySystem(verifier.system);
     addLog('Starting API compilation (Cairo → Sierra/Casm)...', 'info');
 
     try {
-      const compileRes = await fetch('/api/verifier/compile', {
+      const compileEndpoint = verifier.system === 'ultra_keccak_zk_honk'
+        ? '/api/circuit/noir/verifier/compile'
+        : '/api/verifier/compile';
+      const compileRes = await fetch(compileEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(verifier),
@@ -184,7 +189,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
       );
       
       setContractAddress(calculatedAddress);
-      addAddress(calculatedAddress);
+      addAddress(calculatedAddress, deploySystem);
       
       addLog(`Deployment successful! Contract Address: ${calculatedAddress}`, 'success');
       addLog('Switch to the Verify section in the sidebar to verify a proof against this contract.', 'info');
@@ -196,7 +201,7 @@ export function useStarknetDeploy(projectId: string, { wallet, account, address,
     } finally {
       setIsDeploying(false);
     }
-  }, [wallet, account, deployClassHash, rpcProvider, addLog]);
+  }, [wallet, account, deployClassHash, deploySystem, rpcProvider, addLog]);
 
   const resetDeployState = useCallback(() => {
     setDeployClassHash(null);

@@ -31,8 +31,22 @@ export class PublicInputValidator {
     }
 
     const errors: PublicInputFieldError[] = [];
-    let format: 'gnark_object' | 'stark_array' = 'stark_array';
+    let format: 'gnark_object' | 'stark_array' | 'noir_base64' = 'stark_array';
     let valuesToProcess: any[] = [];
+
+    // ── Check Noir (Base64) ──────────────────────────
+    if (typeof publicInputs === 'object' && publicInputs !== null && 'publicInputsBase64' in (publicInputs as any)) {
+      format = 'noir_base64';
+      // No validation needed for the internal values as it's base64
+      return {
+        valid: true,
+        publicInputs,
+        summary: {
+          format,
+          count: 0 // Count unknown until decoded
+        }
+      };
+    }
 
     // ── Check Array (SnarkJS / SP1 / RISC0) ──────────
     if (Array.isArray(publicInputs)) {

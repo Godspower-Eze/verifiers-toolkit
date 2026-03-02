@@ -109,7 +109,7 @@ export class VerifierGenerator {
 
       return {
         success: true,
-        verifier: { projectName: safeName, verifierCairo, constantsCairo, libCairo, scarbToml },
+        verifier: { system: 'groth16', projectName: safeName, verifierCairo, constantsCairo, libCairo, scarbToml },
       };
     } catch (err: unknown) {
       logInternalError('Garaga Verifier Generation (catch)', err);
@@ -139,10 +139,11 @@ function isExecError(err: unknown): err is ExecError {
 export interface NoirGenerateResult {
   success: boolean;
   verifier?: {
+    system: 'ultra_keccak_zk_honk';
     projectName: string;
-    honkVerifierCairo: string;
-    honkVerifierCircuitsCairo: string;
-    honkVerifierConstantsCairo: string;
+    verifierCairo: string;
+    constantsCairo: string;
+    circuitsCairo: string;
     libCairo: string;
     scarbToml: string;
   };
@@ -214,7 +215,15 @@ export class NoirVerifierGenerator {
 
       return {
         success: true,
-        verifier: { projectName: safeName, honkVerifierCairo, honkVerifierCircuitsCairo, honkVerifierConstantsCairo, libCairo, scarbToml },
+        verifier: { 
+          system: 'ultra_keccak_zk_honk' as const,
+          projectName: safeName, 
+          verifierCairo: honkVerifierCairo,
+          constantsCairo: honkVerifierConstantsCairo,
+          circuitsCairo: honkVerifierCircuitsCairo,
+          libCairo, 
+          scarbToml,
+        },
       };
     } catch (err: unknown) {
       logInternalError('Garaga Noir Verifier Generation (catch)', err);

@@ -44,12 +44,16 @@ export type ScarbCompileResult =
  * Passed directly to ScarbCompiler for compilation.
  */
 export interface GeneratedVerifier {
+  /** Proof system used */
+  system: ProofSystem;
   /** Sanitised project / contract name. */
   projectName: string;
-  /** Contents of groth16_verifier.cairo — the main contract. */
+  /** Contents of groth16_verifier.cairo or honk_verifier.cairo — the main contract. */
   verifierCairo: string;
-  /** Contents of groth16_verifier_constants.cairo — VK constants. */
+  /** Contents of groth16_verifier_constants.cairo or honk_verifier_constants.cairo — VK constants. */
   constantsCairo: string;
+  /** Contents of honk_verifier_circuits.cairo — circuit definitions (Noir/Honk only). */
+  circuitsCairo?: string;
   /** Contents of lib.cairo — module declarations. */
   libCairo: string;
   /** Contents of Scarb.toml — ready-to-use build manifest. */

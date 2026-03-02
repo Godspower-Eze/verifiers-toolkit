@@ -3,7 +3,7 @@ import { useStarknetWalletContext } from '@/components/StarknetWalletProvider';
 import { useRecentDeployments, usePersistedVk } from '../hooks/useRecentDeployments';
 import MonacoEditor from '@monaco-editor/react';
 import { RpcProvider } from 'starknet';
-import { generateCalldata } from '../lib/garagaUtils';
+import { generateCalldata, generateNoirCalldata } from '../lib/garagaUtils';
 import { getRpcUrl, getChainName } from '../lib/starknet/constants';
 import DeploymentLogs, { LogEntry, LogType } from './DeploymentLogs';
 import type { VkSummary } from '../lib/vk/types';
@@ -58,41 +58,45 @@ export default function VerifyWorkspace() {
     startDrag(e, 'v', (dy) => setOutputHeight(Math.max(60, Math.min(600, startH - dy))));
   }, [setOutputHeight, startDrag]);
 
+  // ── System switcher
+  const [verifySystem, setVerifySystem] = useState<'groth16' | 'ultra_honk'>('groth16');
+
+  // ── Groth16 inputs
   const [contractAddress, setContractAddress] = useState('');
   const [proofJson, setProofJson] = useState(`{
   // ============== ACCEPTED PROOF FORMATS ============== //
 
-  // 1. SP1 Format
-  // "proof": "0x...", 
-  // "public_values": "0x...", 
+  // 1. Groth16 SnarkJS Format
+  // "pi_a": ["0x...", "0x...", "1"],
+  // "pi_b": [["0x...", "0x..."], ["0x...", "0x..."]],
+  // "pi_c": ["0x...", "0x...", "1"]
+
+  // 2. Groth16 Gnark Format
+  // "Ar": { "X": "...", "Y": "..." },
+  // "Bs": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
+  // "Krs": { "X": "...", "Y": "..." }
+
+  // 3. SP1 Format
+  // "proof": "0x...",
+  // "public_values": "0x...",
   // "vkey": "0x..."
-  
-  // 2. RISC0 Format
-  // "seal": "0x...", 
-  // "image_id": "0x...", 
+
+  // 4. RISC0 Format
+  // "seal": "0x...",
+  // "image_id": "0x...",
   // "journal": "0x..."
 
-  // 3. Garaga Nested Object Format
+  // 5. Garaga Nested Object Format
   // "proof": {
   //   "a": { "x": "0x...", "y": "0x..." },
   //   "b": { "x": ["0x...", "0x..."], "y": ["0x...", "0x..."] },
   //   "c": { "x": "0x...", "y": "0x..." }
   // }
-
-  // 4. Groth16 SnarkJS Format
-  // "pi_a": ["0x...", "0x...", "1"], 
-  // "pi_b": [["0x...", "0x..."], ["0x...", "0x..."]], 
-  // "pi_c": ["0x...", "0x...", "1"]
-
-  // 5. Groth16 Gnark Format
-  // "Ar": { "X": "...", "Y": "..." }, 
-  // "Bs": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } }, 
-  // "Krs": { "X": "...", "Y": "..." }
 }`);
   const [publicJson, setPublicJson] = useState(`[
   // ============== ACCEPTED PUBLIC INPUTS FORMATS ============== //
 
-  // 1. SnarkJS / SP1 Flat Array Format
+  // 1. SnarkJS Flat Array Format
   // [
   //   "0x123",
   //   "0x456"
@@ -107,7 +111,22 @@ export default function VerifyWorkspace() {
   const [currentVkJson, setCurrentVkJson] = useState(vkJson || `{
   // ============== ACCEPTED VK FORMATS ============== //
 
-  // 1. Garaga Nested Object Format
+  // 1. Groth16 SnarkJS Format
+  // "protocol": "groth16",
+  // "curve": "bn128",
+  // "nPublic": 1,
+  // "vk_alpha_1": ["0x...", "0x...", "1"],
+  // "vk_beta_2": [["0x...", "0x..."], ["0x...", "0x..."]],
+  // ...
+
+  // 2. Groth16 Gnark Format
+  // "Alpha": { "X": "...", "Y": "..." },
+  // "Beta": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
+  // "Gamma": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
+  // "Delta": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
+  // "Ic": [ { "X": "...", "Y": "..." } ]
+
+  // 3. Garaga Nested Object Format
   // "vk": {
   //   "alpha": { "x": "0x...", "y": "0x..." },
   //   "beta": { "x": ["0x...", "0x..."], "y": ["0x...", "0x..."] },
@@ -115,27 +134,22 @@ export default function VerifyWorkspace() {
   //   "delta": { "x": ["0x...", "0x..."], "y": ["0x...", "0x..."] },
   //   "ic": [ { "x": "0x...", "y": "0x..." } ]
   // }
-
-  // 2. Groth16 SnarkJS Format
-  // "protocol": "groth16",
-  // "curve": "bn128",
-  // "nPublic": 1,
-  // "vk_alpha_1": ["0x...", "0x...", "1"],
-  // "vk_beta_2": [["0x...", "0x..."], ["0x...", "0x..."]],
-  // ...
-  
-  // 3. Groth16 Gnark Format
-  // "Alpha": { "X": "...", "Y": "..." },
-  // "Beta": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
-  // "Gamma": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
-  // "Delta": { "X": { "A0": "...", "A1": "..." }, "Y": { "A0": "...", "A1": "..." } },
-  // "Ic": [ { "X": "...", "Y": "..." } ]
 }`);
+
+  // ── UltraHonk inputs (raw base64)
+  const [uhProofB64, setUhProofB64] = useState('');
+  const [uhPublicB64, setUhPublicB64] = useState('');
+  const [uhVkB64, setUhVkB64] = useState('');
+
+  // ── UltraHonk validation states
+  const [uhVkValid, setUhVkValid] = useState(false);
+  const [uhVkError, setUhVkError] = useState<string | null>(null);
+  const [uhVkValidating, setUhVkValidating] = useState(false);
 
   const [isVerifying, setIsVerifying] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  
-  // Validation States
+
+  // ── Groth16 validation states
   const [isValidatingProof, setIsValidatingProof] = useState(false);
   const [proofSummary, setProofSummary] = useState<ProofSummary | null>(null);
   const [proofError, setProofError] = useState<string | null>(null);
@@ -148,9 +162,28 @@ export default function VerifyWorkspace() {
   const [publicSummary, setPublicSummary] = useState<PublicInputSummary | null>(null);
   const [publicError, setPublicError] = useState<string | null>(null);
 
+  // ── System switcher — clear state on switch
+  const handleSwitchSystem = useCallback((system: 'groth16' | 'ultra_honk') => {
+    setVerifySystem(system);
+    setLogs([]);
+    // Clear UltraHonk fields
+    setUhProofB64('');
+    setUhPublicB64('');
+    setUhVkB64('');
+    setUhVkValid(false);
+    setUhVkError(null);
+    // Clear Groth16 validation
+    setProofSummary(null);
+    setProofError(null);
+    setVkSummary(null);
+    setVkError(null);
+    setPublicSummary(null);
+    setPublicError(null);
+  }, []);
 
-  // Proof Validation Effect
+  // ── Groth16: Proof Validation Effect
   useEffect(() => {
+    if (verifySystem !== 'groth16') return;
     const timer = setTimeout(async () => {
       const trimmed = proofJson.trim();
       if (!trimmed || !trimmed.startsWith('{')) {
@@ -158,11 +191,10 @@ export default function VerifyWorkspace() {
         setProofError(null);
         return;
       }
-      
-      // Fast-fail JSON parsing locally to prevent 400 Bad Request logs in the browser console.
+
       try {
         JSON.parse(trimmed);
-      } catch (err) {
+      } catch {
         setProofSummary(null);
         setProofError('Invalid JSON format (check comments and syntax)');
         return;
@@ -183,17 +215,18 @@ export default function VerifyWorkspace() {
         } else {
           setProofError(result.errors?.[0]?.message || 'Invalid proof format');
         }
-      } catch (err) {
+      } catch {
         setProofError('Validation API unreachable');
       } finally {
         setIsValidatingProof(false);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [proofJson]);
+  }, [proofJson, verifySystem]);
 
-  // VK Validation Effect
+  // ── Groth16: VK Validation Effect
   useEffect(() => {
+    if (verifySystem !== 'groth16') return;
     const timer = setTimeout(async () => {
       const trimmed = currentVkJson.trim();
       if (!trimmed || !trimmed.startsWith('{')) {
@@ -204,7 +237,7 @@ export default function VerifyWorkspace() {
 
       try {
         JSON.parse(trimmed);
-      } catch (err) {
+      } catch {
         setVkSummary(null);
         setVkError('Invalid JSON format (check comments and syntax)');
         return;
@@ -225,17 +258,18 @@ export default function VerifyWorkspace() {
         } else {
           setVkError(result.errors?.[0]?.message || 'Invalid VK format');
         }
-      } catch (err) {
+      } catch {
         setVkError('Validation API unreachable');
       } finally {
         setIsValidatingVk(false);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [currentVkJson]);
+  }, [currentVkJson, verifySystem]);
 
-  // Public Input Validation Effect
+  // ── Groth16: Public Input Validation Effect
   useEffect(() => {
+    if (verifySystem !== 'groth16') return;
     const timer = setTimeout(async () => {
       const trimmed = publicJson.trim();
       if (!trimmed || (!trimmed.startsWith('{') && !trimmed.startsWith('['))) {
@@ -246,7 +280,7 @@ export default function VerifyWorkspace() {
 
       try {
         JSON.parse(trimmed);
-      } catch (err) {
+      } catch {
         setPublicSummary(null);
         setPublicError('Invalid JSON format (check comments and syntax)');
         return;
@@ -267,14 +301,56 @@ export default function VerifyWorkspace() {
         } else {
           setPublicError(result.errors?.[0]?.message || 'Invalid Public Input format');
         }
-      } catch (err) {
+      } catch {
         setPublicError('Validation API unreachable');
       } finally {
         setIsValidatingPublic(false);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [publicJson]);
+  }, [publicJson, verifySystem]);
+
+  // ── UltraHonk: VK validation (debounced API call)
+  useEffect(() => {
+    if (verifySystem !== 'ultra_honk') return;
+    const trimmed = uhVkB64.trim();
+    if (!trimmed) {
+      setUhVkValid(false);
+      setUhVkError(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setUhVkValidating(true);
+      setUhVkError(null);
+      try {
+        const resp = await fetch('/api/circuit/noir/validate-vk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vkBase64: trimmed }),
+        });
+        const result = await resp.json();
+        if (result.valid) {
+          setUhVkValid(true);
+          setUhVkError(null);
+        } else {
+          setUhVkValid(false);
+          setUhVkError(result.errors?.[0]?.message || 'Invalid VK');
+        }
+      } catch {
+        setUhVkValid(false);
+        setUhVkError('Validation API unreachable');
+      } finally {
+        setUhVkValidating(false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [uhVkB64, verifySystem]);
+
+  const isValidBase64 = (s: string) => {
+    const trimmed = s.trim();
+    if (!trimmed) return false;
+    return /^[A-Za-z0-9+/]+=*$/.test(trimmed);
+  };
 
   const addLog = (msg: string, type: LogType = 'info') => {
     setLogs((prev) => [...prev, { id: crypto.randomUUID(), timestamp: new Date(), message: msg, type }]);
@@ -290,7 +366,6 @@ export default function VerifyWorkspace() {
       }
     };
     reader.readAsText(file);
-    // Reset so the same file could be selected again
     e.target.value = '';
   };
 
@@ -308,37 +383,50 @@ export default function VerifyWorkspace() {
     addLog(`Initiating verification for contract: ${contractAddress}`, 'info');
 
     try {
-      const parsedProof = JSON.parse(proofJson);
-      const parsedPublic = JSON.parse(publicJson);
-      const parsedVk = JSON.parse(currentVkJson);
-
-      if (proofSummary && proofSummary.system !== 'groth16') {
-        addLog(`On-chain verification for ${proofSummary.system.toUpperCase()} proofs is not yet supported by the generator wrapper.`, 'error');
-        setIsVerifying(false);
-        return;
-      }
-
-      if (!vkSummary || !vkSummary.curve) {
-        addLog('Validation must pass in order to determine the VK curve.', 'error');
-        setIsVerifying(false);
-        return;
-      }
-
-      const entryPoint = `verify_groth16_proof_${vkSummary.curve.toLowerCase()}`;
-
-      addLog(`Generating calldata via Garaga adapter for ${vkSummary.curve}...`, 'info');
       let calldata: string[];
-      try {
-        calldata = await generateCalldata(parsedProof, parsedPublic, parsedVk);
-      } catch (err: any) {
-        console.error("Calldata generation error:", err);
-        addLog(`❌ Invalid Proof: failed the first part of the verification process locally`, 'error');
-        setIsVerifying(false);
-        return;
-      }
-      addLog(`Calldata generated. Total args: ${calldata.length}`, 'success');
+      let entryPoint: string;
 
+      if (verifySystem === 'ultra_honk') {
+        addLog('Generating UltraHonk calldata via Garaga adapter...', 'info');
+        try {
+          calldata = await generateNoirCalldata(uhProofB64.trim(), uhPublicB64.trim(), uhVkB64.trim());
+        } catch (err: any) {
+          addLog(`❌ Calldata generation failed: ${err.message || 'Invalid Proof/VK format'}`, 'error');
+          setIsVerifying(false);
+          return;
+        }
+        entryPoint = 'verify_ultra_keccak_zk_honk_proof';
+      } else {
+        const parsedProof = JSON.parse(proofJson);
+        const parsedPublic = JSON.parse(publicJson);
+        const parsedVk = JSON.parse(currentVkJson);
+
+        if (proofSummary && !['groth16', 'ultra_honk'].includes(proofSummary.system)) {
+          addLog(`On-chain verification for ${proofSummary.system.toUpperCase()} proofs is not yet supported by the generator wrapper.`, 'error');
+          setIsVerifying(false);
+          return;
+        }
+
+        if (!vkSummary || !vkSummary.curve) {
+          addLog('Validation must pass in order to determine the VK curve.', 'error');
+          setIsVerifying(false);
+          return;
+        }
+
+        addLog(`Generating Groth16 calldata via Garaga adapter for ${vkSummary.curve}...`, 'info');
+        try {
+          calldata = await generateCalldata(parsedProof, parsedPublic, parsedVk);
+        } catch (err: any) {
+          addLog(`❌ Calldata generation failed: ${err.message || 'Invalid Proof/VK format'}`, 'error');
+          setIsVerifying(false);
+          return;
+        }
+        entryPoint = `verify_groth16_proof_${vkSummary.curve.toLowerCase()}`;
+      }
+
+      addLog(`Calldata generated. Total args: ${calldata.length}`, 'success');
       addLog(`Sending transaction to wallet (Entrypoint: ${entryPoint})...`, 'info');
+
       const response = await wallet.request({
         type: 'wallet_addInvokeTransaction',
         params: {
@@ -350,10 +438,10 @@ export default function VerifyWorkspace() {
         }
       });
       addLog(`Transaction broadcasted! Hash: ${response.transaction_hash}`, 'success');
-      
+
       const rpc = new RpcProvider({ nodeUrl: getRpcUrl(chainId) });
       addLog('Waiting for L2 acceptance...', 'info');
-      
+
       const receipt = await rpc.waitForTransaction(response.transaction_hash);
       if (receipt.isSuccess()) {
         addLog('Valid Proof! Transaction accepted on L2 ✅', 'success');
@@ -368,6 +456,25 @@ export default function VerifyWorkspace() {
     }
   };
 
+  const isVerifyEnabled = verifySystem === 'ultra_honk'
+    ? uhVkValid && isValidBase64(uhProofB64) && isValidBase64(uhPublicB64) && !!contractAddress
+    : !!vkSummary && !!proofSummary && !!publicSummary && !!contractAddress;
+
+  const textareaStyle: React.CSSProperties = {
+    width: '100%',
+    background: '#0d1117',
+    border: '1px solid #30363d',
+    color: '#e2e8f0',
+    padding: '12px 14px',
+    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+    fontSize: 12,
+    borderRadius: 6,
+    boxSizing: 'border-box',
+    outline: 'none',
+    resize: 'vertical',
+    lineHeight: 1.5,
+  };
+
   return (
     <div className={styles.workspace}>
       <div className={styles.header}>
@@ -380,113 +487,209 @@ export default function VerifyWorkspace() {
             value={contractAddress}
             onChange={(e) => setContractAddress(e.target.value)}
           />
-          {recentAddresses.length > 0 && (
-            <div className={styles.recentAddresses}>
-              <span className={styles.recentLabel}>Recent Deploys:</span>
-              {recentAddresses.map((addr) => (
-                <button
-                  key={addr}
-                  className={styles.recentBtn}
-                  onClick={() => setContractAddress(addr)}
-                  title={addr}
-                >
-                  {addr.slice(0, 6)}...{addr.slice(-4)}
-                </button>
-              ))}
+          {recentAddresses.length > 0 && (() => {
+            const filtered = recentAddresses.filter(d =>
+              verifySystem === 'groth16' ? d.system === 'groth16' : d.system === 'ultra_keccak_zk_honk'
+            );
+            if (filtered.length === 0) return null;
+            return (
+              <div className={styles.recentAddresses}>
+                <span className={styles.recentLabel}>Recent Deploys:</span>
+                {filtered.map((d) => (
+                  <button
+                    key={d.address}
+                    className={styles.recentBtn}
+                    onClick={() => setContractAddress(d.address)}
+                    title={d.address}
+                  >
+                    {d.address.slice(0, 6)}...{d.address.slice(-4)}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* System switcher */}
+        <div style={{ display: 'flex', gap: 0, borderRadius: 6, overflow: 'hidden', border: '1px solid #30363d', alignSelf: 'center' }}>
+          <button
+            onClick={() => handleSwitchSystem('groth16')}
+            style={{
+              padding: '8px 18px',
+              fontSize: 13,
+              fontWeight: verifySystem === 'groth16' ? 600 : 400,
+              background: verifySystem === 'groth16' ? '#1e3a5f' : 'transparent',
+              color: verifySystem === 'groth16' ? '#60a5fa' : '#94a3b8',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            Groth16
+          </button>
+          <button
+            onClick={() => handleSwitchSystem('ultra_honk')}
+            style={{
+              padding: '8px 18px',
+              fontSize: 13,
+              fontWeight: verifySystem === 'ultra_honk' ? 600 : 400,
+              background: verifySystem === 'ultra_honk' ? '#0e3a3a' : 'transparent',
+              color: verifySystem === 'ultra_honk' ? '#06b6d4' : '#94a3b8',
+              border: 'none',
+              borderLeft: '1px solid #30363d',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            UltraHonk
+          </button>
+        </div>
+      </div>
+
+      {verifySystem === 'groth16' ? (
+        <div className={styles.mainGrid}>
+          <div className={styles.editorCol}>
+            <div className={styles.paneHeader}>
+               <div className={styles.paneLabel}>verification_key.json</div>
+               <div style={{ display: 'flex', alignItems: 'center' }}>
+                 {isValidatingVk && <span style={{fontSize: 12, marginRight: 8, color: '#888'}}>Validating...</span>}
+                 {vkSummary && <span style={{fontSize: 12, marginRight: 8, color: '#4ade80'}}>✓ {vkSummary.curve} ({vkSummary.protocol})</span>}
+                 {vkError && <span style={{fontSize: 12, marginRight: 8, color: '#f87171'}} title={vkError}>✗ Invalid</span>}
+                 <label className={styles.uploadBtn}>
+                   Load File
+                   <input type="file" accept=".json" onChange={(e) => handleFileUpload(e, (val) => { setCurrentVkJson(val); saveVk(val); })} />
+                 </label>
+               </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      <div className={styles.mainGrid}>
-        <div className={styles.editorCol}>
-          <div className={styles.paneHeader}>
-             <div className={styles.paneLabel}>verification_key.json</div>
-             <div style={{ display: 'flex', alignItems: 'center' }}>
-               {isValidatingVk && <span style={{fontSize: 12, marginRight: 8, color: '#888'}}>Validating...</span>}
-               {vkSummary && <span style={{fontSize: 12, marginRight: 8, color: '#4ade80'}}>✓ {vkSummary.curve} ({vkSummary.protocol})</span>}
-               {vkError && <span style={{fontSize: 12, marginRight: 8, color: '#f87171'}} title={vkError}>✗ Invalid</span>}
-               <label className={styles.uploadBtn}>
-                 Load File
-                 <input type="file" accept=".json" onChange={(e) => handleFileUpload(e, (val) => { setCurrentVkJson(val); saveVk(val); })} />
-               </label>
-             </div>
+            <div className={styles.monacoWrap}>
+              <MonacoEditor
+                height="100%"
+                defaultLanguage="json"
+                theme="vs-dark"
+                value={currentVkJson}
+                onChange={(v) => {
+                  const val = v ?? '';
+                  if (val !== currentVkJson) {
+                    setCurrentVkJson(val);
+                    saveVk(val);
+                  }
+                }}
+                options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+              />
+            </div>
           </div>
-          <div className={styles.monacoWrap}>
-            <MonacoEditor
-              height="100%"
-              defaultLanguage="json"
-              theme="vs-dark"
-              value={currentVkJson}
-              onChange={(v) => {
-                const val = v ?? '';
-                if (val !== currentVkJson) {
-                  setCurrentVkJson(val);
-                  saveVk(val);
-                }
-              }}
-              options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+
+          <div className={styles.editorCol}>
+            <div className={styles.paneHeader}>
+               <div className={styles.paneLabel}>proof.json</div>
+               <div style={{ display: 'flex', alignItems: 'center' }}>
+                 {isValidatingProof && <span style={{fontSize: 12, marginRight: 8, color: '#888'}}>Validating...</span>}
+                 {proofSummary && <span style={{fontSize: 12, marginRight: 8, color: '#4ade80'}}>✓ {proofSummary.system}</span>}
+                 {proofError && <span style={{fontSize: 12, marginRight: 8, color: '#f87171'}} title={proofError}>✗ Invalid</span>}
+                 <label className={styles.uploadBtn}>
+                   Load File
+                   <input type="file" accept=".json" onChange={(e) => handleFileUpload(e, setProofJson)} />
+                 </label>
+               </div>
+            </div>
+            <div className={styles.monacoWrap}>
+              <MonacoEditor
+                height="100%"
+                defaultLanguage="json"
+                theme="vs-dark"
+                value={proofJson}
+                onChange={(v) => {
+                  const val = v ?? '';
+                  if (val !== proofJson) setProofJson(val);
+                }}
+                options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+              />
+            </div>
+          </div>
+
+          <div className={styles.editorCol}>
+            <div className={styles.paneHeader}>
+               <div className={styles.paneLabel}>public.json</div>
+               <div style={{ display: 'flex', alignItems: 'center' }}>
+                 {isValidatingPublic && <span style={{fontSize: 12, marginRight: 8, color: '#888'}}>Validating...</span>}
+                 {publicSummary && <span style={{fontSize: 12, marginRight: 8, color: '#4ade80'}}>✓ {publicSummary.format.replace('_', ' ')}</span>}
+                 {publicError && <span style={{fontSize: 12, marginRight: 8, color: '#f87171'}} title={publicError}>✗ Invalid</span>}
+                 <label className={styles.uploadBtn}>
+                   Load File
+                   <input type="file" accept=".json" onChange={(e) => handleFileUpload(e, setPublicJson)} />
+                 </label>
+               </div>
+            </div>
+            <div className={styles.monacoWrap}>
+              <MonacoEditor
+                height="100%"
+                defaultLanguage="json"
+                theme="vs-dark"
+                value={publicJson}
+                onChange={(v) => {
+                  const val = v ?? '';
+                  if (val !== publicJson) setPublicJson(val);
+                }}
+                options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* UltraHonk mode — plain textarea inputs */
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px', overflowY: 'auto', minHeight: 0 }}>
+
+          {/* VK */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 500 }}>Verification Key (base64)</span>
+              {uhVkValidating && <span style={{ fontSize: 12, color: '#888' }}>Validating...</span>}
+              {!uhVkValidating && uhVkB64.trim() && uhVkValid && <span style={{ fontSize: 12, color: '#4ade80' }}>✓ Valid UltraHonk VK</span>}
+              {!uhVkValidating && uhVkB64.trim() && uhVkError && <span style={{ fontSize: 12, color: '#f87171' }} title={uhVkError}>✗ {uhVkError}</span>}
+            </div>
+            <textarea
+              style={{ ...textareaStyle, minHeight: 100 }}
+              placeholder={`// Verification Key (base64)\n// Paste the raw base64 string from:\n//   bb write_vk --oracle_hash keccak -o vk\n// This is the binary VK encoded in base64 (NOT a JSON object).`}
+              value={uhVkB64}
+              onChange={(e) => setUhVkB64(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+
+          {/* Proof */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 500 }}>Proof (base64)</span>
+              {uhProofB64.trim() && isValidBase64(uhProofB64) && <span style={{ fontSize: 12, color: '#4ade80' }}>✓</span>}
+              {uhProofB64.trim() && !isValidBase64(uhProofB64) && <span style={{ fontSize: 12, color: '#f87171' }}>✗ Not valid base64</span>}
+            </div>
+            <textarea
+              style={{ ...textareaStyle, minHeight: 100 }}
+              placeholder={`// Proof (base64)\n// Paste the raw base64 string from:\n//   bb prove --oracle_hash keccak -o proof`}
+              value={uhProofB64}
+              onChange={(e) => setUhProofB64(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+
+          {/* Public Inputs */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 500 }}>Public Inputs (base64)</span>
+              {uhPublicB64.trim() && isValidBase64(uhPublicB64) && <span style={{ fontSize: 12, color: '#4ade80' }}>✓</span>}
+              {uhPublicB64.trim() && !isValidBase64(uhPublicB64) && <span style={{ fontSize: 12, color: '#f87171' }}>✗ Not valid base64</span>}
+            </div>
+            <textarea
+              style={{ ...textareaStyle, minHeight: 100 }}
+              placeholder={`// Public Inputs (base64)\n// Paste the raw base64 string from:\n//   bb prove --oracle_hash keccak (the .public file)`}
+              value={uhPublicB64}
+              onChange={(e) => setUhPublicB64(e.target.value)}
+              spellCheck={false}
             />
           </div>
         </div>
+      )}
 
-        <div className={styles.editorCol}>
-          <div className={styles.paneHeader}>
-             <div className={styles.paneLabel}>proof.json</div>
-             <div style={{ display: 'flex', alignItems: 'center' }}>
-               {isValidatingProof && <span style={{fontSize: 12, marginRight: 8, color: '#888'}}>Validating...</span>}
-               {proofSummary && <span style={{fontSize: 12, marginRight: 8, color: '#4ade80'}}>✓ {proofSummary.system}</span>}
-               {proofError && <span style={{fontSize: 12, marginRight: 8, color: '#f87171'}} title={proofError}>✗ Invalid</span>}
-               <label className={styles.uploadBtn}>
-                 Load File
-                 <input type="file" accept=".json" onChange={(e) => handleFileUpload(e, setProofJson)} />
-               </label>
-             </div>
-          </div>
-          <div className={styles.monacoWrap}>
-            <MonacoEditor
-              height="100%"
-              defaultLanguage="json"
-              theme="vs-dark"
-              value={proofJson}
-              onChange={(v) => {
-                const val = v ?? '';
-                if (val !== proofJson) setProofJson(val);
-              }}
-              options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
-            />
-          </div>
-        </div>
-
-        <div className={styles.editorCol}>
-          <div className={styles.paneHeader}>
-             <div className={styles.paneLabel}>public.json</div>
-             <div style={{ display: 'flex', alignItems: 'center' }}>
-               {isValidatingPublic && <span style={{fontSize: 12, marginRight: 8, color: '#888'}}>Validating...</span>}
-               {publicSummary && <span style={{fontSize: 12, marginRight: 8, color: '#4ade80'}}>✓ {publicSummary.format.replace('_', ' ')}</span>}
-               {publicError && <span style={{fontSize: 12, marginRight: 8, color: '#f87171'}} title={publicError}>✗ Invalid</span>}
-               <label className={styles.uploadBtn}>
-                 Load File
-                 <input type="file" accept=".json" onChange={(e) => handleFileUpload(e, setPublicJson)} />
-               </label>
-             </div>
-          </div>
-          <div className={styles.monacoWrap}>
-            <MonacoEditor
-              height="100%"
-              defaultLanguage="json"
-              theme="vs-dark"
-              value={publicJson}
-              onChange={(v) => {
-                const val = v ?? '';
-                if (val !== publicJson) setPublicJson(val);
-              }}
-              options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
-            />
-          </div>
-        </div>
-      </div>
-      
       {/* Resizable Divider */}
       <div className={editorStyles.rowDivider} onMouseDown={dragRowDivider} style={{ zIndex: 10 }} />
 
@@ -498,11 +701,11 @@ export default function VerifyWorkspace() {
               <span className={editorStyles.deployLabel} title={address || ''}>
                  {getChainName(chainId)} · {address?.slice(0, 6)}...{address?.slice(-4)}
               </span>
-              <button 
+              <button
                 onClick={handleVerify}
-                disabled={isVerifying || !contractAddress || !vkSummary || !proofSummary || !publicSummary} 
+                disabled={isVerifying || !isVerifyEnabled}
                 className={editorStyles.deployBtn}
-                title={(!vkSummary || !proofSummary || !publicSummary) ? "All JSON inputs must be valid" : (!contractAddress ? "Enter a contract address" : "")}
+                title={!contractAddress ? 'Enter a contract address' : !isVerifyEnabled ? 'All inputs must be valid' : ''}
               >
                 {isVerifying ? 'Verifying...' : 'Verify Onchain'}
               </button>
@@ -511,8 +714,8 @@ export default function VerifyWorkspace() {
           ) : (
             <>
               <span className={editorStyles.deployLabel}>Verify on Starknet</span>
-              <button 
-                onClick={connectWallet} 
+              <button
+                onClick={connectWallet}
                 className={editorStyles.deployBtn}
                 title="Connect to Verify"
               >

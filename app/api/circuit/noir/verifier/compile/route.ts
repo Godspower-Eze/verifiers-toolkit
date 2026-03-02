@@ -14,16 +14,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const { projectName, honkVerifierCairo, honkVerifierCircuitsCairo, honkVerifierConstantsCairo, libCairo, scarbToml } = body as {
+    const { projectName, verifierCairo, constantsCairo, circuitsCairo, libCairo, scarbToml } = body as {
       projectName?: string;
-      honkVerifierCairo?: string;
-      honkVerifierCircuitsCairo?: string;
-      honkVerifierConstantsCairo?: string;
+      verifierCairo?: string;
+      constantsCairo?: string;
+      circuitsCairo?: string;
       libCairo?: string;
       scarbToml?: string;
     };
 
-    if (!projectName || !honkVerifierCairo || !honkVerifierCircuitsCairo || !honkVerifierConstantsCairo || !libCairo || !scarbToml) {
+    if (!projectName || !verifierCairo || !constantsCairo || !libCairo || !scarbToml) {
       return NextResponse.json(
         {
           success: false,
@@ -35,9 +35,9 @@ export async function POST(req: Request) {
 
     const result = await compiler.compile({
       projectName,
-      verifierCairo: honkVerifierCairo,
-      constantsCairo: honkVerifierConstantsCairo,
-      circuitsCairo: honkVerifierCircuitsCairo,
+      verifierCairo,
+      constantsCairo,
+      circuitsCairo,
       libCairo,
       scarbToml,
     });

@@ -1,18 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { ProofSystem } from '@/lib/verifier/types';
 
 const RECENT_CONTRACTS_KEY = 'caverig_recent_contracts';
 const MAX_RECENT = 5;
 
+/** A deployed verifier address tagged with its proof system. */
+export interface RecentDeployment {
+  address: string;
+  system: ProofSystem;
+}
+
 export function useRecentDeployments() {
-  const [recentAddresses, setRecentAddresses] = useState<string[]>([]);
+  const [recentAddresses, setRecentAddresses] = useState<RecentDeployment[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const loadContracts = useCallback(() => {
     try {
       const stored = localStorage.getItem(RECENT_CONTRACTS_KEY);
-      if (stored) {
-        setRecentAddresses(JSON.parse(stored));
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      // Validate shape — if legacy string[] or invalid, clear it
+      if (!Array.isArray(parsed) || !parsed.every((d: any) => d?.address && d?.system)) {
+        localStorage.removeItem(RECENT_CONTRACTS_KEY);
+        setRecentAddresses([]);
+        return;
       }
+      setRecentAddresses(parsed);
     } catch (e) {
       console.warn('Failed to load recent contracts from localStorage');
     }
@@ -38,11 +51,11 @@ export function useRecentDeployments() {
     };
   }, [loadContracts]);
 
-  const addAddress = useCallback((address: string) => {
+  const addAddress = useCallback((address: string, system: ProofSystem) => {
     // We update state first
     setRecentAddresses(prev => {
-      const filtered = prev.filter(a => a !== address);
-      const updated = [address, ...filtered].slice(0, MAX_RECENT);
+      const filtered = prev.filter(d => d.address !== address);
+      const updated: RecentDeployment[] = [{ address, system }, ...filtered].slice(0, MAX_RECENT);
       
       // Schedule side effects outside the React update cycle
       setTimeout(() => {

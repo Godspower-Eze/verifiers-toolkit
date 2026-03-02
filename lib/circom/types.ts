@@ -7,6 +7,34 @@
  */
 export type LanguageId = 'circom' | 'noir';
 
+// ─── Circuit templates ────────────────────────────────────────────────────────
+
+/**
+ * A built-in example circuit shown in the template picker.
+ * Language-agnostic: both Circom and Noir templates use this type.
+ */
+export interface CircuitTemplate {
+  /** Unique identifier (stable across renames). */
+  id: string;
+  /** Human-readable name shown in the picker. */
+  name: string;
+  /** One-line description of what the circuit does. */
+  description: string;
+  /** The language this template is written in. */
+  language: LanguageId;
+  /** All files in the template project. */
+  files: SourceFile[];
+  /** Filename of the entry point — must match an entry in `files`. */
+  entrypoint: string;
+  /**
+   * Pre-computed valid example inputs for this circuit.
+   * Values are BigInt strings (or arrays of BigInt strings) so they survive
+   * JSON round-trips and satisfy field-element requirements.
+   * Only input signals are included (outputs are excluded).
+   */
+  defaultInputs?: Record<string, string | string[]>;
+}
+
 // ─── Input ────────────────────────────────────────────────────────────────────
 
 /**

@@ -48,14 +48,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      verifier: {
-        projectName: result.verifier!.projectName,
-        honkVerifierCairo: result.verifier!.honkVerifierCairo,
-        honkVerifierCircuitsCairo: result.verifier!.honkVerifierCircuitsCairo,
-        honkVerifierConstantsCairo: result.verifier!.honkVerifierConstantsCairo,
-        libCairo: result.verifier!.libCairo,
-        scarbToml: result.verifier!.scarbToml,
-      },
+      verifier: result.verifier,
     });
   } catch (err) {
     console.error('Noir verifier generation failed:', err);

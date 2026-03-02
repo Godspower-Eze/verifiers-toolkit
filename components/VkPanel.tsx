@@ -9,22 +9,27 @@ import { usePersistedVk } from '@/hooks/useRecentDeployments';
 
 type VkState = 'idle' | 'validating' | 'valid' | 'invalid';
 
+export type VkFormat = 'circom' | 'noir';
+
 interface VkPanelProps {
   /** Called when a VK is successfully validated. Parent passes it to Feature 05. */
-  onValidVk: (vk: ValidatedVk) => void;
+  onValidVk: (vk: ValidatedVk | { vkBase64: string }, format: VkFormat) => void;
   /** Called when the VK is cleared. */
   onClearVk: () => void;
+  /** Initial format from navigation (e.g., from Generate Verifier button) */
+  initialFormat?: VkFormat;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
+export default function VkPanel({ onValidVk, onClearVk, initialFormat = 'circom' }: VkPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pasteValue, setPasteValue] = useState('');
   const [vkState, setVkState] = useState<VkState>('idle');
   const [errors, setErrors] = useState<VkFieldError[]>([]);
-  const [validVk, setValidVk] = useState<ValidatedVk | null>(null);
+  const [validVk, setValidVk] = useState<ValidatedVk | { vkBase64: string } | null>(null);
   const [vkSummary, setVkSummary] = useState<VkSummary | null>(null);
+  const [vkFormat, setVkFormat] = useState<VkFormat>(initialFormat);
   const { saveVk } = usePersistedVk();
 
   // ── Validate ────────────────────────────────────────────────────────────────
@@ -35,6 +40,38 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
     setVkSummary(null);
 
     try {
+      // If format is noir or auto-detected as likely noir (starts with AAAA...), validate as noir
+      const isNoirFormat = vkFormat === 'noir' || raw.startsWith('AAAA');
+      
+      if (isNoirFormat) {
+        // Validate as Noir VK (binary base64)
+        const resp = await fetch('/api/circuit/noir/validate-vk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vkBase64: raw.trim() }),
+        });
+        const result = await resp.json() as
+          | { valid: true; summary: { system: string; curve: string } }
+          | { valid: false; errors: VkFieldError[] };
+
+        if (result.valid) {
+          setVkState('valid');
+          setValidVk({ vkBase64: raw.trim() });
+          setVkSummary({
+            protocol: result.summary.system,
+            curve: result.summary.curve,
+            icLength: 0,
+          } as VkSummary);
+          saveVk(raw);
+          onValidVk({ vkBase64: raw.trim() }, 'noir');
+        } else {
+          setVkState('invalid');
+          setErrors(result.errors);
+        }
+        return;
+      }
+
+      // Default: validate as Circom/Groth16 VK (JSON)
       const resp = await fetch('/api/vk/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,7 +86,7 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
         setValidVk(result.vk);
         setVkSummary(result.summary);
         saveVk(raw);
-        onValidVk(result.vk);
+        onValidVk(result.vk, 'circom');
       } else {
         setVkState('invalid');
         setErrors(result.errors);
@@ -58,17 +95,25 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
       setVkState('invalid');
       setErrors([{ field: 'network', message: 'Could not reach the validation API.' }]);
     }
-  }, [onValidVk, saveVk]);
+  }, [vkFormat, onValidVk, saveVk]);
 
   // ── Auto-load generated VKs ────────────────────────────────────────────────
   useEffect(() => {
     try {
       const pendingVk = localStorage.getItem('cairo_verifier_generator_pending_vk');
+      const pendingVkFormat = localStorage.getItem('cairo_verifier_generator_pending_vk_format');
       if (pendingVk) {
+        // Set format if provided
+        if (pendingVkFormat === 'noir') {
+          setVkFormat('noir');
+        } else if (pendingVkFormat === 'circom') {
+          setVkFormat('circom');
+        }
         setPasteValue(pendingVk);
         validateRawJson(pendingVk);
         // Clean up so it doesn't auto-load again if they clear and refresh
         localStorage.removeItem('cairo_verifier_generator_pending_vk');
+        localStorage.removeItem('cairo_verifier_generator_pending_vk_format');
       }
     } catch (err) {
       console.error('Failed to read pending VK from local storage:', err);
@@ -96,8 +141,21 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
     setVkState('idle');
     setErrors([]);
     setValidVk(null);
+    setVkSummary(null);
     onClearVk();
     if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [onClearVk]);
+
+  // ── Format change — clear all state before switching ──────────────────────
+  const handleFormatChange = useCallback((fmt: VkFormat) => {
+    setPasteValue('');
+    setVkState('idle');
+    setErrors([]);
+    setValidVk(null);
+    setVkSummary(null);
+    onClearVk();
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setVkFormat(fmt);
   }, [onClearVk]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -106,33 +164,58 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
       <div className={styles.header}>
         <span className={styles.title}>Verification Key (VK)</span>
         {vkState === 'valid' && (
-          <span className={styles.badge}>✓ Valid BN254</span>
+          <span className={styles.badge}>✓ Valid {vkFormat === 'noir' ? 'UltraHonk' : 'BN254'}</span>
         )}
+      </div>
+
+      {/* Format selector */}
+      <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+        <label style={{ fontSize: 12, color: '#94a3b8' }}>Format:</label>
+        <select
+          value={vkFormat}
+          onChange={(e) => handleFormatChange(e.target.value as VkFormat)}
+          style={{
+            padding: '4px 8px',
+            fontSize: 12,
+            background: '#1e293b',
+            color: '#e2e8f0',
+            border: '1px solid #334155',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          <option value="circom">Circom (JSON)</option>
+          <option value="noir">Noir (Binary)</option>
+        </select>
       </div>
 
       {(vkState === 'idle' || vkState === 'validating' || vkState === 'invalid') && (
         <>
-          {/* File upload */}
-          <div className={styles.uploadRow}>
-            <label htmlFor="vk-file-input" className={styles.uploadBtn}>
-              ↑ Upload VK JSON
-            </label>
-            <input
-              id="vk-file-input"
-              ref={fileInputRef}
-              type="file"
-              accept=".json,application/json"
-              onChange={handleFile}
-              className={styles.hiddenInput}
-            />
-            <span className={styles.orDivider}>or paste below</span>
-          </div>
+          {/* File upload — only shown for Circom (JSON) format */}
+          {vkFormat === 'circom' && (
+            <div className={styles.uploadRow}>
+              <label htmlFor="vk-file-input" className={styles.uploadBtn}>
+                ↑ Upload VK JSON
+              </label>
+              <input
+                id="vk-file-input"
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFile}
+                className={styles.hiddenInput}
+              />
+              <span className={styles.orDivider}>or paste below</span>
+            </div>
+          )}
 
           {/* Paste textarea */}
           <textarea
             id="vk-paste-input"
             className={styles.textarea}
-            placeholder={'{\n  "protocol": "groth16",\n  "curve": "bn128",\n  ...\n}'}
+            placeholder={vkFormat === 'noir' 
+              ? 'Paste base64-encoded VK from bb write_vk...' 
+              : '{\n  "protocol": "groth16",\n  "curve": "bn128",\n  ...\n}'}
             value={pasteValue}
             onChange={(e) => setPasteValue(e.target.value)}
             rows={6}
@@ -156,7 +239,9 @@ export default function VkPanel({ onValidVk, onClearVk }: VkPanelProps) {
           <div className={styles.vkSummary}>
             <span>Protocol</span><strong>{vkSummary.protocol}</strong>
             <span>Curve</span><strong>{vkSummary.curve}</strong>
-            <span>IC length</span><strong>{vkSummary.icLength}</strong>
+            {vkFormat !== 'noir' && (
+              <><span>IC length</span><strong>{vkSummary.icLength}</strong></>
+            )}
           </div>
           <button className={styles.clearBtn} onClick={handleClear}>
             ✕ Remove VK

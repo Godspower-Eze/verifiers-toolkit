@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type * as MonacoNS from 'monaco-editor';
-import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
+import type { CircuitTemplate } from '@/lib/circom/circomTemplates';
 import type { CompileError, CompileResponse, CompileSuccessResponse, CircomCompileResult, NoirCompileResult, LanguageId } from '@/lib/circom/types';
 import { parseSymInputSignals, parseCircomInputSignals } from '@/lib/circom/parseInputSignals';
 import { parseNoirInputs } from '@/lib/noir/parseNoirInputs';
@@ -101,6 +101,16 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   const [copiedVk, setCopiedVk] = useState(false);
   const [copiedProof, setCopiedProof] = useState(false);
   const [copiedPublic, setCopiedPublic] = useState(false);
+  const [copiedCalldata, setCopiedCalldata] = useState(false);
+
+  // ── Noir Calldata state
+  const [noirCalldataState, setNoirCalldataState] = useState<CompileState>('idle');
+  const [noirCalldataResult, setNoirCalldataResult] = useState<string[] | null>(null);
+
+  // ── Circom Calldata state
+  const [circomCalldataState, setCircomCalldataState] = useState<CompileState>('idle');
+  const [circomCalldataResult, setCircomCalldataResult] = useState<string[] | null>(null);
+  const [copiedCircomCalldata, setCopiedCircomCalldata] = useState(false);
 
   // ── Derived availability
   const hasZkey = !!setupResult?.zkeyBase64;
@@ -322,6 +332,62 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   }, [setupResult]);
 
   // ── Prove
+  const handleGenerateNoirCalldata = useCallback(async () => {
+    if (!proveResult?.success || !proveResult?.isNoir) return;
+    setNoirCalldataState('compiling');
+    setNoirCalldataResult(null);
+
+    try {
+      const resp = await fetch('/api/circuit/noir/calldata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proofBase64: proveResult.proofBase64,
+          publicInputsBase64: proveResult.publicInputsBase64,
+          vkBase64: proveResult.vkBase64,
+        }),
+      });
+      const result = await resp.json();
+      if (result.success) {
+        setNoirCalldataResult(result.calldata);
+        setNoirCalldataState('success');
+      } else {
+        setNoirCalldataState('error');
+      }
+    } catch (err) {
+      console.error('Calldata generation failed:', err);
+      setNoirCalldataState('error');
+    }
+  }, [proveResult]);
+
+  const handleGenerateCircomCalldata = useCallback(async () => {
+    if (!proveResult?.success || proveResult?.isNoir) return;
+    setCircomCalldataState('compiling');
+    setCircomCalldataResult(null);
+
+    try {
+      const resp = await fetch('/api/circuit/groth16/calldata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proofJson: JSON.parse(proveResult.proofJson),
+          publicInputsJson: JSON.parse(proveResult.publicInputsJson),
+          vkJson: JSON.parse(setupResult?.vkJson ?? '{}'),
+        }),
+      });
+      const result = await resp.json();
+      if (result.success) {
+        setCircomCalldataResult(result.calldata);
+        setCircomCalldataState('success');
+      } else {
+        setCircomCalldataState('error');
+      }
+    } catch (err) {
+      console.error('Circom calldata generation failed:', err);
+      setCircomCalldataState('error');
+    }
+  }, [proveResult, setupResult]);
+
   const handleProve = useCallback(async () => {
     if (language === 'noir') {
       setProveState('compiling');
@@ -363,6 +429,8 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
 
     setProveState('compiling');
     setProveResult(null);
+    setCircomCalldataState('idle');
+    setCircomCalldataResult(null);
 
     try {
       let parsedSignals: unknown;
@@ -864,8 +932,10 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                       
                       <div style={{ marginTop: 20, textAlign: 'right' }}>
                         <button
+                          type="button"
                           onClick={() => {
                             localStorage.setItem('cairo_verifier_generator_pending_vk', setupResult.vkJson);
+                            localStorage.setItem('cairo_verifier_generator_pending_vk_format', 'circom');
                             onNavigateToVk();
                           }}
                           className={styles.compileBtn}
@@ -996,17 +1066,26 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                                 <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Proof (Base64)</span>
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(proveResult.proofBase64);
-                                    setCopiedProof(true);
-                                    setTimeout(() => setCopiedProof(false), 2000);
-                                  }}
-                                  className={styles.downloadIconBtn}
-                                  style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                >
-                                  {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
-                                </button>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.proofBase64);
+                                      setCopiedProof(true);
+                                      setTimeout(() => setCopiedProof(false), 2000);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(proveResult.proofBase64, 'proof', 'application/octet-stream')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
                               </div>
                               <div style={{ maxWidth: '100%', overflowX: 'auto', background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 8 }}>
                                 <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10, color: '#e2e8f0', wordBreak: 'break-all' }}>
@@ -1058,19 +1137,28 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                               </div>
                             </div>
 
-                            {/* Noir: Verification Key (Base64) */}
+                             {/* Noir: Verification Key (Base64) */}
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                                 <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key (Base64)</span>
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(proveResult.vkBase64);
-                                  }}
-                                  className={styles.downloadIconBtn}
-                                  style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                >
-                                  Copy
-                                </button>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.vkBase64);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    Copy
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(proveResult.vkBase64, 'vk', 'application/octet-stream')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
                               </div>
                               <div style={{ maxWidth: '100%', overflowX: 'auto', background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 8 }}>
                                 <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10, color: '#e2e8f0', wordBreak: 'break-all' }}>
@@ -1079,28 +1167,53 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                               </div>
                             </div>
 
-                            {/* Generate Verifier button for Noir */}
+                            {/* Noir: Calldata Generation */}
+                            <div style={{ flex: 1, marginTop: 12 }}>
+                              <button
+                                onClick={handleGenerateNoirCalldata}
+                                disabled={noirCalldataState === 'compiling'}
+                                className={`${styles.compileBtn} ${styles[noirCalldataState]}`}
+                                style={{ width: '100%', padding: '12px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.3)', color: '#06b6d4' }}
+                              >
+                                {noirCalldataState === 'compiling' ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Generating Calldata…</> : 'Generate Noir Calldata'}
+                              </button>
+
+                              {noirCalldataState === 'success' && noirCalldataResult && (
+                                <div style={{ marginTop: 16, animation: 'fadeIn 0.3s ease-out' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                    <span className={styles.paneLabelSmall} style={{ color: '#06b6d4', fontSize: 14 }}>On-chain Calldata (Array)</span>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(JSON.stringify(noirCalldataResult));
+                                        setCopiedCalldata(true);
+                                        setTimeout(() => setCopiedCalldata(false), 2000);
+                                      }}
+                                      className={styles.downloadIconBtn}
+                                      style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                    >
+                                      {copiedCalldata ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy Array'}
+                                    </button>
+                                  </div>
+                                  <div style={{ background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 12, maxHeight: 200, overflowY: 'auto' }}>
+                                    {noirCalldataResult.map((val, idx) => (
+                                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                                        <span style={{ color: '#64748b', fontSize: 11, minWidth: 20 }}>{idx}.</span>
+                                        <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0' }}>{val}</code>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Generate Verifier button for Noir - redirects to VK page with VK pre-filled */}
                             <div style={{ marginTop: 16 }}>
                               <button
-                                onClick={async () => {
-                                  try {
-                                    const resp = await fetch('/api/circuit/noir/verifier/generate', {
-                                      method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({
-                                        vkBase64: proveResult.vkBase64,
-                                        projectName: 'noir_verifier',
-                                      }),
-                                    });
-                                    const result = await resp.json();
-                                    if (result.success) {
-                                      alert('Verifier generated! (Coming soon: display in UI)');
-                                    } else {
-                                      alert(`Error: ${result.error}`);
-                                    }
-                                  } catch (err) {
-                                    alert(`Error: ${err}`);
-                                  }
+                                type="button"
+                                onClick={() => {
+                                  localStorage.setItem('cairo_verifier_generator_pending_vk', proveResult.vkBase64);
+                                  localStorage.setItem('cairo_verifier_generator_pending_vk_format', 'noir');
+                                  onNavigateToVk();
                                 }}
                                 className={styles.compileBtn}
                                 style={{ width: '100%', padding: '12px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600 }}
@@ -1170,6 +1283,53 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                                 {proveResult.publicInputsJson}
                               </pre>
                             </div>
+
+                            {/* Circom: Calldata Generation */}
+                            {setupResult?.vkJson && (
+                              <div style={{ flex: 1, marginTop: 12 }}>
+                                <button
+                                  onClick={handleGenerateCircomCalldata}
+                                  disabled={circomCalldataState === 'compiling'}
+                                  className={`${styles.compileBtn} ${styles[circomCalldataState]}`}
+                                  style={{ width: '100%', padding: '12px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10b981' }}
+                                >
+                                  {circomCalldataState === 'compiling' ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Generating Calldata…</> : 'Generate Groth16 Calldata'}
+                                </button>
+
+                                {circomCalldataState === 'error' && (
+                                  <div className={styles.errorList} style={{ marginTop: 12, padding: 12 }}>
+                                    <div className={styles.errorHeader}>✗ Calldata generation failed</div>
+                                  </div>
+                                )}
+
+                                {circomCalldataState === 'success' && circomCalldataResult && (
+                                  <div style={{ marginTop: 16, animation: 'fadeIn 0.3s ease-out' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                      <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>On-chain Calldata (Array)</span>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(JSON.stringify(circomCalldataResult));
+                                          setCopiedCircomCalldata(true);
+                                          setTimeout(() => setCopiedCircomCalldata(false), 2000);
+                                        }}
+                                        className={styles.downloadIconBtn}
+                                        style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                      >
+                                        {copiedCircomCalldata ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy Array'}
+                                      </button>
+                                    </div>
+                                    <div style={{ background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 12, maxHeight: 200, overflowY: 'auto' }}>
+                                      {circomCalldataResult.map((val, idx) => (
+                                        <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                                          <span style={{ color: '#64748b', fontSize: 11, minWidth: 20 }}>{idx}.</span>
+                                          <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0' }}>{val}</code>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </>
                         )}
                       </div>

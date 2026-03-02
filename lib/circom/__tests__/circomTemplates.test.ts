@@ -1,15 +1,15 @@
-import { getCircuitTemplates, CircuitTemplate } from '@/lib/circom/circuitTemplates';
+import { getCircomTemplates, CircuitTemplate } from '@/lib/circom/circomTemplates';
 import { compileCircom } from '@/lib/circom/compileCircom';
 
 jest.setTimeout(60_000); // real compilation for template validation
 
 // ─── Unit tests: template list shape ─────────────────────────────────────────
 
-describe('getCircuitTemplates()', () => {
+describe('getCircomTemplates()', () => {
   let templates: CircuitTemplate[];
 
   beforeEach(() => {
-    templates = getCircuitTemplates();
+    templates = getCircomTemplates();
   });
 
   it('returns at least 3 templates', () => {
@@ -40,8 +40,8 @@ describe('getCircuitTemplates()', () => {
     templates.forEach((t) => expect(t.entrypoint.trim()).not.toBe(''));
   });
 
-  it('every template has a valid language id', () => {
-    templates.forEach((t) => expect(['circom', 'noir']).toContain(t.language));
+  it('all templates are circom language', () => {
+    templates.forEach((t) => expect(t.language).toBe('circom'));
   });
 
   it('includes a multiplier template', () => {
@@ -56,17 +56,15 @@ describe('getCircuitTemplates()', () => {
     expect(templates.find((t) => t.id === 'custom')).toBeDefined();
   });
 
-  it('all circom templates have an entrypoint ending in .circom', () => {
-    templates
-      .filter((t) => t.language === 'circom')
-      .forEach((t) => expect(t.entrypoint).toMatch(/\.circom$/));
+  it('all templates have an entrypoint ending in .circom', () => {
+    templates.forEach((t) => expect(t.entrypoint).toMatch(/\.circom$/));
   });
 });
 
 // ─── Integration tests: all templates compile ─────────────────────────────────
 
 describe('circuit templates compile successfully', () => {
-  const templates = getCircuitTemplates().filter((t) => t.language === 'circom');
+  const templates = getCircomTemplates();
 
   for (const template of templates) {
     it(`template "${template.name}" compiles without errors`, async () => {

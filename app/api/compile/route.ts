@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const files = b.files as { filename: string; content: string }[];
     const entrypoint = (b.entrypoint as string) ?? files[0]?.filename;
 
-    if (!files.length || files.some((f) => typeof f.filename !== 'string' || typeof f.content !== 'string')) {
+    if (!files.length || files.some((f) => f == null || typeof f !== 'object' || typeof f.filename !== 'string' || typeof f.content !== 'string')) {
       return NextResponse.json(
         { success: false, errors: [{ message: 'Each file must have "filename" and "content" string fields.', category: 'validation' }] },
         { status: 400 }
