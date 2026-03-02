@@ -323,6 +323,39 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
 
   // ── Prove
   const handleProve = useCallback(async () => {
+    if (language === 'noir') {
+      setProveState('compiling');
+      setProveResult(null);
+
+      try {
+        let parsedInputs: Record<string, unknown>;
+        try {
+          parsedInputs = JSON.parse(signalsInput);
+        } catch (e) {
+          throw new Error("Invalid Inputs JSON format.");
+        }
+
+        const resp = await fetch('/api/circuit/prove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language: 'noir',
+            files: fileTabs.map((tab) => ({ filename: tab.filename, content: fileContents[tab.id] ?? '' })),
+            entrypoint,
+            inputs: parsedInputs,
+          }),
+        });
+        const result = await resp.json();
+        setProveResult({ ...result, isNoir: true });
+        setProveState(result.success ? 'success' : 'error');
+      } catch (err: unknown) {
+        console.error('Proving failed:', err);
+        setProveResult({ success: false, error: err instanceof Error ? err.message : String(err) });
+        setProveState('error');
+      }
+      return;
+    }
+
     const wasmBase64 = (compileResult as any)?.result?.wasmBase64;
     const zkeyBase64 = setupResult?.zkeyBase64;
 
@@ -332,7 +365,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
     setProveResult(null);
 
     try {
-      let parsedSignals: any;
+      let parsedSignals: unknown;
       try {
         parsedSignals = JSON.parse(signalsInput);
       } catch(e) {
@@ -351,12 +384,12 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
       const result = await resp.json();
       setProveResult(result);
       setProveState(result.success ? 'success' : 'error');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Proving failed:', err);
-      setProveResult({ success: false, error: err.message || String(err) });
+      setProveResult({ success: false, error: err instanceof Error ? err.message : String(err) });
       setProveState('error');
     }
-  }, [compileResult, setupResult, signalsInput]);
+  }, [language, compileResult, setupResult, signalsInput, fileTabs, fileContents, entrypoint]);
 
   // ── Markers
   function clearEditorMarkers() {
@@ -893,15 +926,14 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   <div style={{ marginBottom: proveState === 'success' ? 24 : 0 }}>
                     <button
                       className={`${styles.compileBtn} ${styles[proveState]}`}
-                      onClick={language === 'noir' ? undefined : handleProve}
-                      disabled={proveState === 'compiling' || (language === 'circom' && !hasZkey) || language === 'noir'}
-                      title={language === 'noir' ? 'Noir proving coming soon' : undefined}
-                      style={{ width: '100%', padding: '14px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, transition: 'all 0.2s', opacity: language === 'noir' ? 0.5 : 1 }}
+                      onClick={handleProve}
+                      disabled={proveState === 'compiling' || (language === 'circom' && !hasZkey)}
+                      style={{ width: '100%', padding: '14px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, transition: 'all 0.2s' }}
                     >
                       {proveState === 'compiling'
                         ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Computing Witness &amp; Generating Proof…</>
                         : language === 'noir'
-                          ? 'Generate Proof (Coming Soon)'
+                          ? 'Generate Noir Proof'
                           : 'Create Proof'}
                     </button>
                   </div>
@@ -911,7 +943,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                     <div className={styles.errorList} style={{ marginTop: 16, padding: 16 }}>
                       <div className={styles.errorHeader}>✗ Proving failed</div>
                       <div className={styles.errorItem}>
-                        <span className={styles.errorMessage}>{proveResult?.error || 'An unknown error occurred during Groth16 proof generation. Check your inputs against the constraints.'}</span>
+                        <span className={styles.errorMessage}>{proveResult?.error || (language === 'noir' ? 'An unknown error occurred during Noir proof generation.' : 'An unknown error occurred during Groth16 proof generation. Check your inputs against the constraints.')}</span>
                       </div>
                     </div>
                   )}
@@ -919,67 +951,161 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   {/* Prove success */}
                   {proveState === 'success' && proveResult?.success && (
                     <div style={{ animation: 'fadeIn 0.3s ease-out', borderTop: '1px solid #222', paddingTop: 24 }}>
-                      
+                       
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                        {/* Proof JSON */}
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                            <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Proof</span>
-                            <div style={{ display: 'flex', gap: 6 }}>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(proveResult.proofJson);
-                                  setCopiedProof(true);
-                                  setTimeout(() => setCopiedProof(false), 2000);
-                                }}
-                                className={styles.downloadIconBtn}
-                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                              >
-                                {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
-                              </button>
-                              <button
-                                onClick={() => handleDownload(window.btoa(proveResult.proofJson), 'proof.json', 'application/json')}
-                                className={styles.downloadIconBtn}
-                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                              >
-                                ↓ Download
-                              </button>
+                        {proveResult.isNoir ? (
+                          <>
+                            {/* Noir: Proof (Base64) */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Proof (Base64)</span>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.proofBase64);
+                                      setCopiedProof(true);
+                                      setTimeout(() => setCopiedProof(false), 2000);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(proveResult.proofBase64, 'proof', 'application/octet-stream')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
+                              </div>
+                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: 100 }}>
+                                {proveResult.proofBase64?.slice(0, 200)}...
+                              </pre>
                             </div>
-                          </div>
-                          <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-                            {proveResult.proofJson}
-                          </pre>
-                        </div>
 
-                        {/* Public Inputs JSON */}
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                            <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs</span>
-                            <div style={{ display: 'flex', gap: 6 }}>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(proveResult.publicInputsJson);
-                                  setCopiedPublic(true);
-                                  setTimeout(() => setCopiedPublic(false), 2000);
-                                }}
-                                className={styles.downloadIconBtn}
-                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                              >
-                                {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
-                              </button>
-                              <button
-                                onClick={() => handleDownload(window.btoa(proveResult.publicInputsJson), 'public.json', 'application/json')}
-                                className={styles.downloadIconBtn}
-                                style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                              >
-                                ↓ Download
-                              </button>
+                            {/* Noir: Public Inputs (Base64) */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs (Base64)</span>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.publicInputsBase64);
+                                      setCopiedPublic(true);
+                                      setTimeout(() => setCopiedPublic(false), 2000);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(proveResult.publicInputsBase64, 'public_inputs', 'application/octet-stream')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
+                              </div>
+                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: 100 }}>
+                                {proveResult.publicInputsBase64?.slice(0, 200)}...
+                              </pre>
                             </div>
-                          </div>
-                          <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-                            {proveResult.publicInputsJson}
-                          </pre>
-                        </div>
+
+                            {/* Noir: Verification Key (Base64) */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key (Base64)</span>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.vkBase64);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    Copy
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(proveResult.vkBase64, 'vk', 'application/octet-stream')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
+                              </div>
+                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: 100 }}>
+                                {proveResult.vkBase64?.slice(0, 200)}...
+                              </pre>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Circom: Proof JSON */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Proof</span>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.proofJson);
+                                      setCopiedProof(true);
+                                      setTimeout(() => setCopiedProof(false), 2000);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(window.btoa(proveResult.proofJson), 'proof.json', 'application/json')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
+                              </div>
+                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                                {proveResult.proofJson}
+                              </pre>
+                            </div>
+
+                            {/* Circom: Public Inputs JSON */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs</span>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(proveResult.publicInputsJson);
+                                      setCopiedPublic(true);
+                                      setTimeout(() => setCopiedPublic(false), 2000);
+                                    }}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(window.btoa(proveResult.publicInputsJson), 'public.json', 'application/json')}
+                                    className={styles.downloadIconBtn}
+                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                  >
+                                    ↓ Download
+                                  </button>
+                                </div>
+                              </div>
+                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                                {proveResult.publicInputsJson}
+                              </pre>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                     </div>

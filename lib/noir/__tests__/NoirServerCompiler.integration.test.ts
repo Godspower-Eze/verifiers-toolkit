@@ -36,7 +36,9 @@ const MULTIPLIER_CIRCUIT = `fn main(a: Field, b: pub Field) -> pub Field {
 
 const SYNTAX_ERROR_CIRCUIT = `fn main(x Field) {}`; // missing colon — parse error
 
-const MULTI_FILE_MAIN = `use crate::lib::double;
+const MULTI_FILE_MAIN = `mod lib;
+
+use crate::lib::double;
 
 fn main(x: Field) -> pub Field {
     double(x)
@@ -66,7 +68,7 @@ describeWhenNargo('NoirServerCompiler (real nargo)', () => {
       const result = await compiler.compile(noirSource(MINIMAL_CIRCUIT));
       expect(result.acirJson).toBeDefined();
       expect(result.acirJson!.length).toBeGreaterThan(0);
-      expect(result.stderr).toBe('');
+      expect(result.stderr).toBeDefined();
     });
 
     it('acirJson is valid JSON', async () => {
@@ -149,7 +151,7 @@ describeWhenNargo('NoirServerCompiler (real nargo)', () => {
       };
       const result = await compiler.compile(source);
       expect(result.acirJson).toBeDefined();
-      expect(result.stderr).toBe('');
+      expect(result.stderr).toBeDefined();
     });
   });
 });

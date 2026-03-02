@@ -11,13 +11,17 @@ export type LanguageId = 'circom' | 'noir';
 
 /**
  * A single file in a multi-file circuit project.
+ * Language-agnostic — used for both Circom (.circom) and Noir (.nr) files.
  */
-export interface CircomFile {
-  /** Filename (e.g. "circuit.circom", "gates.circom"). Must be unique within the project. */
+export interface SourceFile {
+  /** Filename (e.g. "circuit.circom", "src/main.nr"). Must be unique within the project. */
   filename: string;
   /** Raw source content. */
   content: string;
 }
+
+/** @deprecated Use SourceFile instead. */
+export type CircomFile = SourceFile;
 
 /**
  * Language-agnostic circuit source. The `language` field routes the request to
@@ -30,7 +34,7 @@ export interface CompileSource {
   /** Circuit language. */
   language: LanguageId;
   /** All project files. Must contain at least one entry. */
-  files: CircomFile[];
+  files: SourceFile[];
   /** Filename of the entry point — must match an entry in `files`. */
   entrypoint: string;
 }
