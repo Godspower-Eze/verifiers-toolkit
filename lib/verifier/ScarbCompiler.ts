@@ -49,10 +49,23 @@ export class ScarbCompiler {
       await Promise.all([
         fs.promises.writeFile(path.join(tempDir, '.tool-versions'), 'scarb 2.14.0\n', 'utf8'),
         fs.promises.writeFile(path.join(tempDir, 'Scarb.toml'), input.scarbToml, 'utf8'),
-        fs.promises.writeFile(path.join(srcDir, 'groth16_verifier.cairo'), input.verifierCairo, 'utf8'),
-        fs.promises.writeFile(path.join(srcDir, 'groth16_verifier_constants.cairo'), input.constantsCairo, 'utf8'),
+      ]);
+
+      // Write verifier files - detect if it's Noir (honk) or Circom (groth16)
+      const isNoir = input.verifierCairo.includes('honk') || input.constantsCairo.includes('honk');
+      const verifierFilename = isNoir ? 'honk_verifier.cairo' : 'groth16_verifier.cairo';
+      const constantsFilename = isNoir ? 'honk_verifier_constants.cairo' : 'groth16_verifier_constants.cairo';
+
+      await Promise.all([
+        fs.promises.writeFile(path.join(srcDir, verifierFilename), input.verifierCairo, 'utf8'),
+        fs.promises.writeFile(path.join(srcDir, constantsFilename), input.constantsCairo, 'utf8'),
         fs.promises.writeFile(path.join(srcDir, 'lib.cairo'), input.libCairo, 'utf8'),
       ]);
+
+      // Write circuits file if present (Noir/Honk only)
+      if (input.circuitsCairo) {
+        await fs.promises.writeFile(path.join(srcDir, 'honk_verifier_circuits.cairo'), input.circuitsCairo, 'utf8');
+      }
 
       // Step 2: Run scarb build
       try {

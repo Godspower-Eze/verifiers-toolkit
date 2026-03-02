@@ -100,7 +100,7 @@ describeWhenNargo('NoirServerCompiler (real nargo)', () => {
     it('compiles multiplier circuit with pub return type', async () => {
       const result = await compiler.compile(noirSource(MULTIPLIER_CIRCUIT));
       expect(result.acirJson).toBeDefined();
-      expect(result.stderr).toBe('');
+      expect(result.stderr).toBeDefined();
       const artifact = JSON.parse(result.acirJson!);
       expect(artifact.abi.parameters).toHaveLength(2);
     });

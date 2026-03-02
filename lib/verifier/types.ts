@@ -4,7 +4,7 @@
  * Supported proof systems for Cairo verifier generation.
  * Only groth16 is implemented currently. Plonk/fflonk can be added here later.
  */
-export type ProofSystem = 'groth16';
+export type ProofSystem = 'groth16' | 'ultra_keccak_zk_honk';
 
 // ─── Scarb Compilation input ──────────────────────────────────────────────────
 
@@ -15,10 +15,12 @@ export type ProofSystem = 'groth16';
 export interface ScarbCompileInput {
   /** Sanitised Scarb project name (lowercase, no spaces). */
   projectName: string;
-  /** Contents of groth16_verifier.cairo — the main contract. */
+  /** Contents of groth16_verifier.cairo or honk_verifier.cairo — the main contract. */
   verifierCairo: string;
-  /** Contents of groth16_verifier_constants.cairo — VK constants. */
+  /** Contents of groth16_verifier_constants.cairo or honk_verifier_constants.cairo — VK constants. */
   constantsCairo: string;
+  /** Contents of honk_verifier_circuits.cairo — circuit definitions (Noir/Honk only). Optional for Groth16. */
+  circuitsCairo?: string;
   /** Contents of lib.cairo — module declarations. */
   libCairo: string;
   /** Contents of Scarb.toml — build manifest with garaga dependency. */
