@@ -45,6 +45,7 @@ export function getCircuitTemplates(): CircuitTemplate[] {
     EDDSA_VERIFIER_TEMPLATE,
     SEMAPHORE_TEMPLATE,
     // Noir — Custom first, then ordered by complexity
+    NOIR_MULTIPLE_PUBLIC_TEMPLATE,
     NOIR_CUSTOM_TEMPLATE,
     NOIR_MULTIPLIER_TEMPLATE,
     NOIR_ADDER_TEMPLATE,
@@ -846,6 +847,36 @@ const NOIR_CUSTOM_TEMPLATE: CircuitTemplate = {
 fn main(x: Field) {
     // Add your constraints here
     assert(x != 0, "x must be non-zero");
+}`,
+    },
+  ],
+};
+
+const NOIR_MULTIPLE_PUBLIC_TEMPLATE: CircuitTemplate = {
+  id: 'noir-multiple-public',
+  name: 'Multiple Public Inputs',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Demonstrates multiple public inputs - proves you know x such that x * y = result and x + y = sum.',
+  defaultInputs: { x: '3', y: '5', result: '15', sum: '8' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Multiple Public Inputs - demonstrates circuit with multiple public outputs.
+//
+// This circuit proves knowledge of secret x and y such that:
+//   - x * y = result   (public)
+//   - x + y = sum     (public)
+//
+// Public inputs (all marked with 'pub'):
+//   result = x * y    (public output 0)
+//   sum = x + y       (public output 1)
+//
+// The verifier will know result and sum, but not x or y.
+
+fn main(x: Field, y: pub Field, result: pub Field, sum: pub Field) {
+    assert(x * y == result, "Product mismatch");
+    assert(x + y == sum, "Sum mismatch");
 }`,
     },
   ],

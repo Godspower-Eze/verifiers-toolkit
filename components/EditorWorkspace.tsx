@@ -994,90 +994,119 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                           <>
                             {/* Noir: Proof (Base64) */}
                             <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                                 <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Proof (Base64)</span>
-                                <div style={{ display: 'flex', gap: 6 }}>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(proveResult.proofBase64);
-                                      setCopiedProof(true);
-                                      setTimeout(() => setCopiedProof(false), 2000);
-                                    }}
-                                    className={styles.downloadIconBtn}
-                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                  >
-                                    {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleDownload(proveResult.proofBase64, 'proof', 'application/octet-stream')}
-                                    className={styles.downloadIconBtn}
-                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                  >
-                                    ↓ Download
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(proveResult.proofBase64);
+                                    setCopiedProof(true);
+                                    setTimeout(() => setCopiedProof(false), 2000);
+                                  }}
+                                  className={styles.downloadIconBtn}
+                                  style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                >
+                                  {copiedProof ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
+                                </button>
                               </div>
-                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: 100 }}>
-                                {proveResult.proofBase64?.slice(0, 200)}...
-                              </pre>
+                              <div style={{ maxWidth: '100%', overflowX: 'auto', background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 8 }}>
+                                <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10, color: '#e2e8f0', wordBreak: 'break-all' }}>
+                                  {proveResult.proofBase64}
+                                </code>
+                              </div>
                             </div>
 
-                            {/* Noir: Public Inputs (Base64) */}
+                            {/* Noir: Public Inputs (parsed) */}
                             <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs (Base64)</span>
-                                <div style={{ display: 'flex', gap: 6 }}>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(proveResult.publicInputsBase64);
-                                      setCopiedPublic(true);
-                                      setTimeout(() => setCopiedPublic(false), 2000);
-                                    }}
-                                    className={styles.downloadIconBtn}
-                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                  >
-                                    {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleDownload(proveResult.publicInputsBase64, 'public_inputs', 'application/octet-stream')}
-                                    className={styles.downloadIconBtn}
-                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                  >
-                                    ↓ Download
-                                  </button>
-                                </div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                                <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs</span>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(proveResult.publicInputsBase64);
+                                    setCopiedPublic(true);
+                                    setTimeout(() => setCopiedPublic(false), 2000);
+                                  }}
+                                  className={styles.downloadIconBtn}
+                                  style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                >
+                                  {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy Base64'}
+                                </button>
                               </div>
-                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: 100 }}>
-                                {proveResult.publicInputsBase64?.slice(0, 200)}...
-                              </pre>
+                              <div style={{ background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 12 }}>
+                                {(() => {
+                                  try {
+                                    const pubInputs = [];
+                                    const buf = Buffer.from(proveResult.publicInputsBase64, 'base64');
+                                    for (let i = 0; i < buf.length; i += 32) {
+                                      const slice = buf.slice(i, i + 32);
+                                      const num = BigInt('0x' + slice.toString('hex'));
+                                      pubInputs.push(num.toString());
+                                    }
+                                    return pubInputs.map((val, idx) => (
+                                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                                        <span style={{ color: '#64748b', fontSize: 11, minWidth: 20 }}>{idx + 1}.</span>
+                                        <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0' }}>{val}</code>
+                                      </div>
+                                    ));
+                                  } catch {
+                                    return (
+                                      <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10, color: '#e2e8f0', wordBreak: 'break-all' }}>
+                                        {proveResult.publicInputsBase64}
+                                      </code>
+                                    );
+                                  }
+                                })()}
+                              </div>
                             </div>
 
                             {/* Noir: Verification Key (Base64) */}
                             <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                                 <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key (Base64)</span>
-                                <div style={{ display: 'flex', gap: 6 }}>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(proveResult.vkBase64);
-                                    }}
-                                    className={styles.downloadIconBtn}
-                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                  >
-                                    Copy
-                                  </button>
-                                  <button
-                                    onClick={() => handleDownload(proveResult.vkBase64, 'vk', 'application/octet-stream')}
-                                    className={styles.downloadIconBtn}
-                                    style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
-                                  >
-                                    ↓ Download
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(proveResult.vkBase64);
+                                  }}
+                                  className={styles.downloadIconBtn}
+                                  style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(255,255,255,0.05)', borderRadius: 4, border: '1px solid #333' }}
+                                >
+                                  Copy
+                                </button>
                               </div>
-                              <pre style={{ margin: 0, padding: 12, background: '#0a0a0c', borderRadius: 6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', border: '1px solid #1e293b', overflowX: 'auto', whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: 100 }}>
-                                {proveResult.vkBase64?.slice(0, 200)}...
-                              </pre>
+                              <div style={{ maxWidth: '100%', overflowX: 'auto', background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 8 }}>
+                                <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10, color: '#e2e8f0', wordBreak: 'break-all' }}>
+                                  {proveResult.vkBase64}
+                                </code>
+                              </div>
+                            </div>
+
+                            {/* Generate Verifier button for Noir */}
+                            <div style={{ marginTop: 16 }}>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const resp = await fetch('/api/circuit/noir/verifier/generate', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        vkBase64: proveResult.vkBase64,
+                                        projectName: 'noir_verifier',
+                                      }),
+                                    });
+                                    const result = await resp.json();
+                                    if (result.success) {
+                                      alert('Verifier generated! (Coming soon: display in UI)');
+                                    } else {
+                                      alert(`Error: ${result.error}`);
+                                    }
+                                  } catch (err) {
+                                    alert(`Error: ${err}`);
+                                  }
+                                }}
+                                className={styles.compileBtn}
+                                style={{ width: '100%', padding: '12px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600 }}
+                              >
+                                Generate Cairo Verifier →
+                              </button>
                             </div>
                           </>
                         ) : (
