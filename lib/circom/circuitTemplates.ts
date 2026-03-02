@@ -34,6 +34,8 @@ export interface CircuitTemplate {
  */
 export function getCircuitTemplates(): CircuitTemplate[] {
   return [
+    // Circom — Custom first, then ordered by complexity
+    CUSTOM_TEMPLATE,
     MULTIPLIER_TEMPLATE,
     ADDER_TEMPLATE,
     HASH_PREIMAGE_TEMPLATE,
@@ -42,7 +44,16 @@ export function getCircuitTemplates(): CircuitTemplate[] {
     ANON_VOTING_TEMPLATE,
     EDDSA_VERIFIER_TEMPLATE,
     SEMAPHORE_TEMPLATE,
-    CUSTOM_TEMPLATE,
+    // Noir — Custom first, then ordered by complexity
+    NOIR_CUSTOM_TEMPLATE,
+    NOIR_MULTIPLIER_TEMPLATE,
+    NOIR_ADDER_TEMPLATE,
+    NOIR_HASH_PREIMAGE_TEMPLATE,
+    NOIR_COMMITMENT_TEMPLATE,
+    NOIR_RANGE_PROOF_TEMPLATE,
+    NOIR_MERKLE_MEMBERSHIP_TEMPLATE,
+    NOIR_ANON_VOTING_TEMPLATE,
+    NOIR_BOOLEAN_LOGIC_TEMPLATE,
   ];
 }
 
@@ -489,6 +500,281 @@ template EdDSAVerifier() {
 }
 
 component main { public [Ax, Ay, R8x, R8y, M] } = EdDSAVerifier();`,
+    },
+  ],
+};
+
+// ─── Noir templates ───────────────────────────────────────────────────────────
+
+const NOIR_MULTIPLIER_TEMPLATE: CircuitTemplate = {
+  id: 'noir-multiplier',
+  name: 'Multiplier',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves you know two numbers a and b whose product equals a public output.',
+  defaultInputs: { a: '3', b: '5' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Multiplier — proves knowledge of a, b such that a * b = result.
+//
+// Unlike Circom, Noir uses UltraHonk: no trusted setup is required.
+// All Field elements are 252-bit integers over BN254.
+//
+// \`pub\` marks values that appear in the public inputs of the proof.
+// Private inputs (a) are kept secret from the verifier.
+
+fn main(a: Field, b: pub Field) -> pub Field {
+    a * b
+}`,
+    },
+  ],
+};
+
+const NOIR_HASH_PREIMAGE_TEMPLATE: CircuitTemplate = {
+  id: 'noir-hash-preimage',
+  name: 'Hash Preimage',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves knowledge of a secret whose Poseidon hash equals a public commitment.',
+  defaultInputs: { preimage: '1' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Hash Preimage — proves knowledge of a private preimage such that
+// Poseidon(preimage) = commitment, without revealing the preimage.
+//
+// std::hash::poseidon::bn254::hash_1 computes the Poseidon permutation over BN254.
+// The commitment is returned as the function's public output.
+//
+// Use case: commit to a value on-chain (store the hash), then later prove
+// you know the original value without revealing it.
+
+fn main(preimage: Field, commitment: pub Field) {
+    let computed = std::hash::poseidon::bn254::hash_1([preimage]);
+    assert(computed == commitment, "Preimage does not match commitment");
+}`,
+    },
+  ],
+};
+
+const NOIR_RANGE_PROOF_TEMPLATE: CircuitTemplate = {
+  id: 'noir-range-proof',
+  name: 'Range Proof',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves a private value lies within [0, max_value) using native Noir integer bounds, with no trusted setup.',
+  defaultInputs: { value: '42', max_value: '100' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Range Proof — proves a private value lies within [0, max_value)
+// without revealing the value itself.
+//
+// u32 is a native 32-bit unsigned integer type in Noir. The compiler
+// automatically enforces that u32 values satisfy 0 <= value < 2^32,
+// eliminating the need for explicit bit-decomposition (unlike Circom).
+//
+// assert() creates a constraint: the proof is invalid if the assertion fails.
+// max_value is public so the verifier knows the claimed upper bound.
+//
+// Use cases: age verification (prove age >= 18), bid validity checks,
+//            credit score thresholds, salary range proofs.
+
+fn main(value: u32, max_value: pub u32) {
+    assert(value < max_value, "Value is not less than the maximum");
+}`,
+    },
+  ],
+};
+
+const NOIR_ADDER_TEMPLATE: CircuitTemplate = {
+  id: 'noir-adder',
+  name: 'Adder',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves you know two private numbers that sum to a public output.',
+  defaultInputs: { a: '3', b: '5' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Adder — proves knowledge of a, b such that a + b = result.
+//
+// Addition is a linear operation over BN254 field elements, so this circuit
+// has essentially zero non-linear gates (unlike Circom's Adder which needs
+// a dummy multiplier to satisfy Groth16's R1CS format).
+//
+// UltraHonk handles linear constraints natively without R1CS overhead.
+
+fn main(a: Field, b: Field) -> pub Field {
+    a + b
+}`,
+    },
+  ],
+};
+
+const NOIR_COMMITMENT_TEMPLATE: CircuitTemplate = {
+  id: 'noir-commitment',
+  name: 'Commitment',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves knowledge of a secret and blinding factor whose Poseidon commitment equals a public value.',
+  defaultInputs: { secret: '42', blinding: '7' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Pedersen-style Commitment
+//
+// Proves knowledge of (secret, blinding) such that
+//   commitment = Poseidon2(secret, blinding)
+// without revealing secret or blinding.
+//
+// Use case: commit to a value off-chain (publish the hash), then later
+// prove ownership of the committed value in a ZK proof — e.g. blind auctions,
+// voting precommitments, or private identity attributes.
+//
+// The commitment is returned as the function's public output.
+// The verifier sees commitment but not secret or blinding.
+
+fn main(secret: Field, blinding: Field) -> pub Field {
+    std::hash::poseidon::bn254::hash_2([secret, blinding])
+}`,
+    },
+  ],
+};
+
+const NOIR_MERKLE_MEMBERSHIP_TEMPLATE: CircuitTemplate = {
+  id: 'noir-merkle-membership',
+  name: 'Merkle Membership',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves a private leaf is a member of a Merkle tree without revealing the leaf or its position.',
+  defaultInputs: {
+    leaf: '42',
+    index: '0',
+    hashpath: ['0', '0', '0'],
+  },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Merkle Membership (depth 3 = up to 8 members)
+//
+// Proves a private leaf exists in a Merkle tree whose root is the
+// publicly returned value, without revealing the leaf or its index.
+//
+// std::merkle::compute_merkle_root reconstructs the root from the leaf,
+// its index (as a bit-decomposed path), and the sibling hashes at each level.
+//
+// Use cases: NFT allowlists, airdrop eligibility, anonymous authentication,
+//            private set membership proofs.
+//
+// \`hashpath\` is an array of sibling hashes from leaf to root.
+// For a depth-3 tree, index is a 3-bit number (0-7).
+
+fn main(leaf: Field, index: Field, hashpath: [Field; 3]) -> pub Field {
+    std::merkle::compute_merkle_root(leaf, index, hashpath)
+}`,
+    },
+  ],
+};
+
+const NOIR_ANON_VOTING_TEMPLATE: CircuitTemplate = {
+  id: 'noir-anon-voting',
+  name: 'Anonymous Voting',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Proves a valid anonymous vote with a Poseidon nullifier to prevent double-voting.',
+  defaultInputs: { voter_secret: '12345', vote: '1', proposal_id: '7' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Anonymous Voting
+//
+// Proves a valid anonymous vote (0 = No, 1 = Yes) from an eligible voter,
+// producing a nullifier to prevent double-voting.
+//
+// How it works:
+//   1. \`vote\` is a u8 constrained to {0, 1} via assert.
+//   2. \`nullifier\` = Poseidon(voter_secret, proposal_id) — unique per
+//      voter per proposal. The smart contract rejects duplicate nullifiers.
+//   3. The nullifier is public, vote and voter_secret are private.
+//
+// Unlike Circom, Noir's native integer types (u8) automatically enforce
+// bit-width bounds, reducing constraint overhead.
+
+fn main(voter_secret: Field, vote: u8, proposal_id: pub Field) -> pub Field {
+    // Enforce binary vote: only 0 or 1 is valid
+    assert(vote == 0 || vote == 1, "Vote must be 0 (No) or 1 (Yes)");
+
+    // Nullifier prevents double-voting — unique per (voter, proposal)
+    std::hash::poseidon::bn254::hash_2([voter_secret, proposal_id])
+}`,
+    },
+  ],
+};
+
+const NOIR_BOOLEAN_LOGIC_TEMPLATE: CircuitTemplate = {
+  id: 'noir-boolean-logic',
+  name: 'Boolean Logic',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Showcases Noir native bool type and bitwise operations — no trusted setup required.',
+  defaultInputs: { a: '12', b: '10', expected_and: '8' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Boolean Logic — native integer bitwise operations
+//
+// Demonstrates Noir's native u32 bitwise AND, with the result publicly
+// asserted. Equivalent logic in Circom would require bit-decomposition
+// (~32 non-linear constraints per bit) — Noir handles it natively.
+//
+// Examples:
+//   12 & 10 = 8    (binary: 1100 & 1010 = 1000)
+//   255 & 127 = 127
+//   7 & 5 = 5
+//
+// Use cases: bitmask checks (permission flags, feature flags),
+//            low-level cryptographic operations, bitfield proofs.
+
+fn main(a: u32, b: u32, expected_and: pub u32) {
+    let result = a & b;
+    assert(result == expected_and, "Bitwise AND result does not match expected");
+}`,
+    },
+  ],
+};
+
+const NOIR_CUSTOM_TEMPLATE: CircuitTemplate = {
+  id: 'noir-custom',
+  name: 'Custom (Blank)',
+  language: 'noir',
+  entrypoint: 'src/main.nr',
+  description: 'Start from scratch with a minimal Noir circuit scaffold. No trusted setup required.',
+  defaultInputs: { x: '1' },
+  files: [
+    {
+      filename: 'src/main.nr',
+      content: `// Write your Noir circuit here.
+//
+// Quick reference:
+//   fn main(x: Field)          private input (not revealed to verifier)
+//   fn main(x: pub Field)      public input (verifier knows this value)
+//   fn main(x: Field) -> Field public return value
+//   assert(expr, "msg")        constraint — proof fails if expr is false
+//   u32, u64, i32, bool        native integer and boolean types
+//
+// Noir uses UltraHonk: no trusted setup (no .ptau / .zkey files needed).
+// Proving time scales with circuit depth, not number of constraints alone.
+//
+// To use standard library functions:
+//   std::hash::poseidon::bn254::hash_1([x])   Poseidon hash (BN254)
+//   std::hash::sha256::digest(bytes)           SHA-256
+
+fn main(x: Field) {
+    // Add your constraints here
+    assert(x != 0, "x must be non-zero");
+}`,
     },
   ],
 };

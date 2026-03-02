@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compileCircom } from '@/lib/circom/compileCircom';
+import { compileNoir } from '@/lib/noir/compileNoir';
 import { CompileSource, LanguageId } from '@/lib/circom/types';
 
 // Ensure this route always runs in the Node.js runtime (not Edge).
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     compileSource = { language, files, entrypoint };
   } else if (typeof b.source === 'string') {
     // Legacy single-file path — wrap in files array
-    const filename = (b.filename as string) ?? (language === 'noir' ? 'circuit.nr' : 'circuit.circom');
+    const filename = (b.filename as string) ?? (language === 'noir' ? 'src/main.nr' : 'circuit.circom');
     compileSource = {
       language,
       files: [{ filename, content: b.source }],
@@ -62,7 +63,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const compileResult = await compileCircom(compileSource);
+  // For Noir, auto-set entrypoint to src/main.nr if not specified
+  if (language === 'noir' && !compileSource.entrypoint) {
+    compileSource = { ...compileSource, entrypoint: 'src/main.nr' };
+  }
+
+  const compileResult = language === 'noir'
+    ? await compileNoir(compileSource)
+    : await compileCircom(compileSource);
 
   // Buffer objects cannot be directly serialized into Next.js JSON responses.
   // We explicitly convert them to base64 strings if the compilation succeeded.

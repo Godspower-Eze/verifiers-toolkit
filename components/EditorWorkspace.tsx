@@ -4,8 +4,9 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type * as MonacoNS from 'monaco-editor';
 import type { CircuitTemplate } from '@/lib/circom/circuitTemplates';
-import type { CompileError, CompileResponse, CompileSuccessResponse, CircomCompileResult } from '@/lib/circom/types';
+import type { CompileError, CompileResponse, CompileSuccessResponse, CircomCompileResult, NoirCompileResult, LanguageId } from '@/lib/circom/types';
 import { parseSymInputSignals, parseCircomInputSignals } from '@/lib/circom/parseInputSignals';
+import { parseNoirInputs } from '@/lib/noir/parseNoirInputs';
 import styles from './EditorWorkspace.module.css';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
@@ -65,6 +66,8 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   const setOut1 = useCallback((v: number) => { outH1Ref.current = v; _setOutputHeight1(v); }, []);
 
   // ── Circuit state — multi-file
+  const [language, setLanguage] = useState<LanguageId>('circom');
+  const languageRef = useRef<LanguageId>('circom');
   const [templates, setTemplates] = useState<CircuitTemplate[]>([]);
   const [selectedId, setSelectedId] = useState('');
   // Refs so the compile-success useEffect can read latest values without being
@@ -118,32 +121,47 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   // ── Auto-populate signal inputs from entrypoint source on successful compilation
   useEffect(() => {
     if (compileState !== 'success') return;
-    const entrypointContent = fileContents[entrypoint] ?? '';
 
-    // Prefer sym-based parsing — handles template-parameter arrays and
-    // comma-separated declarations that trip up the regex fallback.
-    const symContent = compileResult?.success
-      ? ((compileResult as CompileSuccessResponse).result as CircomCompileResult).symContent
-      : undefined;
+    const activeTemplate = templatesRef.current.find((t) => t.id === selectedIdRef.current);
+    let signals: Record<string, unknown> = {};
 
-    let signals = symContent
-      ? parseSymInputSignals(symContent, entrypointContent)
-      : parseCircomInputSignals(entrypointContent);
+    if (languageRef.current === 'noir') {
+      // Noir: use the ABI from the compiled artifact for authoritative input inference
+      const noirResult = compileResult?.success
+        ? ((compileResult as CompileSuccessResponse).result as NoirCompileResult)
+        : undefined;
+      if (noirResult?.abi) {
+        signals = parseNoirInputs(noirResult.abi) as Record<string, unknown>;
+      }
+      // For Noir there is no Setup step — go straight to Prove tab
+      setRightTab('prove');
+    } else {
+      // Circom: prefer sym-based parsing (handles template arrays, comma-separated decls)
+      const entrypointContent = fileContents[entrypoint] ?? '';
+      const symContent = compileResult?.success
+        ? ((compileResult as CompileSuccessResponse).result as CircomCompileResult).symContent
+        : undefined;
 
-    // If sym parsing returned nothing (malformed sym), fall back to regex
-    if (symContent && Object.keys(signals).length === 0) {
-      signals = parseCircomInputSignals(entrypointContent);
+      let circomSignals = symContent
+        ? parseSymInputSignals(symContent, entrypointContent)
+        : parseCircomInputSignals(entrypointContent);
+
+      // If sym parsing returned nothing (malformed sym), fall back to regex
+      if (symContent && Object.keys(circomSignals).length === 0) {
+        circomSignals = parseCircomInputSignals(entrypointContent);
+      }
+      signals = circomSignals as Record<string, unknown>;
+      setRightTab('setup');
     }
 
     // Overlay pre-computed valid defaults from the active template.
-    // Sym parsing gives the correct structure (names + array sizes);
+    // Inference gives the correct structure (names + array sizes);
     // defaultInputs supplies real values so the first proof attempt succeeds.
-    const activeTemplate = templatesRef.current.find((t) => t.id === selectedIdRef.current);
     if (activeTemplate?.defaultInputs) {
       const defaults = activeTemplate.defaultInputs;
       for (const key of Object.keys(signals)) {
         if (Object.prototype.hasOwnProperty.call(defaults, key)) {
-          (signals as Record<string, unknown>)[key] = defaults[key];
+          signals[key] = defaults[key];
         }
       }
     }
@@ -151,7 +169,6 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
     if (Object.keys(signals).length > 0) {
       setSignalsInput(JSON.stringify(signals, null, 2));
     }
-    setRightTab('setup');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compileState]);
 
@@ -171,6 +188,8 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   const applyTemplate = useCallback((t: CircuitTemplate) => {
     setSelectedId(t.id);
     selectedIdRef.current = t.id;
+    setLanguage(t.language);
+    languageRef.current = t.language;
     const tabs = t.files.map((f) => ({ id: f.filename, filename: f.filename }));
     const contents: Record<string, string> = {};
     for (const f of t.files) contents[f.filename] = f.content;
@@ -180,6 +199,11 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
     setEntrypoint(t.entrypoint);
     setCompileResult(null);
     setCompileState('idle');
+    setSetupState('idle');
+    setSetupResult(null);
+    setVkState('idle');
+    setProveState('idle');
+    setProveResult(null);
     clearEditorMarkers();
   }, []);
 
@@ -191,10 +215,12 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
   const commitAddFile = useCallback(() => {
     const name = newFileName.trim();
     if (!name) { setAddingFile(false); return; }
-    const filename = name.endsWith('.circom') ? name : `${name}.circom`;
+    const ext = languageRef.current === 'noir' ? '.nr' : '.circom';
+    const filename = name.endsWith(ext) ? name : `${name}${ext}`;
     if (fileTabs.some((t) => t.filename === filename)) { setAddingFile(false); return; }
+    const defaultContent = languageRef.current === 'noir' ? `// ${filename}\n` : `pragma circom 2.0.0;\n`;
     setFileTabs((prev) => [...prev, { id: filename, filename }]);
-    setFileContents((prev) => ({ ...prev, [filename]: `pragma circom 2.0.0;\n` }));
+    setFileContents((prev) => ({ ...prev, [filename]: defaultContent }));
     setActiveFileId(filename);
     setAddingFile(false);
   }, [newFileName, fileTabs]);
@@ -231,7 +257,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
         body: JSON.stringify({
           files: fileTabs.map((tab) => ({ filename: tab.filename, content: fileContents[tab.id] ?? '' })),
           entrypoint,
-          language: 'circom',
+          language,
         }),
       });
       const result: CompileResponse = await resp.json();
@@ -382,8 +408,24 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
               <div className={styles.paneLabelLeft}>
                 <span>Circuit</span>
                 <div className={styles.langSwitcher}>
-                  <span className={styles.langActive}>Circom 2.0</span>
-                  <span className={styles.langSoon} title="Coming soon">Noir</span>
+                  <button
+                    className={language === 'circom' ? styles.langActive : styles.langInactive}
+                    onClick={() => {
+                      const first = templatesRef.current.find((t) => t.language === 'circom');
+                      if (first) applyTemplate(first);
+                    }}
+                  >
+                    Circom 2.0
+                  </button>
+                  <button
+                    className={language === 'noir' ? styles.langActive : styles.langInactive}
+                    onClick={() => {
+                      const first = templatesRef.current.find((t) => t.language === 'noir');
+                      if (first) applyTemplate(first);
+                    }}
+                  >
+                    Noir
+                  </button>
                 </div>
               </div>
             </div>
@@ -399,7 +441,9 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                 }}
                 style={{ flex: 1, maxWidth: 300 }}
               >
-                {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                {templates
+                  .filter((t) => t.language === language)
+                  .map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
           </div>
@@ -451,7 +495,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   placeholder="filename"
                   style={{ padding: '2px 4px 2px 6px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: 12, width: 100, outline: 'none' }}
                 />
-                <span style={{ color: '#64748b', fontSize: 12, paddingRight: 6, userSelect: 'none', flexShrink: 0 }}>.circom</span>
+                <span style={{ color: '#64748b', fontSize: 12, paddingRight: 6, userSelect: 'none', flexShrink: 0 }}>{language === 'noir' ? '.nr' : '.circom'}</span>
               </div>
             ) : (
               <button
@@ -577,25 +621,27 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
         ) : (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-            {/* Tab bar */}
+            {/* Tab bar — Setup is hidden for Noir (no trusted setup needed) */}
             <div style={{ display: 'flex', gap: 32, borderBottom: '1px solid #222', padding: '0 24px', background: '#0a0a0c' }}>
-              <button
-                onClick={() => setRightTab('setup')}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: rightTab === 'setup' ? '2px solid #3b82f6' : '2px solid transparent',
-                  color: rightTab === 'setup' ? '#f8fafc' : '#94a3b8',
-                  padding: '16px 4px',
-                  fontSize: 14,
-                  fontWeight: rightTab === 'setup' ? 600 : 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  outline: 'none',
-                }}
-              >
-                Setup
-              </button>
+              {language === 'circom' && (
+                <button
+                  onClick={() => setRightTab('setup')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: rightTab === 'setup' ? '2px solid #3b82f6' : '2px solid transparent',
+                    color: rightTab === 'setup' ? '#f8fafc' : '#94a3b8',
+                    padding: '16px 4px',
+                    fontSize: 14,
+                    fontWeight: rightTab === 'setup' ? 600 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    outline: 'none',
+                  }}
+                >
+                  Setup
+                </button>
+              )}
               <button
                 onClick={() => setRightTab('prove')}
                 style={{
@@ -778,42 +824,57 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                      </h3>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
-                    {/* WASM status */}
-                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #222', borderRadius: 8, padding: 16 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: 13 }}>✓</span>
-                        <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>{wasmName} from compilation</span>
+                  {language === 'circom' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+                      {/* WASM status (Circom only) */}
+                      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #222', borderRadius: 8, padding: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: 13 }}>✓</span>
+                          <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>{wasmName} from compilation</span>
+                        </div>
+                        <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+                          The compiled WebAssembly executable representation of your circuit constraints.
+                          It is used by the prover to calculate the final <strong>witness</strong> vectors (intermediate signals) from your private inputs.
+                        </p>
                       </div>
-                      <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
-                        The compiled WebAssembly executable representation of your circuit constraints. 
-                        It is used by the prover to calculate the final <strong>witness</strong> vectors (intermediate signals) from your private inputs.
-                      </p>
-                    </div>
 
-                    {/* ZKey status */}
-                    <div style={{ background: hasZkey ? 'rgba(16, 185, 129, 0.02)' : 'rgba(255,255,255,0.02)', border: hasZkey ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid #333', borderRadius: 8, padding: 16 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: hasZkey ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', color: hasZkey ? '#10b981' : '#64748b', fontSize: 13 }}>{hasZkey ? '✓' : '✗'}</span>
-                        <span style={{ color: hasZkey ? '#e2e8f0' : '#a1a1aa', fontSize: 14, fontWeight: 600 }}>
-                          {hasZkey ? 'ZKey from Setup' : 'Run Setup to generate ZKey'}
-                        </span>
+                      {/* ZKey status (Circom only) */}
+                      <div style={{ background: hasZkey ? 'rgba(16, 185, 129, 0.02)' : 'rgba(255,255,255,0.02)', border: hasZkey ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid #333', borderRadius: 8, padding: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: hasZkey ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', color: hasZkey ? '#10b981' : '#64748b', fontSize: 13 }}>{hasZkey ? '✓' : '✗'}</span>
+                          <span style={{ color: hasZkey ? '#e2e8f0' : '#a1a1aa', fontSize: 14, fontWeight: 600 }}>
+                            {hasZkey ? 'ZKey from Setup' : 'Run Setup to generate ZKey'}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+                          The cryptographic <strong>Proving Key</strong> generated exclusively during the Trusted Setup phase.
+                          It contains the specific cryptographic parameters required to mathematically prove knowledge of the calculated witness.
+                        </p>
                       </div>
-                      <p style={{ margin: 0, paddingLeft: 30, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
-                        The cryptographic <strong>Proving Key</strong> generated exclusively during the Trusted Setup phase. 
-                        It contains the specific cryptographic parameters required to mathematically prove knowledge of the calculated witness.
+                    </div>
+                  )}
+
+                  {language === 'noir' && (
+                    <div style={{ marginBottom: 24, padding: 16, background: 'rgba(6, 182, 212, 0.04)', border: '1px solid rgba(6, 182, 212, 0.15)', borderRadius: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ color: '#06b6d4', fontSize: 13 }}>✓</span>
+                        <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 600 }}>UltraHonk — No Trusted Setup Required</span>
+                      </div>
+                      <p style={{ margin: 0, paddingLeft: 22, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+                        Noir uses the <strong>UltraHonk</strong> proof system — a transparent scheme with no circuit-specific trusted setup (no ptau or ZKey files).
+                        Proofs are generated directly from the ACIR bytecode + your witness inputs.
                       </p>
                     </div>
-                  </div>
+                  )}
 
                   {/* Circuit Inputs */}
                   <div style={{ marginBottom: 24 }}>
                     <label style={{ display: 'block', fontSize: 13, color: '#e2e8f0', marginBottom: 8, fontWeight: 500 }}>Circuit Inputs (Private &amp; Public Signals)</label>
                     <div style={{ position: 'relative' }}>
                       <textarea
-                        style={{ 
-                          width: '100%', height: 160, background: '#0a0a0c', border: '1px solid #334155', color: '#e2e8f0', 
-                          padding: 16, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 13, borderRadius: 8, 
+                        style={{
+                          width: '100%', height: 160, background: '#0a0a0c', border: '1px solid #334155', color: '#e2e8f0',
+                          padding: 16, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 13, borderRadius: 8,
                           boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s', resize: 'vertical'
                         }}
                         value={signalsInput}
@@ -832,13 +893,16 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                   <div style={{ marginBottom: proveState === 'success' ? 24 : 0 }}>
                     <button
                       className={`${styles.compileBtn} ${styles[proveState]}`}
-                      onClick={handleProve}
-                      disabled={proveState === 'compiling' || !hasZkey}
-                      style={{ width: '100%', padding: '14px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, transition: 'all 0.2s' }}
+                      onClick={language === 'noir' ? undefined : handleProve}
+                      disabled={proveState === 'compiling' || (language === 'circom' && !hasZkey) || language === 'noir'}
+                      title={language === 'noir' ? 'Noir proving coming soon' : undefined}
+                      style={{ width: '100%', padding: '14px 16px', fontSize: 13, borderRadius: 8, fontWeight: 600, transition: 'all 0.2s', opacity: language === 'noir' ? 0.5 : 1 }}
                     >
                       {proveState === 'compiling'
-                        ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Computing Witness & Generating Proof…</>
-                        : 'Create Proof'}
+                        ? <><span className={styles.spinner} style={{ marginRight: 8 }} />Computing Witness &amp; Generating Proof…</>
+                        : language === 'noir'
+                          ? 'Generate Proof (Coming Soon)'
+                          : 'Create Proof'}
                     </button>
                   </div>
 

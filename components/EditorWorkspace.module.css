@@ -306,6 +306,25 @@
   letter-spacing: 0;
 }
 
+.langInactive {
+  background: transparent;
+  color: #666;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.langInactive:hover {
+  background: rgba(255,255,255,0.06);
+  color: #aaa;
+  border-color: rgba(255,255,255,0.15);
+}
+
 /* ─── Cairo verifier pane (col 2) ────────────────────────────────────────── */
 
 .cairoPane {
