@@ -96,11 +96,24 @@ export async function compileNoir(source: CompileSource): Promise<CompileRespons
     };
   }
 
-  // ── Step 4: Normalize and return ───────────────────────────────────────────
+  // ── Step 4: Get gate count ─────────────────────────────────────────────────
+
+  const normalized = normalizeNoirOutput(raw);
+  let gateCount = 0;
+  let acirOpcodeCount = 0;
+  try {
+    const { circuitSize, acirOpcodes } = await compiler.getGateCount(raw.acirJson!);
+    gateCount = circuitSize;
+    acirOpcodeCount = acirOpcodes;
+  } catch {
+    // Gate count is optional - don't fail if bb gates fails
+  }
+
+  // ── Step 5: Normalize and return ───────────────────────────────────────────
 
   return {
     success: true,
     language: source.language,
-    result: normalizeNoirOutput(raw),
+    result: { ...normalized, gateCount, acirOpcodeCount },
   };
 }

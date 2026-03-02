@@ -86,6 +86,7 @@ export function normalizeNoirOutput(raw: RawNoirOutput): NoirCompileResult {
 
   return {
     gateCount: 0,
+    acirOpcodeCount: 0,
     warnings,
     abi: artifact.abi,
     acirBase64: artifact.bytecode,

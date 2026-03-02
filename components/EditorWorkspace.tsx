@@ -595,27 +595,64 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
             <span>Compiler Output</span>
           </div>
           <div className={styles.outputContent} style={{ flex: 1, overflowY: 'auto' }}>
-            {compileState === 'idle' && <p className={styles.outputHint}>Click <b>▶ Compile Circuit</b> to compile your `.circom` code.</p>}
+{compileState === 'idle' && <p className={styles.outputHint}>Click <b>▶ Compile Circuit</b> to compile your <b>{language === 'noir' ? '.nr' : '.circom'}</b> code.</p>}
             {compileState === 'compiling' && <p className={styles.outputHint}>Compiling constraints and generating WebAssembly witness calculator…</p>}
 
             {compileState === 'success' && compileResult?.success && (
               <div className={styles.successBlock} style={{ fontSize: 13, padding: 16 }}>
                 <div style={{ color: '#10b981', marginBottom: 8, fontWeight: 600 }}>✓ Circuit Compiled Successfully</div>
-                <table className={styles.statsTable} style={{ marginBottom: 12 }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ paddingRight: 32, paddingBottom: 4 }}>Non-linear constraints</td>
-                      <td style={{ paddingBottom: 4 }}><strong>{(compileResult.result as any).constraintCount}</strong></td>
-                    </tr>
-                    {(compileResult.result as any).wireCount !== undefined && (
-                      <tr>
-                        <td style={{ paddingRight: 32 }}>Wires</td>
-                        <td><strong>{(compileResult.result as any).wireCount}</strong></td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-                {(compileResult.result as any).warnings.length > 0 && (
+                  <table className={styles.statsTable} style={{ marginBottom: 12 }}>
+                    <tbody>
+                      {language === 'noir' ? (
+                        <>
+                          <tr>
+                            <td style={{ paddingRight: 32, paddingBottom: 4 }}>System</td>
+                            <td style={{ paddingBottom: 4 }}><strong>UltraHonk</strong></td>
+                          </tr>
+                          <tr>
+                            <td style={{ paddingRight: 32, paddingBottom: 4 }}>Trusted Setup</td>
+                            <td style={{ paddingBottom: 4 }}><strong style={{ color: '#10b981' }}>None (Transparent)</strong></td>
+                          </tr>
+                          {(compileResult.result as any).gateCount !== undefined && (
+                            <>
+                              <tr>
+                                <td style={{ paddingRight: 32, paddingBottom: 4 }}>Circuit Size</td>
+                                <td style={{ paddingBottom: 4 }}><strong>{(compileResult.result as any).gateCount.toLocaleString()}</strong></td>
+                              </tr>
+                              {(compileResult.result as any).acirOpcodeCount !== undefined && (compileResult.result as any).acirOpcodeCount > 0 && (
+                                <tr>
+                                  <td style={{ paddingRight: 32 }}>ACIR Opcodes</td>
+                                  <td><strong>{(compileResult.result as any).acirOpcodeCount.toLocaleString()}</strong></td>
+                                </tr>
+                              )}
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <tr>
+                            <td style={{ paddingRight: 32, paddingBottom: 4 }}>System</td>
+                            <td style={{ paddingBottom: 4 }}><strong>Groth16</strong></td>
+                          </tr>
+                          <tr>
+                            <td style={{ paddingRight: 32, paddingBottom: 4 }}>Trusted Setup</td>
+                            <td style={{ paddingBottom: 4 }}><strong style={{ color: '#f59e0b' }}>Required (Phase 2)</strong></td>
+                          </tr>
+                          <tr>
+                            <td style={{ paddingRight: 32, paddingBottom: 4 }}>Non-linear constraints</td>
+                            <td style={{ paddingBottom: 4 }}><strong>{(compileResult.result as any).constraintCount}</strong></td>
+                          </tr>
+                          {(compileResult.result as any).wireCount !== undefined && (
+                            <tr>
+                              <td style={{ paddingRight: 32 }}>Wires</td>
+                              <td><strong>{(compileResult.result as any).wireCount}</strong></td>
+                            </tr>
+                          )}
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                {(compileResult.result as any).warnings?.length > 0 && (
                   <div className={styles.warningsList} style={{ marginTop: 12 }}>
                     <strong>Warnings:</strong>
                     <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
@@ -1141,19 +1178,56 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
               <div style={{ color: '#10b981', marginBottom: 8, fontWeight: 600 }}>✓ Circuit Compiled Successfully</div>
               <table className={styles.statsTable} style={{ marginBottom: 12 }}>
                 <tbody>
-                  <tr>
-                    <td style={{ paddingRight: 32, paddingBottom: 4 }}>Non-linear constraints</td>
-                    <td style={{ paddingBottom: 4 }}><strong>{(compileResult.result as any).constraintCount}</strong></td>
-                  </tr>
-                  {(compileResult.result as any).wireCount !== undefined && (
-                    <tr>
-                      <td style={{ paddingRight: 32 }}>Wires</td>
-                      <td><strong>{(compileResult.result as any).wireCount}</strong></td>
-                    </tr>
+                  {language === 'noir' ? (
+                    <>
+                      <tr>
+                        <td style={{ paddingRight: 32, paddingBottom: 4 }}>System</td>
+                        <td style={{ paddingBottom: 4 }}><strong>UltraHonk</strong></td>
+                      </tr>
+                      <tr>
+                        <td style={{ paddingRight: 32, paddingBottom: 4 }}>Trusted Setup</td>
+                        <td style={{ paddingBottom: 4 }}><strong style={{ color: '#10b981' }}>None (Transparent)</strong></td>
+                      </tr>
+                      {(compileResult.result as any).gateCount !== undefined && (
+                        <>
+                          <tr>
+                            <td style={{ paddingRight: 32, paddingBottom: 4 }}>Circuit Size</td>
+                            <td style={{ paddingBottom: 4 }}><strong>{(compileResult.result as any).gateCount.toLocaleString()}</strong></td>
+                          </tr>
+                          {(compileResult.result as any).acirOpcodeCount !== undefined && (compileResult.result as any).acirOpcodeCount > 0 && (
+                            <tr>
+                              <td style={{ paddingRight: 32 }}>ACIR Opcodes</td>
+                              <td><strong>{(compileResult.result as any).acirOpcodeCount.toLocaleString()}</strong></td>
+                            </tr>
+                          )}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <tr>
+                        <td style={{ paddingRight: 32, paddingBottom: 4 }}>System</td>
+                        <td style={{ paddingBottom: 4 }}><strong>Groth16</strong></td>
+                      </tr>
+                      <tr>
+                        <td style={{ paddingRight: 32, paddingBottom: 4 }}>Trusted Setup</td>
+                        <td style={{ paddingBottom: 4 }}><strong style={{ color: '#f59e0b' }}>Required (Phase 2)</strong></td>
+                      </tr>
+                      <tr>
+                        <td style={{ paddingRight: 32, paddingBottom: 4 }}>Non-linear constraints</td>
+                        <td style={{ paddingBottom: 4 }}><strong>{(compileResult.result as any).constraintCount}</strong></td>
+                      </tr>
+                      {(compileResult.result as any).wireCount !== undefined && (
+                        <tr>
+                          <td style={{ paddingRight: 32 }}>Wires</td>
+                          <td><strong>{(compileResult.result as any).wireCount}</strong></td>
+                        </tr>
+                      )}
+                    </>
                   )}
                 </tbody>
               </table>
-              {(compileResult.result as any).warnings.length > 0 && (
+              {(compileResult.result as any).warnings?.length > 0 && (
                 <div className={styles.warningsList} style={{ marginTop: 12 }}>
                   <strong>Warnings:</strong>
                   <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>

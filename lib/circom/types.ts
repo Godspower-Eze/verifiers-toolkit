@@ -170,11 +170,13 @@ export interface NoirAbi {
  */
 export interface NoirCompileResult {
   /**
-   * Number of ACIR opcodes (gates).
-   * Set to 0 when nargo does not report it directly (nargo v1.x does not
-   * expose gate count in the JSON; a separate `bb gates` call would be needed).
+   * Number of gates (circuit size) from bb gates.
    */
   gateCount: number;
+  /**
+   * Number of ACIR opcodes from bb gates.
+   */
+  acirOpcodeCount: number;
   /** Warnings emitted by nargo (lines matching `[warning]` in stdout). */
   warnings: string[];
   /**

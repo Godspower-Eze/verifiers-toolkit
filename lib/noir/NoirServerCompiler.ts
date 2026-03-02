@@ -27,6 +27,14 @@ export const TEMP_DIR_PREFIX = 'noir-';
 const NARGO_PATH = process.env.NARGO_PATH ?? 'nargo';
 
 /**
+ * Path to the barretenberg binary.
+ */
+const BB_PATH = process.env.BB_PATH ?? 'bb';
+
+/** Timeout for bb gates. */
+const GATES_TIMEOUT_MS = 30_000;
+
+/**
  * Auto-generated Nargo.toml written to the temp project.
  *
  * Why auto-generate: users shouldn't need to know the Nargo manifest format
@@ -39,6 +47,7 @@ const NARGO_PATH = process.env.NARGO_PATH ?? 'nargo';
 const DEFAULT_NARGO_TOML = `[package]
 name = "circuit"
 type = "bin"
+authors = []
 
 [dependencies]
 `;
@@ -130,6 +139,51 @@ export class NoirServerCompiler {
       return { stdout, stderr, acirJson };
     } finally {
       // Always clean up — even on error
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
+    }
+  }
+
+  /**
+   * Get the gate count for a compiled ACIR bytecode.
+   * Uses `bb gates` to count the number of gates in the circuit.
+   * @param acirJson The full ACIR JSON from nargo compile (not just bytecode)
+   * @returns Object with circuitSize (gates) and acirOpcodeCount
+   */
+  async getGateCount(acirJson: string): Promise<{ circuitSize: number; acirOpcodes: number }> {
+    const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), TEMP_DIR_PREFIX));
+
+    try {
+      const bytecodePath = path.join(tempDir, 'circuit.json');
+      await fs.promises.writeFile(bytecodePath, acirJson, 'utf8');
+
+      try {
+        const result = await execFileAsync(
+          BB_PATH,
+          [
+            'gates',
+            '-s', 'ultra_honk',
+            '--oracle_hash', 'keccak',
+            '-b', bytecodePath,
+          ],
+          {
+            cwd: tempDir,
+            timeout: GATES_TIMEOUT_MS,
+            maxBuffer: 10 * 1024 * 1024,
+          },
+        );
+
+        const output = result.stdout ?? '';
+        const circuitSizeMatch = output.match(/"circuit_size":\s*(\d+)/);
+        const acirOpcodesMatch = output.match(/"acir_opcodes":\s*(\d+)/);
+        
+        return {
+          circuitSize: circuitSizeMatch ? parseInt(circuitSizeMatch[1], 10) : 0,
+          acirOpcodes: acirOpcodesMatch ? parseInt(acirOpcodesMatch[1], 10) : 0,
+        };
+      } catch {
+        return { circuitSize: 0, acirOpcodes: 0 };
+      }
+    } finally {
       await fs.promises.rm(tempDir, { recursive: true, force: true });
     }
   }
