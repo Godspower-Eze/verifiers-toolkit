@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useLayoutEffect } from 'react';
 import type { ValidatedVk } from '@/lib/vk/types';
 import type { GeneratedVerifier } from '@/lib/verifier/types';
-import VkPanel from './VkPanel';
+import VkPanel, { VkFormat } from './VkPanel';
 import styles from './EditorWorkspace.module.css';
 import { useStarknetWalletContext } from '@/components/StarknetWalletProvider';
 import { getChainName } from '@/lib/starknet/constants';
@@ -62,7 +62,8 @@ export default function VkWorkspace() {
   }, [setOut2, startDrag]);
 
   // ── Verifier State
-  const [validVk, setValidVk] = useState<ValidatedVk | null>(null);
+  const [validVk, setValidVk] = useState<ValidatedVk | { vkBase64: string } | null>(null);
+  const [vkFormat, setVkFormat] = useState<VkFormat>('circom');
   const [generateState, setGenerateState] = useState<GenerateState>('idle');
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [verifier, setVerifier] = useState<GeneratedVerifier | null>(null);
@@ -88,16 +89,32 @@ export default function VkWorkspace() {
     setGenerateState('generating');
     setGenerateError(null);
     setVerifier(null);
-    resetDeployState(); // Reset any past deployment cache so new verifiers must be compiled
+    resetDeployState();
+
+    const isNoir = vkFormat === 'noir' || ('vkBase64' in validVk);
+
     try {
-      const resp = await fetch('/api/verifier/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vk: validVk }),
-      });
+      let resp: Response;
+      if (isNoir) {
+        // Noir: use binary VK
+        resp = await fetch('/api/circuit/noir/verifier/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vkBase64: (validVk as { vkBase64: string }).vkBase64 }),
+        });
+      } else {
+        // Circom: use JSON VK
+        resp = await fetch('/api/verifier/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vk: validVk as ValidatedVk }),
+        });
+      }
+      
       const data = await resp.json() as
         | { success: true; verifier: GeneratedVerifier }
         | { success: false; error: string };
+      
       if (data.success) {
         setGenerateState('success');
         setVerifier(data.verifier);
@@ -109,7 +126,7 @@ export default function VkWorkspace() {
       setGenerateState('error');
       setGenerateError(String(err));
     }
-  }, [validVk]);
+  }, [validVk, vkFormat]);
 
   // ── Render
   return (
@@ -121,8 +138,9 @@ export default function VkWorkspace() {
           <div className={styles.paneLabelSmall}><span>Verification Key</span></div>
           <div style={{ flex: 1, overflow: 'auto', minHeight: 0, minWidth: 0 }}>
             <VkPanel
-              onValidVk={(vk) => { setValidVk(vk); setGenerateState('idle'); setVerifier(null); }}
+              onValidVk={(vk, format) => { setValidVk(vk); setVkFormat(format); setGenerateState('idle'); setVerifier(null); }}
               onClearVk={() => { setValidVk(null); setVerifier(null); setGenerateState('idle'); }}
+              initialFormat={vkFormat}
             />
           </div>
 

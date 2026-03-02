@@ -76,9 +76,11 @@ export class CircomServerCompiler {
     const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), TEMP_DIR_PREFIX));
 
     try {
-      // Step 1: Write all project files to temp dir
+      // Step 1: Write all project files to temp dir (creating subdirectories as needed)
       for (const file of source.files) {
         const filePath = path.join(tempDir, file.filename);
+        const fileDir = path.dirname(filePath);
+        await fs.promises.mkdir(fileDir, { recursive: true });
         await fs.promises.writeFile(filePath, file.content, 'utf8');
       }
 

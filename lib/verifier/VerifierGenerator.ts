@@ -109,7 +109,7 @@ export class VerifierGenerator {
 
       return {
         success: true,
-        verifier: { projectName: safeName, verifierCairo, constantsCairo, libCairo, scarbToml },
+        verifier: { system: 'groth16', projectName: safeName, verifierCairo, constantsCairo, libCairo, scarbToml },
       };
     } catch (err: unknown) {
       logInternalError('Garaga Verifier Generation (catch)', err);
@@ -132,4 +132,104 @@ interface ExecError extends Error {
 
 function isExecError(err: unknown): err is ExecError {
   return err instanceof Error;
+}
+
+// ─── NoirVerifierGenerator ───────────────────────────────────────────────────────-
+
+export interface NoirGenerateResult {
+  success: boolean;
+  verifier?: {
+    system: 'ultra_keccak_zk_honk';
+    projectName: string;
+    verifierCairo: string;
+    constantsCairo: string;
+    circuitsCairo: string;
+    libCairo: string;
+    scarbToml: string;
+  };
+  error?: string;
+}
+
+/**
+ * NoirVerifierGenerator — runs `garaga gen` with ultra_keccak_zk_honk system
+ * to produce a Cairo verifier from a binary Noir VK.
+ */
+export class NoirVerifierGenerator {
+  async generate(
+    vkBase64: string,
+    projectName = 'honk_verifier',
+  ): Promise<NoirGenerateResult> {
+    const safeName = projectName.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+
+    let vkBuffer: Buffer;
+    try {
+      vkBuffer = Buffer.from(vkBase64, 'base64');
+    } catch {
+      return { success: false, error: 'Invalid base64 VK.' };
+    }
+
+    const tempDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), GARAGA_TEMP_DIR_PREFIX)
+    );
+
+    try {
+      const vkPath = path.join(tempDir, 'vk');
+      await fs.promises.writeFile(vkPath, vkBuffer);
+
+      const args = [
+        'gen',
+        '--system', 'ultra_keccak_zk_honk',
+        '--vk', vkPath,
+        '--project-name', safeName,
+      ];
+
+      try {
+        await execFileAsync(GARAGA_CLI_PATH, args, {
+          cwd: tempDir,
+          timeout: GENERATE_TIMEOUT_MS,
+          maxBuffer: 10 * 1024 * 1024,
+        });
+      } catch (err: unknown) {
+        const msg = isExecError(err)
+          ? (err.stderr ?? err.stdout ?? String(err))
+          : String(err);
+        
+        logInternalError('Garaga Noir Verifier Generation (exec)', err);
+        
+        if (isExecError(err) && (err.killed || err.signal === 'SIGTERM')) {
+          return { success: false, error: `garaga gen timed out.` };
+        }
+        return { success: false, error: `Failed to generate verifier: ${msg}` };
+      }
+
+      const outDir = path.join(tempDir, safeName);
+      const srcDir = path.join(outDir, 'src');
+
+      const [honkVerifierCairo, honkVerifierCircuitsCairo, honkVerifierConstantsCairo, libCairo, scarbToml] = await Promise.all([
+        fs.promises.readFile(path.join(srcDir, 'honk_verifier.cairo'), 'utf8'),
+        fs.promises.readFile(path.join(srcDir, 'honk_verifier_circuits.cairo'), 'utf8'),
+        fs.promises.readFile(path.join(srcDir, 'honk_verifier_constants.cairo'), 'utf8'),
+        fs.promises.readFile(path.join(srcDir, 'lib.cairo'), 'utf8'),
+        fs.promises.readFile(path.join(outDir, 'Scarb.toml'), 'utf8'),
+      ]);
+
+      return {
+        success: true,
+        verifier: { 
+          system: 'ultra_keccak_zk_honk' as const,
+          projectName: safeName, 
+          verifierCairo: honkVerifierCairo,
+          constantsCairo: honkVerifierConstantsCairo,
+          circuitsCairo: honkVerifierCircuitsCairo,
+          libCairo, 
+          scarbToml,
+        },
+      };
+    } catch (err: unknown) {
+      logInternalError('Garaga Noir Verifier Generation (catch)', err);
+      return { success: false, error: "Failed to generate verifier." };
+    } finally {
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
+    }
+  }
 }

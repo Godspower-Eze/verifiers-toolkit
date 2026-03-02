@@ -1,4 +1,4 @@
-export type ProofSystem = 'groth16' | 'sp1' | 'risc0';
+export type ProofSystem = 'groth16' | 'sp1' | 'risc0' | 'ultra_honk';
 
 export interface ProofSummary {
   system: ProofSystem;

@@ -1,39 +1,17 @@
-import { LanguageId, CircomFile } from './types';
+import { CircuitTemplate } from './types';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface CircuitTemplate {
-  /** Unique identifier (stable across renames). */
-  id: string;
-  /** Human-readable name shown in the picker. */
-  name: string;
-  /** One-line description of what the circuit does. */
-  description: string;
-  /** The language this template is written in. */
-  language: LanguageId;
-  /** All files in the template project. */
-  files: CircomFile[];
-  /** Filename of the entry point — must match an entry in `files`. */
-  entrypoint: string;
-  /**
-   * Pre-computed valid example inputs for this circuit.
-   * Values are BigInt strings (or arrays of BigInt strings) so they survive
-   * JSON round-trips and satisfy snarkjs field-element requirements.
-   * Only input signals are included (outputs are excluded).
-   */
-  defaultInputs?: Record<string, string | string[]>;
-}
+// Re-export CircuitTemplate so existing imports from this module still work.
+export type { CircuitTemplate } from './types';
 
 // ─── Templates ────────────────────────────────────────────────────────────────
 
 /**
- * Returns the list of built-in circuit templates.
- *
- * Why: A single source of truth — both the API route and tests use this function.
- * How: Returns immutable data; no I/O, fully synchronous.
+ * Returns all built-in Circom circuit templates.
+ * Custom first, then ordered by increasing complexity.
  */
-export function getCircuitTemplates(): CircuitTemplate[] {
+export function getCircomTemplates(): CircuitTemplate[] {
   return [
+    CUSTOM_TEMPLATE,
     MULTIPLIER_TEMPLATE,
     ADDER_TEMPLATE,
     HASH_PREIMAGE_TEMPLATE,
@@ -42,7 +20,6 @@ export function getCircuitTemplates(): CircuitTemplate[] {
     ANON_VOTING_TEMPLATE,
     EDDSA_VERIFIER_TEMPLATE,
     SEMAPHORE_TEMPLATE,
-    CUSTOM_TEMPLATE,
   ];
 }
 
@@ -492,6 +469,7 @@ component main { public [Ax, Ay, R8x, R8y, M] } = EdDSAVerifier();`,
     },
   ],
 };
+
 
 const CUSTOM_TEMPLATE: CircuitTemplate = {
   id: 'custom',

@@ -18,7 +18,7 @@ const TomlIcon = ({ size = 12, style }: { size?: number, style?: React.CSSProper
   </svg>
 );
 
-type ActiveFile = 'Scarb.toml' | 'lib.cairo' | 'groth16_verifier.cairo' | 'groth16_verifier_constants.cairo';
+type ActiveFile = string;
 
 interface ScarbProjectViewerProps {
   verifier: GeneratedVerifier | null;
@@ -29,17 +29,28 @@ interface ScarbProjectViewerProps {
 }
 
 export default function ScarbProjectViewer({ verifier, generateState, generateError, emptyMessage }: ScarbProjectViewerProps) {
-  const [activeFile, setActiveFile] = useState<ActiveFile>('groth16_verifier.cairo');
+  const isNoir = verifier?.system === 'ultra_keccak_zk_honk';
+  
+  const mainContractFile = isNoir ? 'honk_verifier.cairo' : 'groth16_verifier.cairo';
+  const constantsFile = isNoir ? 'honk_verifier_constants.cairo' : 'groth16_verifier_constants.cairo';
+  const circuitsFile = isNoir ? 'honk_verifier_circuits.cairo' : null;
+  
+  const [activeFile, setActiveFile] = useState<ActiveFile>(mainContractFile);
   const [isRootOpen, setIsRootOpen] = useState(true);
   const [isSrcOpen, setIsSrcOpen] = useState(true);
 
   // ── Helpers
-  const libCairoContent = "mod groth16_verifier_constants;\nmod groth16_verifier;\n";
+  const libCairoContent = isNoir 
+    ? "mod honk_verifier_constants;\nmod honk_verifier_circuits;\nmod honk_verifier;\n"
+    : "mod groth16_verifier_constants;\nmod groth16_verifier;\n";
+    
   const activeContent = verifier
     ? activeFile === 'Scarb.toml' ? verifier.scarbToml
     : activeFile === 'lib.cairo' ? libCairoContent
-    : activeFile === 'groth16_verifier.cairo' ? verifier.verifierCairo
-    : verifier.constantsCairo
+    : activeFile === mainContractFile ? verifier.verifierCairo
+    : activeFile === constantsFile ? verifier.constantsCairo
+    : (isNoir && activeFile === circuitsFile) ? verifier.circuitsCairo || ''
+    : ''
     : '';
 
   const handleDownloadZip = useCallback(async () => {
@@ -49,8 +60,11 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
     const src = zip.folder('src');
     if (src) {
       src.file('lib.cairo', libCairoContent);
-      src.file('groth16_verifier.cairo', verifier.verifierCairo);
-      src.file('groth16_verifier_constants.cairo', verifier.constantsCairo);
+      src.file(mainContractFile, verifier.verifierCairo);
+      src.file(constantsFile, verifier.constantsCairo);
+      if (isNoir && verifier.circuitsCairo) {
+        src.file(circuitsFile!, verifier.circuitsCairo);
+      }
     }
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
@@ -61,7 +75,7 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [verifier]);
+  }, [verifier, isNoir, mainContractFile, constantsFile, circuitsFile, libCairoContent]);
 
   return (
     <div className={styles.viewerRoot}>
@@ -122,27 +136,37 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
                         lib.cairo
                       </div>
                       <div
-                        className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier.cairo' ? styles.fileTreeActive : ''}`}
-                        onClick={() => setActiveFile('groth16_verifier.cairo')}
-                        style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier.cairo' ? { paddingLeft: 50 } : {}) }}
+                        className={`${styles.fileTreeItemNested} ${activeFile === mainContractFile ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile(mainContractFile)}
+                        style={{ paddingLeft: 52, ...(activeFile === mainContractFile ? { paddingLeft: 50 } : {}) }}
                       >
                         <CairoIcon style={{ marginRight: 4 }} />
-                        groth16_verifier.cairo
+                        {mainContractFile}
                       </div>
+                      {isNoir && circuitsFile && (
+                        <div
+                          className={`${styles.fileTreeItemNested} ${activeFile === circuitsFile ? styles.fileTreeActive : ''}`}
+                          onClick={() => setActiveFile(circuitsFile)}
+                          style={{ paddingLeft: 52, ...(activeFile === circuitsFile ? { paddingLeft: 50 } : {}) }}
+                        >
+                          <CairoIcon style={{ marginRight: 4 }} />
+                          {circuitsFile}
+                        </div>
+                      )}
                       <div
-                        className={`${styles.fileTreeItemNested} ${activeFile === 'groth16_verifier_constants.cairo' ? styles.fileTreeActive : ''}`}
-                        onClick={() => setActiveFile('groth16_verifier_constants.cairo')}
-                        style={{ paddingLeft: 52, ...(activeFile === 'groth16_verifier_constants.cairo' ? { paddingLeft: 50 } : {}) }}
+                        className={`${styles.fileTreeItemNested} ${activeFile === constantsFile ? styles.fileTreeActive : ''}`}
+                        onClick={() => setActiveFile(constantsFile)}
+                        style={{ paddingLeft: 52, ...(activeFile === constantsFile ? { paddingLeft: 50 } : {}) }}
                       >
                         <CairoIcon style={{ marginRight: 4 }} />
-                        groth16_verifier_constants.cairo
+                        {constantsFile}
                       </div>
                     </>
                   )}
                 </>
               )}
             </div>
-
+ 
             {/* Mobile-only Tabs View */}
             <div className={styles.mobileFileTabs}>
               <div
@@ -162,19 +186,29 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
               </div>
               
               <div
-                className={`${styles.fileTreeItem} ${activeFile === 'groth16_verifier.cairo' ? styles.fileTreeActive : ''}`}
-                onClick={() => setActiveFile('groth16_verifier.cairo')}
+                className={`${styles.fileTreeItem} ${activeFile === mainContractFile ? styles.fileTreeActive : ''}`}
+                onClick={() => setActiveFile(mainContractFile)}
               >
                 <CairoIcon style={{ marginRight: 6 }} />
-                src/groth16_verifier.cairo
+                src/{mainContractFile}
               </div>
               
+              {isNoir && circuitsFile && (
+                <div
+                  className={`${styles.fileTreeItem} ${activeFile === circuitsFile ? styles.fileTreeActive : ''}`}
+                  onClick={() => setActiveFile(circuitsFile)}
+                >
+                  <CairoIcon style={{ marginRight: 6 }} />
+                  src/{circuitsFile}
+                </div>
+              )}
+ 
               <div
-                className={`${styles.fileTreeItem} ${activeFile === 'groth16_verifier_constants.cairo' ? styles.fileTreeActive : ''}`}
-                onClick={() => setActiveFile('groth16_verifier_constants.cairo')}
+                className={`${styles.fileTreeItem} ${activeFile === constantsFile ? styles.fileTreeActive : ''}`}
+                onClick={() => setActiveFile(constantsFile)}
               >
                 <CairoIcon style={{ marginRight: 6 }} />
-                src/groth16_verifier_constants.cairo
+                src/{constantsFile}
               </div>
             </div>
           </div>
@@ -182,6 +216,7 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
       )}
 
       <div className={styles.cairoMain}>
+
         {/* Content area */}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <div className={styles.cairoContent} style={{ flex: 1, minHeight: 0 }}>

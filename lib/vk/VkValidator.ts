@@ -33,8 +33,23 @@ export class VkValidator {
       };
     }
 
+    const obj = vk as Record<string, unknown>;
+
     try {
       // ── Step 2: Use Garaga's internal math parser to validate it ───────
+      // ── Check Noir (UltraHonk) ────────────────────────────────────────────────
+      if (typeof obj.vkBase64 === 'string') {
+        return {
+          valid: true,
+          vk: obj,
+          summary: {
+            curve: 'BN254',
+            protocol: 'ultra_honk',
+            icLength: 0,
+          }
+        };
+      }
+
       const parsedVk = parseGroth16VerifyingKeyFromObject(vk);
       
       const curveName = parsedVk.alpha.curveId === 0 ? 'BN254' :
@@ -42,7 +57,6 @@ export class VkValidator {
                         `Unknown Curve (${parsedVk.alpha.curveId})`;
                         
       // Identify protocol heuristically for the UI display, default to Groth16
-      const obj = vk as Record<string, unknown>;
       let protocolName = 'groth16';
       if (typeof obj.protocol === 'string') {
         protocolName = obj.protocol;

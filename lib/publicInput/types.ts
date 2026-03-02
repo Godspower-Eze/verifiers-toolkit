@@ -1,5 +1,5 @@
 export interface PublicInputSummary {
-  format: 'gnark_object' | 'stark_array';
+  format: 'gnark_object' | 'stark_array' | 'noir_base64';
   count: number;
 }
 

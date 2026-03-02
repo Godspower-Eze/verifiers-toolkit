@@ -51,6 +51,15 @@ export class ProofValidator {
       };
     }
 
+    // ── Check Noir (UltraHonk) ────────────────────────────────────────────────
+    if (typeof obj.proofBase64 === 'string' && typeof obj.vkBase64 === 'string' && typeof obj.publicInputsBase64 === 'string') {
+      return {
+        valid: true,
+        proof: obj,
+        summary: { system: 'ultra_honk' }
+      };
+    }
+
     // ── Check Groth16 (Garaga's parser) ───────────────────────────────────────
     try {
       // Garaga's parseGroth16ProofFromObject expects public inputs alongside or embedded.

@@ -7,17 +7,49 @@
  */
 export type LanguageId = 'circom' | 'noir';
 
+// ─── Circuit templates ────────────────────────────────────────────────────────
+
+/**
+ * A built-in example circuit shown in the template picker.
+ * Language-agnostic: both Circom and Noir templates use this type.
+ */
+export interface CircuitTemplate {
+  /** Unique identifier (stable across renames). */
+  id: string;
+  /** Human-readable name shown in the picker. */
+  name: string;
+  /** One-line description of what the circuit does. */
+  description: string;
+  /** The language this template is written in. */
+  language: LanguageId;
+  /** All files in the template project. */
+  files: SourceFile[];
+  /** Filename of the entry point — must match an entry in `files`. */
+  entrypoint: string;
+  /**
+   * Pre-computed valid example inputs for this circuit.
+   * Values are BigInt strings (or arrays of BigInt strings) so they survive
+   * JSON round-trips and satisfy field-element requirements.
+   * Only input signals are included (outputs are excluded).
+   */
+  defaultInputs?: Record<string, string | string[]>;
+}
+
 // ─── Input ────────────────────────────────────────────────────────────────────
 
 /**
  * A single file in a multi-file circuit project.
+ * Language-agnostic — used for both Circom (.circom) and Noir (.nr) files.
  */
-export interface CircomFile {
-  /** Filename (e.g. "circuit.circom", "gates.circom"). Must be unique within the project. */
+export interface SourceFile {
+  /** Filename (e.g. "circuit.circom", "src/main.nr"). Must be unique within the project. */
   filename: string;
   /** Raw source content. */
   content: string;
 }
+
+/** @deprecated Use SourceFile instead. */
+export type CircomFile = SourceFile;
 
 /**
  * Language-agnostic circuit source. The `language` field routes the request to
@@ -30,7 +62,7 @@ export interface CompileSource {
   /** Circuit language. */
   language: LanguageId;
   /** All project files. Must contain at least one entry. */
-  files: CircomFile[];
+  files: SourceFile[];
   /** Filename of the entry point — must match an entry in `files`. */
   entrypoint: string;
 }
@@ -92,16 +124,101 @@ export interface CircomCompileResult {
   wasmJs?: string;
 }
 
+// ─── Noir ABI ─────────────────────────────────────────────────────────────────
+
 /**
- * Noir compilation result placeholder.
- * To be defined in Phase 3 when Noir compiler integration begins.
- * Noir produces ACIR (Abstract Circuit IR) + a witness generator (ACVM).
+ * Recursive type descriptor for a Noir ABI parameter.
+ *
+ * Noir's type system maps to these kinds:
+ *   field   — a single BN254 field element (252-bit integer)
+ *   integer — a bounded integer (u8, u32, i64, …); width in bits
+ *   boolean — a single bit (0 or 1)
+ *   array   — fixed-length homogeneous sequence; carries length + element type
+ *   string  — fixed-length UTF-8 byte array (rare in circuits)
+ *   tuple   — heterogeneous fixed-length sequence
+ *   struct  — named-field composite type
+ */
+export interface NoirAbiType {
+  kind: 'field' | 'integer' | 'boolean' | 'string' | 'array' | 'tuple' | 'struct';
+  /** integer: 'unsigned' | 'signed' */
+  sign?: 'unsigned' | 'signed';
+  /** integer: bit width (e.g. 32 for u32) */
+  width?: number;
+  /** array / string: number of elements */
+  length?: number;
+  /** array: element type */
+  type?: NoirAbiType;
+  /** tuple: ordered element types */
+  fields?: NoirAbiType[];
+}
+
+/**
+ * A single parameter in the Noir ABI.
+ *
+ * All `fn main(...)` parameters appear here — both `pub` and private.
+ * `visibility` controls whether the value ends up in the proof's public
+ * inputs, but every parameter must be supplied by the prover at witness
+ * generation time.
+ */
+export interface NoirAbiParameter {
+  name: string;
+  type: NoirAbiType;
+  /** 'public' → value appears in the proof's public inputs; 'private' → witness-only. */
+  visibility: 'private' | 'public';
+}
+
+/**
+ * The ABI section of a compiled Noir artifact (`target/circuit.json`).
+ *
+ * Why the ABI is the authoritative source for input inference (vs Circom's sym):
+ *   - It is a first-class compiler output, not a side-effect wire table.
+ *   - Array lengths are already resolved (no template-parameter ambiguity).
+ *   - Types are explicit (field / integer / boolean / array / struct).
+ *   - No cross-referencing with source text is needed.
+ */
+export interface NoirAbi {
+  /** All `fn main` parameters in declaration order. */
+  parameters: NoirAbiParameter[];
+  /**
+   * Return type of `fn main`, if any.
+   * This is an output — excluded from input inference.
+   */
+  return_type: { abi_type: NoirAbiType; visibility: 'private' | 'public' } | null;
+}
+
+// ─── Noir compile result ───────────────────────────────────────────────────────
+
+/**
+ * Noir compilation result produced by NoirServerCompiler.
+ *
+ * Noir produces ACIR (Abstract Circuit IR) via `nargo compile`.
+ * The artifact is a JSON file (`target/circuit.json`) containing the bytecode
+ * and ABI.  Unlike Circom there is no trusted setup — UltraHonk is a
+ * transparent proof system.
  */
 export interface NoirCompileResult {
-  /** Number of ACIR opcodes/gates, if reported. */
-  gates?: number;
-  /** Warnings emitted by the compiler. */
+  /**
+   * Number of gates (circuit size) from bb gates.
+   */
+  gateCount: number;
+  /**
+   * Number of ACIR opcodes from bb gates.
+   */
+  acirOpcodeCount: number;
+  /** Warnings emitted by nargo (lines matching `[warning]` in stdout). */
   warnings: string[];
+  /**
+   * Parsed ABI from the compiled artifact.
+   * Used by the client to infer input signal names and types without
+   * re-parsing the source.
+   */
+  abi: NoirAbi;
+  /**
+   * Base64-encoded raw content of `target/circuit.json`.
+   * Passed back to `/api/circuit/prove` so witness generation can proceed
+   * without re-compiling.
+   */
+  acirBase64: string;
 }
 
 /** Union of all language-specific compile results. */
