@@ -723,3 +723,23 @@ export async function generateCalldata(
   );
   return result.map((x: bigint) => x.toString());
 }
+
+export async function generateNoirCalldata(
+  proofBase64: string,
+  publicInputsBase64: string,
+  vkBase64: string
+): Promise<string[]> {
+  await garaga.init();
+
+  const proof = Buffer.from(proofBase64, 'base64');
+  const publicInputs = Buffer.from(publicInputsBase64, 'base64');
+  const vk = Buffer.from(vkBase64, 'base64');
+
+  const result = garaga.getZKHonkCallData(
+    new Uint8Array(proof),
+    new Uint8Array(publicInputs),
+    new Uint8Array(vk)
+  );
+  
+  return result.map((x: bigint) => x.toString());
+}
