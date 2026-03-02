@@ -40,6 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Powers of Tau ceremony files — large binaries uploaded to server manually
+*.ptau
 .scarb-workspace
 .error-logs.txt
 .error-logs-prod.txt
