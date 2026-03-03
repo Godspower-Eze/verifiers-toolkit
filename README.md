@@ -1,22 +1,47 @@
 # Cairo Verifiers Toolkit
 
-A web-based toolkit for compiling ZK circuits and generating on-chain Cairo verifiers for Starknet.
+A web-based toolkit for generating and deploying on-chain ZK verifier contracts for Starknet — from raw circuits all the way to live on-chain verification.
 
 **Live site:** [verifierstoolkit.xyz](https://verifierstoolkit.xyz)
 
+---
+
 ## What it does
 
-Write a Circom or Noir circuit, and the toolkit walks you through every step needed to deploy a working verifier contract on Starknet:
+The toolkit covers three workflows, each producing a deployed Cairo verifier on Starknet.
 
-1. **Compile** — compile your circuit (Circom → R1CS or Noir → ACIR)
-2. **Setup** — run the trusted setup and generate proving / verification keys
-3. **Prove** — generate a proof against a witness
-4. **Generate verifier** — produce a Cairo verifier contract powered by [Garaga](https://github.com/keep-starknet-strange/garaga)
-5. **Compile verifier** — compile the Cairo contract with Scarb
-6. **Deploy** — deploy the verifier to Starknet
-7. **Verify on-chain** — submit a proof and public inputs for on-chain verification
+### 1. Circuit → Verifier
 
-Supports **Groth16** (via Circom + SnarkJS) and **UltraHonk** (via Noir + Barretenberg).
+Write a Circom or Noir circuit and the toolkit handles every step end-to-end:
+
+| Step | Circom (Groth16) | Noir (UltraHonk) |
+|------|-----------------|-----------------|
+| Compile | `.circom` → R1CS | `.nr` → ACIR |
+| Setup | Trusted setup via SnarkJS + PTAU | Proving key via Barretenberg |
+| Prove | Generate proof + public inputs | Generate proof + public inputs |
+| Generate verifier | Groth16 Cairo verifier via Garaga | UltraHonk Cairo verifier via Garaga |
+| Compile verifier | Scarb | Scarb |
+| Deploy | Starknet (Sepolia / Mainnet) | Starknet (Sepolia / Mainnet) |
+| Verify on-chain | `verify(proof, public_inputs)` | `verify(proof, public_inputs)` |
+
+### 2. Verification Key → Verifier
+
+Already have a verification key? Skip the circuit and proving steps entirely. Upload a `verification_key.json` (Groth16) or the equivalent UltraHonk VK, and the toolkit generates, compiles, and deploys a Cairo verifier contract directly from it.
+
+### 3. Verify a Proof
+
+Have a deployed verifier, a proof, and public inputs? Submit them together to perform on-chain verification against any previously deployed contract — no redeployment needed.
+
+---
+
+## Supported proof systems
+
+| Proof system | Circuit language | Backend |
+|-------------|-----------------|---------|
+| Groth16 | Circom | SnarkJS |
+| UltraHonk | Noir | Barretenberg (bb) |
+
+---
 
 ## Tech stack
 
