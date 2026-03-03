@@ -21,7 +21,9 @@ export default function AppShell() {
     <div className={styles.shell}>
       {/* ── Sidebar ── */}
       <nav className={styles.sidebar}>
-        <div className={styles.brand}>◆</div>
+        <div className={styles.brand}>
+          <img src="/logo.svg" alt="Cairo Verifiers" width={28} height={28} />
+        </div>
         {tabs.map((tab) => (
           <button
             key={tab.id}

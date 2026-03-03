@@ -25,12 +25,13 @@
   justify-content: center;
   height: 56px;
   background: #111114;
-  color: #e8e8ed;
-  font-size: 22px;
-  font-weight: 700;
   flex-shrink: 0;
-  letter-spacing: 0.02em;
   border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.brand img {
+  display: block;
+  opacity: 0.9;
 }
 
 /* Each nav button fills the full sidebar width */
