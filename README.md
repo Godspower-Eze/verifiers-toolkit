@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cairo Verifiers Toolkit
 
-## Getting Started
+A web-based toolkit for compiling ZK circuits and generating on-chain Cairo verifiers for Starknet.
 
-First, run the development server:
+**Live site:** [verifierstoolkit.xyz](https://verifierstoolkit.xyz)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What it does
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Write a Circom or Noir circuit, and the toolkit walks you through every step needed to deploy a working verifier contract on Starknet:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Compile** — compile your circuit (Circom → R1CS or Noir → ACIR)
+2. **Setup** — run the trusted setup and generate proving / verification keys
+3. **Prove** — generate a proof against a witness
+4. **Generate verifier** — produce a Cairo verifier contract powered by [Garaga](https://github.com/keep-starknet-strange/garaga)
+5. **Compile verifier** — compile the Cairo contract with Scarb
+6. **Deploy** — deploy the verifier to Starknet
+7. **Verify on-chain** — submit a proof and public inputs for on-chain verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Supports **Groth16** (via Circom + SnarkJS) and **UltraHonk** (via Noir + Barretenberg).
 
-## Learn More
+## Tech stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js](https://nextjs.org) — frontend and API routes
+- [SnarkJS](https://github.com/iden3/snarkjs) — Groth16 proving backend
+- [Noir / Barretenberg](https://noir-lang.org) — UltraHonk proving backend
+- [Garaga](https://github.com/keep-starknet-strange/garaga) — Cairo verifier generation
+- [Starknet.js](https://www.starknetjs.com) — wallet connection and on-chain deployment
