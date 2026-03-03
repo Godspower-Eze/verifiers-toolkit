@@ -57,5 +57,5 @@ Already deployed a verifier and have a verification key, proof, and public input
 - [SnarkJS](https://github.com/iden3/snarkjs) — Groth16 proving backend
 - [Noir / Barretenberg](https://noir-lang.org) — UltraHonk proving backend
 - [Garaga](https://github.com/keep-starknet-strange/garaga) — Cairo verifier generation and calldata encoding
-- [starknet-kit](https://github.com/keep-starknet-strange/starknet-kit) — Starknet utilities
+- [starknet-kit](https://www.starknetkit.com) — Starknet utilities
 - [Starknet.js](https://www.starknetjs.com) — wallet connection and on-chain deployment
