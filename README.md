@@ -22,7 +22,7 @@ Write a Circom or Noir circuit and the toolkit handles every step end-to-end:
 | Generate verifier | Groth16 Cairo verifier via Garaga | UltraHonk Cairo verifier via Garaga |
 | Compile verifier | Scarb | Scarb |
 | Deploy | Starknet (Sepolia / Mainnet) | Starknet (Sepolia / Mainnet) |
-| Verify on-chain | Submit proof + public inputs on-chain (BN254 or BLS12-381) | Submit proof + public inputs on-chain |
+| Verify on-chain | Submit verification key, proof, and public inputs — calldata generated off-chain (BN254 or BLS12-381) | Submit verification key, proof, and public inputs — calldata generated off-chain |
 
 ### 2. Verification Key → Verifier
 
