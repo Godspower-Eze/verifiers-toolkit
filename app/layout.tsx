@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cairo Verifiers Toolkit",
+  title: "Verifiers Toolkit",
   description: "Compile circuits, generate Cairo verifiers, and test full end-to-end ZK proofs on Starknet.",
 };
 

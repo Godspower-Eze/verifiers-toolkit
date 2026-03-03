@@ -1,7 +1,7 @@
-# Cairo Verifiers Toolkit
+# Verifiers Toolkit
 
 <p align="center">
-  <img src="public/logo.png" alt="Cairo Verifiers Toolkit" width="120" />
+  <img src="public/logo.png" alt="Verifiers Toolkit" width="120" />
 </p>
 
 <p align="center">
