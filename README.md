@@ -22,7 +22,7 @@ Write a Circom or Noir circuit and the toolkit handles every step end-to-end:
 | Generate verifier | Groth16 Cairo verifier via Garaga | UltraHonk Cairo verifier via Garaga |
 | Compile verifier | Scarb | Scarb |
 | Deploy | Starknet (Sepolia / Mainnet) | Starknet (Sepolia / Mainnet) |
-| Verify on-chain | Submit verification key, proof, and public inputs — calldata generated off-chain (BN254 or BLS12-381) | Submit verification key, proof, and public inputs — calldata generated off-chain |
+| Verify on-chain | Verification key + proof + public inputs → calldata (off-chain) → on-chain call (BN254 or BLS12-381) | Verification key + proof + public inputs → calldata (off-chain) → on-chain call |
 
 ### 2. Verification Key → Verifier
 
@@ -30,7 +30,7 @@ Already have a verification key? Skip the circuit and proving steps entirely. Up
 
 ### 3. Verify a Proof
 
-Have a deployed verifier, a proof, and public inputs? Submit them together to perform on-chain verification against any previously deployed contract — no redeployment needed.
+Already deployed a verifier and have a verification key, proof, and public inputs? Submit them together — calldata is generated off-chain and the transaction is sent to your deployed verifier contract for on-chain verification.
 
 ---
 
