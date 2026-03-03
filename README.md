@@ -54,7 +54,7 @@ Already deployed a verifier and have a verification key, proof, and public input
 ## Tech stack
 
 - [Next.js](https://nextjs.org) — frontend and API routes
-- [circom-wasm](https://github.com/distributed-lab/circom-wasm) — Circom compiler (WASM)
+- [circom2](https://github.com/distributed-lab/circom-wasm) — Circom 2 compiler
 - [SnarkJS](https://github.com/iden3/snarkjs) — Groth16 proving backend
 - [Noir / Barretenberg](https://noir-lang.org) — UltraHonk proving backend
 - [Garaga](https://github.com/keep-starknet-strange/garaga) — Cairo verifier generation and calldata encoding
