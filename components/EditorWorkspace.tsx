@@ -751,7 +751,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
       <div className={styles.colDivider} onMouseDown={dragCol1Divider} style={{ zIndex: 10 }} />
 
       {/* ── Right column: Setup / Prove ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <div className={`${styles.colWrap} ${styles.rightColWrap}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {compileState !== 'success' ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13, background: '#0a0a0c' }}>
             <p>Compiled artifacts will appear here.</p>
@@ -900,7 +900,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                       {/* VK Output Display */}
                       {vkState === 'success' && setupResult?.vkJson && (
                         <div style={{ animation: 'fadeIn 0.3s ease-out', paddingLeft: 30 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #222' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #222', flexWrap: 'wrap', gap: 8 }}>
                             <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Verification Key</span>
                             <div style={{ display: 'flex', gap: 8 }}>
                               <button
@@ -936,6 +936,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                           onClick={() => {
                             localStorage.setItem('cairo_verifier_generator_pending_vk', setupResult.vkJson);
                             localStorage.setItem('cairo_verifier_generator_pending_vk_format', 'circom');
+                            window.dispatchEvent(new CustomEvent('pending-vk-updated', { detail: { format: 'circom' } }));
                             onNavigateToVk();
                           }}
                           className={styles.compileBtn}
@@ -1110,7 +1111,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                                   {copiedPublic ? <span style={{ color: '#10b981' }}>✓ Copied</span> : 'Copy Base64'}
                                 </button>
                               </div>
-                              <div style={{ background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 12 }}>
+                              <div style={{ background: '#0a0a0c', borderRadius: 6, border: '1px solid #1e293b', padding: 12, overflow: 'hidden' }}>
                                 {(() => {
                                   try {
                                     const pubInputs = [];
@@ -1121,9 +1122,9 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                                       pubInputs.push(num.toString());
                                     }
                                     return pubInputs.map((val, idx) => (
-                                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                                        <span style={{ color: '#64748b', fontSize: 11, minWidth: 20 }}>{idx + 1}.</span>
-                                        <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0' }}>{val}</code>
+                                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 4, minWidth: 0 }}>
+                                        <span style={{ color: '#64748b', fontSize: 11, minWidth: 20, flexShrink: 0 }}>{idx + 1}.</span>
+                                        <code style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 11, color: '#e2e8f0', wordBreak: 'break-all', minWidth: 0 }}>{val}</code>
                                       </div>
                                     ));
                                   } catch {
@@ -1180,7 +1181,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
 
                               {noirCalldataState === 'success' && noirCalldataResult && (
                                 <div style={{ marginTop: 16, animation: 'fadeIn 0.3s ease-out' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                                     <span className={styles.paneLabelSmall} style={{ color: '#06b6d4', fontSize: 14 }}>On-chain Calldata (Array)</span>
                                     <button
                                       onClick={() => {
@@ -1213,6 +1214,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                                 onClick={() => {
                                   localStorage.setItem('cairo_verifier_generator_pending_vk', proveResult.vkBase64);
                                   localStorage.setItem('cairo_verifier_generator_pending_vk_format', 'noir');
+                                  window.dispatchEvent(new CustomEvent('pending-vk-updated', { detail: { format: 'noir' } }));
                                   onNavigateToVk();
                                 }}
                                 className={styles.compileBtn}
@@ -1255,7 +1257,7 @@ export default function EditorWorkspace({ onNavigateToVk }: EditorWorkspaceProps
                             </div>
 
                             {/* Circom: Public Inputs JSON */}
-                            <div style={{ flex: 1 }}>
+                            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                                 <span className={styles.paneLabelSmall} style={{ color: '#10b981', fontSize: 14 }}>Public Inputs</span>
                                 <div style={{ display: 'flex', gap: 6 }}>

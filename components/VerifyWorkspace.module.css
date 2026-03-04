@@ -173,33 +173,67 @@
 @media (max-width: 800px) {
   .workspace {
     height: 100% !important;
-    overflow-y: hidden !important;
+    overflow-y: auto !important;
     overflow-x: hidden !important;
     display: flex !important;
     flex-direction: column !important;
     padding-bottom: 0px !important;
   }
-  
+
   .hideOnMobile {
     display: none !important;
   }
-  
+
   .header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 16px !important;
   }
-  
+
+  /* Full-width system switcher with equal-width buttons */
+  .systemSwitcher {
+    align-self: stretch !important;
+  }
+  .systemSwitcher button {
+    flex: 1 !important;
+  }
+
+  /* Full-width mode toggle flush with container edges */
+  .modeSwitcher {
+    margin: 0 16px !important;
+    align-self: stretch !important;
+  }
+  .modeSwitcher button {
+    flex: 1 !important;
+  }
+
+  /* Editors stack vertically, each with a clamped Monaco height */
   .mainGrid {
-    grid-template-columns: 1fr;
-    flex: 1 1 0;
-    overflow-y: auto;
-    min-height: 0;
+    grid-template-columns: 1fr !important;
+    overflow-y: visible !important;
+    flex: none !important;
+    min-height: 0 !important;
   }
-  
+
   .editorCol {
-    height: 400px;
-    border-right: none;
+    height: auto !important;
+    min-height: 0;
+    border-right: none !important;
     border-bottom: 1px solid var(--border-color);
+  }
+
+  .monacoWrap {
+    min-height: clamp(240px, 40vh, 360px) !important;
+    min-height: clamp(240px, 40dvh, 360px) !important;
+    max-height: clamp(240px, 40vh, 360px) !important;
+    max-height: clamp(240px, 40dvh, 360px) !important;
+  }
+
+  /* Operation Logs footer stays in place as content scrolls above */
+  .verifyFooter {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 10 !important;
   }
 }

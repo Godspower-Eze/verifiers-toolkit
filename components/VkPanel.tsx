@@ -33,15 +33,17 @@ export default function VkPanel({ onValidVk, onClearVk, initialFormat = 'circom'
   const { saveVk } = usePersistedVk();
 
   // ── Validate ────────────────────────────────────────────────────────────────
-  const validateRawJson = useCallback(async (raw: string) => {
+  const validateRawJson = useCallback(async (raw: string, overrideFormat?: VkFormat) => {
     setVkState('validating');
     setErrors([]);
     setValidVk(null);
     setVkSummary(null);
 
     try {
-      // If format is noir or auto-detected as likely noir (starts with AAAA...), validate as noir
-      const isNoirFormat = vkFormat === 'noir' || raw.startsWith('AAAA');
+      // overrideFormat lets callers (e.g. loadPendingVk) supply the correct format
+      // before the setVkFormat state update has flushed through a re-render.
+      const effectiveFormat = overrideFormat ?? vkFormat;
+      const isNoirFormat = effectiveFormat === 'noir' || raw.startsWith('AAAA');
       
       if (isNoirFormat) {
         // Validate as Noir VK (binary base64)
@@ -98,27 +100,36 @@ export default function VkPanel({ onValidVk, onClearVk, initialFormat = 'circom'
   }, [vkFormat, onValidVk, saveVk]);
 
   // ── Auto-load generated VKs ────────────────────────────────────────────────
-  useEffect(() => {
+  const loadPendingVk = useCallback(() => {
     try {
       const pendingVk = localStorage.getItem('cairo_verifier_generator_pending_vk');
       const pendingVkFormat = localStorage.getItem('cairo_verifier_generator_pending_vk_format');
       if (pendingVk) {
-        // Set format if provided
-        if (pendingVkFormat === 'noir') {
-          setVkFormat('noir');
-        } else if (pendingVkFormat === 'circom') {
-          setVkFormat('circom');
-        }
+        // Clear old verifier state immediately before async validation begins
+        onClearVk();
+        setVkState('idle');
+        setErrors([]);
+        setValidVk(null);
+        setVkSummary(null);
+
+        const targetFormat: VkFormat = pendingVkFormat === 'noir' ? 'noir' : 'circom';
+        setVkFormat(targetFormat);
         setPasteValue(pendingVk);
-        validateRawJson(pendingVk);
-        // Clean up so it doesn't auto-load again if they clear and refresh
+        // Pass targetFormat explicitly — setVkFormat won't flush until next render
+        validateRawJson(pendingVk, targetFormat);
         localStorage.removeItem('cairo_verifier_generator_pending_vk');
         localStorage.removeItem('cairo_verifier_generator_pending_vk_format');
       }
     } catch (err) {
       console.error('Failed to read pending VK from local storage:', err);
     }
-  }, [validateRawJson]);
+  }, [validateRawJson, onClearVk]);
+
+  useEffect(() => {
+    loadPendingVk();
+    window.addEventListener('pending-vk-updated', loadPendingVk);
+    return () => window.removeEventListener('pending-vk-updated', loadPendingVk);
+  }, [loadPendingVk]);
 
   // ── File upload ────────────────────────────────────────────────────────────
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
