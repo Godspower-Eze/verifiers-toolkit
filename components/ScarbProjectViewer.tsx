@@ -231,7 +231,7 @@ export default function ScarbProjectViewer({ verifier, generateState, generateEr
               </div>
             )}
             {generateState === 'error' && (
-              <div className={styles.cairoPlaceholderError}>✗ {generateError}</div>
+              <div className={styles.cairoPlaceholder}>Generation failed — see the error above.</div>
             )}
             {verifier && (
               <MonacoEditor

@@ -11,6 +11,7 @@ import type { PublicInputSummary } from '../lib/publicInput/types';
 import styles from './VerifyWorkspace.module.css';
 import editorStyles from './EditorWorkspace.module.css';
 import type { ProofSummary } from '../lib/proof/types';
+import { parseCalldataInput } from '../lib/utils/parseCalldata';
 
 export default function VerifyWorkspace() {
   const { wallet, address, chainId, isConnected, connectWallet, disconnectWallet } = useStarknetWalletContext();
@@ -136,6 +137,14 @@ export default function VerifyWorkspace() {
   // }
 }`);
 
+  // ── Input mode toggle
+  const [inputMode, setInputMode] = useState<'fields' | 'calldata'>('fields');
+
+  // ── Calldata mode inputs
+  const [calldataInput, setCalldataInput] = useState('');
+  const [calldataCurve, setCalldataCurve] = useState<'BN254' | 'BLS12_381'>('BN254');
+  const [uhCalldataInput, setUhCalldataInput] = useState('');
+
   // ── UltraHonk inputs (raw base64)
   const [uhProofB64, setUhProofB64] = useState('');
   const [uhPublicB64, setUhPublicB64] = useState('');
@@ -165,6 +174,7 @@ export default function VerifyWorkspace() {
   // ── System switcher — clear state on switch
   const handleSwitchSystem = useCallback((system: 'groth16' | 'ultra_honk') => {
     setVerifySystem(system);
+    setInputMode('fields');
     setLogs([]);
     // Clear UltraHonk fields
     setUhProofB64('');
@@ -180,6 +190,17 @@ export default function VerifyWorkspace() {
     setPublicSummary(null);
     setPublicError(null);
   }, []);
+
+  // ── Sync system when Generate Verifier is clicked in EditorWorkspace
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const format = (e as CustomEvent<{ format: string }>).detail?.format;
+      if (format === 'noir') handleSwitchSystem('ultra_honk');
+      else if (format === 'circom') handleSwitchSystem('groth16');
+    };
+    window.addEventListener('pending-vk-updated', handler);
+    return () => window.removeEventListener('pending-vk-updated', handler);
+  }, [handleSwitchSystem]);
 
   // ── Groth16: Proof Validation Effect
   useEffect(() => {
@@ -386,7 +407,21 @@ export default function VerifyWorkspace() {
       let calldata: string[];
       let entryPoint: string;
 
-      if (verifySystem === 'ultra_honk') {
+      if (inputMode === 'calldata') {
+        // ── Calldata mode: use pasted calldata directly, skip generation
+        const raw = verifySystem === 'ultra_honk' ? uhCalldataInput : calldataInput;
+        const parsed = parseCalldataInput(raw);
+        if (!parsed || parsed.length === 0) {
+          addLog('❌ Could not parse calldata. Provide a JSON array or comma-separated hex strings.', 'error');
+          setIsVerifying(false);
+          return;
+        }
+        calldata = parsed;
+        entryPoint = verifySystem === 'ultra_honk'
+          ? 'verify_ultra_keccak_zk_honk_proof'
+          : `verify_groth16_proof_${calldataCurve.toLowerCase()}`;
+        addLog(`Using pasted calldata (${calldata.length} args) for ${entryPoint}...`, 'info');
+      } else if (verifySystem === 'ultra_honk') {
         addLog('Generating UltraHonk calldata via Garaga adapter...', 'info');
         try {
           calldata = await generateNoirCalldata(uhProofB64.trim(), uhPublicB64.trim(), uhVkB64.trim());
@@ -456,9 +491,16 @@ export default function VerifyWorkspace() {
     }
   };
 
-  const isVerifyEnabled = verifySystem === 'ultra_honk'
-    ? uhVkValid && isValidBase64(uhProofB64) && isValidBase64(uhPublicB64) && !!contractAddress
-    : !!vkSummary && !!proofSummary && !!publicSummary && !!contractAddress;
+  const isVerifyEnabled = (() => {
+    if (!contractAddress) return false;
+    if (inputMode === 'calldata') {
+      const raw = verifySystem === 'ultra_honk' ? uhCalldataInput : calldataInput;
+      return (parseCalldataInput(raw)?.length ?? 0) > 0;
+    }
+    return verifySystem === 'ultra_honk'
+      ? uhVkValid && isValidBase64(uhProofB64) && isValidBase64(uhPublicB64)
+      : !!vkSummary && !!proofSummary && !!publicSummary;
+  })();
 
   const textareaStyle: React.CSSProperties = {
     width: '100%',
@@ -511,7 +553,7 @@ export default function VerifyWorkspace() {
         </div>
 
         {/* System switcher */}
-        <div style={{ display: 'flex', gap: 0, borderRadius: 6, overflow: 'hidden', border: '1px solid #30363d', alignSelf: 'center' }}>
+        <div className={styles.systemSwitcher} style={{ display: 'flex', gap: 0, borderRadius: 6, overflow: 'hidden', border: '1px solid #30363d', alignSelf: 'center' }}>
           <button
             onClick={() => handleSwitchSystem('groth16')}
             style={{
@@ -546,7 +588,75 @@ export default function VerifyWorkspace() {
         </div>
       </div>
 
+      {/* ── Input mode toggle ── */}
+      <div className={styles.modeSwitcher} style={{ display: 'flex', gap: 0, margin: '0 24px 0', borderRadius: 6, overflow: 'hidden', border: '1px solid #30363d', alignSelf: 'flex-start', flexShrink: 0 }}>
+        <button
+          onClick={() => setInputMode('fields')}
+          style={{
+            padding: '6px 16px', fontSize: 12, fontWeight: inputMode === 'fields' ? 600 : 400,
+            background: inputMode === 'fields' ? 'rgba(255,255,255,0.08)' : 'transparent',
+            color: inputMode === 'fields' ? '#e2e8f0' : '#64748b',
+            border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          VK / Proof / Public
+        </button>
+        <button
+          onClick={() => setInputMode('calldata')}
+          style={{
+            padding: '6px 16px', fontSize: 12, fontWeight: inputMode === 'calldata' ? 600 : 400,
+            background: inputMode === 'calldata' ? 'rgba(255,255,255,0.08)' : 'transparent',
+            color: inputMode === 'calldata' ? '#e2e8f0' : '#64748b',
+            border: 'none', borderLeft: '1px solid #30363d', cursor: 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          Paste Calldata
+        </button>
+      </div>
+
       {verifySystem === 'groth16' ? (
+        inputMode === 'calldata' ? (
+          /* ── Groth16 calldata mode ── */
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px', overflowY: 'auto', minHeight: 0 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 500 }}>Calldata</span>
+                {(['BN254', 'BLS12_381'] as const).map((curve) => (
+                  <button
+                    key={curve}
+                    onClick={() => setCalldataCurve(curve)}
+                    style={{
+                      padding: '3px 10px', fontSize: 11, borderRadius: 4, border: '1px solid',
+                      borderColor: calldataCurve === curve ? 'rgba(96,165,250,0.5)' : '#30363d',
+                      background: calldataCurve === curve ? 'rgba(96,165,250,0.1)' : 'transparent',
+                      color: calldataCurve === curve ? '#60a5fa' : '#64748b',
+                      cursor: 'pointer', fontWeight: calldataCurve === curve ? 600 : 400,
+                    }}
+                  >
+                    {curve}
+                  </button>
+                ))}
+                <span style={{ fontSize: 11, color: '#475569' }}>→ verify_groth16_proof_{calldataCurve.toLowerCase()}</span>
+                {calldataInput.trim() && (() => {
+                  const parsed = parseCalldataInput(calldataInput);
+                  return parsed
+                    ? <span style={{ fontSize: 12, color: '#4ade80' }}>✓ {parsed.length} args</span>
+                    : <span style={{ fontSize: 12, color: '#f87171' }}>✗ Invalid format — must be hex (0x…) strings</span>;
+                })()}
+              </div>
+              <textarea
+                style={{ ...textareaStyle, minHeight: 200, flex: 1 }}
+                placeholder={`// Paste calldata as a JSON array or comma-separated hex strings\n// e.g. ["0x1a2b...", "0x3c4d...", ...]\n// Use the calldata generated from the Circuit page.`}
+                value={calldataInput}
+                onChange={(e) => setCalldataInput(e.target.value)}
+                spellCheck={false}
+              />
+              <p style={{ margin: '8px 0 0', fontSize: 11, color: '#475569' }}>
+                Accepts a JSON array <code style={{ color: '#94a3b8' }}>["0x1", "0x2", ...]</code>, decimal strings <code style={{ color: '#94a3b8' }}>["123", "456", ...]</code>, an unquoted array <code style={{ color: '#94a3b8' }}>[0x1, 0x2, ...]</code>, or comma/space-separated values.
+              </p>
+            </div>
+          </div>
+        ) : (
         <div className={styles.mainGrid}>
           <div className={styles.editorCol}>
             <div className={styles.paneHeader}>
@@ -635,8 +745,36 @@ export default function VerifyWorkspace() {
             </div>
           </div>
         </div>
+        )
       ) : (
-        /* UltraHonk mode — plain textarea inputs */
+        inputMode === 'calldata' ? (
+          /* ── UltraHonk calldata mode ── */
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px', overflowY: 'auto', minHeight: 0 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 500 }}>Calldata</span>
+                <span style={{ fontSize: 11, color: '#475569' }}>→ verify_ultra_keccak_zk_honk_proof</span>
+                {uhCalldataInput.trim() && (() => {
+                  const parsed = parseCalldataInput(uhCalldataInput);
+                  return parsed
+                    ? <span style={{ fontSize: 12, color: '#4ade80' }}>✓ {parsed.length} args</span>
+                    : <span style={{ fontSize: 12, color: '#f87171' }}>✗ Invalid format — must be hex (0x…) strings</span>;
+                })()}
+              </div>
+              <textarea
+                style={{ ...textareaStyle, minHeight: 200, flex: 1 }}
+                placeholder={`// Paste calldata as a JSON array or comma-separated hex strings\n// e.g. ["0x1a2b...", "0x3c4d...", ...]\n// Use the calldata generated from the Circuit page.`}
+                value={uhCalldataInput}
+                onChange={(e) => setUhCalldataInput(e.target.value)}
+                spellCheck={false}
+              />
+              <p style={{ margin: '8px 0 0', fontSize: 11, color: '#475569' }}>
+                Accepts a JSON array <code style={{ color: '#94a3b8' }}>["0x1", ...]</code>, decimal strings <code style={{ color: '#94a3b8' }}>["123", ...]</code>, an unquoted array <code style={{ color: '#94a3b8' }}>[0x1, ...]</code>, or comma/space-separated values.
+              </p>
+            </div>
+          </div>
+        ) : (
+        /* UltraHonk fields mode — plain textarea inputs */
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px', overflowY: 'auto', minHeight: 0 }}>
 
           {/* VK */}
@@ -688,12 +826,13 @@ export default function VerifyWorkspace() {
             />
           </div>
         </div>
+        )
       )}
 
       {/* Resizable Divider */}
       <div className={editorStyles.rowDivider} onMouseDown={dragRowDivider} style={{ zIndex: 10 }} />
 
-      <div className={editorStyles.deployFooterWrap}>
+      <div className={`${editorStyles.deployFooterWrap} ${styles.verifyFooter}`}>
         {/* The Verify / Deploy Bar sits on top of the logs */}
         <div className={editorStyles.deployBar}>
           {isConnected ? (

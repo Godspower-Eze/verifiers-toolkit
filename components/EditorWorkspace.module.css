@@ -930,7 +930,7 @@
 }
 
 /* ─── Mobile Responsiveness ───────────────────────────────────────── */
-@media (max-width: 800px) {
+@media (max-width: 1200px) {
   .hideOnMobile {
     display: none !important;
   }
@@ -970,6 +970,20 @@
     border-right: none !important;
     border-bottom: 1px solid #222;
   }
+  /* VkPanel wrapper: let content flow into workspace scroll instead of scrolling internally */
+  .vkPanelScroll {
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 0;
+  }
+  .rightColWrap {
+    height: clamp(400px, 62vh, 70vh) !important;
+    height: clamp(400px, 62dvh, 70dvh) !important;
+  }
+  .compileBtn {
+    white-space: normal !important;
+  }
   .colWrap.cairoPane {
     flex: 1 1 auto !important;
     display: flex !important;
@@ -983,7 +997,10 @@
   }
   .monacoWrap {
     flex: 1 1 0;
-    min-height: 40vh !important;
+    min-height: clamp(200px, 38vh, 50vh) !important;
+    min-height: clamp(200px, 38dvh, 50dvh) !important;
+    max-height: clamp(200px, 38vh, 50vh) !important;
+    max-height: clamp(200px, 38dvh, 50dvh) !important;
     position: relative;
     z-index: 5;
   }
@@ -1024,6 +1041,23 @@
     border-top: 1px solid #222;
     position: relative;
     z-index: 10;
+  }
+  /* VkWorkspace-specific layout — scoped so circuit section is unaffected */
+  .vkGeneratorPanel {
+    height: auto !important;
+    background: #0a0a0d !important;
+    border-top: 1px solid #222 !important;
+    flex-shrink: 0 !important;
+  }
+  /* Col2 in VkWorkspace: min-height forces workspace to scroll; deploy footer lands at bottom */
+  .vkCairoCol {
+    min-height: 100dvh !important;
+  }
+  /* Deployment Logs footer stays in place as content scrolls above */
+  .vkDeployFooter {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 10 !important;
   }
   
   /* Convert File Tree to Horizontal Tabs on Mobile */
@@ -1096,3 +1130,4 @@
     display: none !important;
   }
 }
+

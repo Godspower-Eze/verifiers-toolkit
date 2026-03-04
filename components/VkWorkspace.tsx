@@ -136,7 +136,7 @@ export default function VkWorkspace() {
         {/* ── Col 1: VK Panel + Generate Output ── */}
         <div className={styles.colWrap} style={{ width: col1Width, flexShrink: 0, minHeight: 0, minWidth: 0 }}>
           <div className={styles.paneLabelSmall}><span>Verification Key</span></div>
-          <div style={{ flex: 1, overflow: 'auto', minHeight: 0, minWidth: 0 }}>
+          <div className={styles.vkPanelScroll} style={{ flex: 1, overflow: 'auto', minHeight: 0, minWidth: 0 }}>
             <VkPanel
               onValidVk={(vk, format) => { setValidVk(vk); setVkFormat(format); setGenerateState('idle'); setVerifier(null); }}
               onClearVk={() => { setValidVk(null); setVerifier(null); setGenerateState('idle'); }}
@@ -146,7 +146,7 @@ export default function VkWorkspace() {
 
           <div className={styles.rowDivider} onMouseDown={dragRow1Divider} />
 
-          <div className={styles.outputPanel} style={{ height: outputHeight1, minHeight: 0, minWidth: 0 }}>
+          <div className={`${styles.outputPanel} ${styles.vkGeneratorPanel}`} style={{ height: outputHeight1, minHeight: 0, minWidth: 0 }}>
             <div className={styles.paneLabelSmall}>
               <span>Generator</span>
               {validVk && (
@@ -187,7 +187,7 @@ export default function VkWorkspace() {
         <div className={styles.colDivider} onMouseDown={dragCol1Divider} />
 
         {/* ── Col 2: Scarb Project Viewer + Deploy ── */}
-        <div className={`${styles.colWrap} ${styles.cairoPane} ${!verifier ? styles.hideOnMobileEmpty : ''}`} style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className={`${styles.colWrap} ${styles.cairoPane} ${styles.vkCairoCol} ${!verifier ? styles.hideOnMobileEmpty : ''}`} style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, minWidth: 0 }}>
             <ScarbProjectViewer 
               verifier={verifier} 
@@ -198,7 +198,7 @@ export default function VkWorkspace() {
           </div>
 
           {verifier && (
-            <div className={styles.deployFooterWrap}>
+            <div className={`${styles.deployFooterWrap} ${styles.vkDeployFooter}`}>
               {/* Deploy bar */}
               <div className={styles.deployBar}>
                 {isConnected ? (
